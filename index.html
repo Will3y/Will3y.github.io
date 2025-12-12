@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vitrine Créative</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="logo">Vitrine<span>.</span></div>
+    <nav class="nav" id="nav">
+      <a href="#accueil">Accueil</a>
+      <a href="#galerie">Galerie</a>
+      <a href="#services">Services</a>
+      <a href="#apropos">À propos</a>
+      <a href="#contact">Contact</a>
+    </nav>
+    <button class="nav-toggle" aria-label="Ouvrir le menu" id="navToggle">
+      <span></span><span></span><span></span>
+    </button>
+  </header>
+
+  <main>
+    <section class="hero" id="accueil">
+      <div class="hero-text">
+        <p class="eyebrow">Vitrine moderne</p>
+        <h1>Présentez vos photos avec style.</h1>
+        <p class="lede">
+          Une page épurée et prête à accueillir vos images, vos couleurs et votre univers.
+        </p>
+        <div class="hero-actions">
+          <a class="btn primary" href="#galerie">Voir la galerie</a>
+          <a class="btn ghost" href="#contact">Parler du projet</a>
+        </div>
+      </div>
+      <div class="hero-visual">
+        <div class="hero-card">
+          <div class="hero-thumb" role="img" aria-label="Image mise en avant"></div>
+          <div class="hero-meta">
+            <p>Nom de série</p>
+            <span>Ajoutez ici votre texte phare.</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="galerie">
+      <div class="section-head">
+        <p class="eyebrow">Galerie</p>
+        <div>
+          <h2>Un aperçu en quelques visuels</h2>
+          <p>Remplacez les vignettes par vos photos dans le dossier <code>assets</code>.</p>
+        </div>
+      </div>
+      <div class="gallery-grid">
+        <figure class="card">
+          <div class="thumb" style="background-image: var(--ph-1);" role="img" aria-label="Photo 1"></div>
+          <figcaption>Photo 1</figcaption>
+        </figure>
+        <figure class="card">
+          <div class="thumb" style="background-image: var(--ph-2);" role="img" aria-label="Photo 2"></div>
+          <figcaption>Photo 2</figcaption>
+        </figure>
+        <figure class="card">
+          <div class="thumb" style="background-image: var(--ph-3);" role="img" aria-label="Photo 3"></div>
+          <figcaption>Photo 3</figcaption>
+        </figure>
+        <figure class="card">
+          <div class="thumb" style="background-image: var(--ph-4);" role="img" aria-label="Photo 4"></div>
+          <figcaption>Photo 4</figcaption>
+        </figure>
+        <figure class="card">
+          <div class="thumb" style="background-image: var(--ph-5);" role="img" aria-label="Photo 5"></div>
+          <figcaption>Photo 5</figcaption>
+        </figure>
+        <figure class="card">
+          <div class="thumb" style="background-image: var(--ph-6);" role="img" aria-label="Photo 6"></div>
+          <figcaption>Photo 6</figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <section class="section tinted" id="services">
+      <div class="section-head">
+        <p class="eyebrow">Services</p>
+        <div>
+          <h2>Ce que vous proposez</h2>
+          <p>Décrivez vos offres pour guider vos visiteurs.</p>
+        </div>
+      </div>
+      <div class="pillars">
+        <article class="pillar">
+          <h3>Prise de vue</h3>
+          <p>Séances photo sur mesure pour mettre en valeur vos sujets.</p>
+        </article>
+        <article class="pillar">
+          <h3>Retouche</h3>
+          <p>Edition soignée et calibrage couleur pour des images prêtes à publier.</p>
+        </article>
+        <article class="pillar">
+          <h3>Conseil</h3>
+          <p>Accompagnement sur la sélection, l'accrochage ou la diffusion.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="section" id="apropos">
+      <div class="section-head">
+        <p class="eyebrow">À propos</p>
+        <div>
+          <h2>Quelques mots</h2>
+          <p>Ajoutez un paragraphe qui résume votre vision et votre approche.</p>
+        </div>
+      </div>
+      <div class="about">
+        <div class="about-card">
+          <h3>Votre histoire</h3>
+          <p>Racontez brièvement comment vous en êtes arrivé ici et ce qui vous motive.</p>
+        </div>
+        <div class="about-card">
+          <h3>Méthode</h3>
+          <p>Expliquez comment vous travaillez et ce que vos clients peuvent attendre.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section tinted" id="contact">
+      <div class="section-head">
+        <p class="eyebrow">Contact</p>
+        <div>
+          <h2>Prendre rendez-vous</h2>
+          <p>Un formulaire simple pour être recontacté.</p>
+        </div>
+      </div>
+      <form class="contact-form">
+        <label>
+          Nom
+          <input type="text" name="name" placeholder="Votre nom">
+        </label>
+        <label>
+          Email
+          <input type="email" name="email" placeholder="vous@email.com">
+        </label>
+        <label>
+          Message
+          <textarea name="message" rows="4" placeholder="Parlez de votre projet"></textarea>
+        </label>
+        <button class="btn primary" type="submit">Envoyer</button>
+      </form>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div>
+      <p class="logo">Vitrine<span>.</span></p>
+      <p>Ajoutez vos mentions légales ou liens sociaux.</p>
+    </div>
+    <div class="footer-links">
+      <a href="#accueil">Haut de page</a>
+      <a href="#galerie">Galerie</a>
+      <a href="#contact">Contact</a>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
