@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+  <title>Buzzer · Les 30 ans de Morgane 🎂</title>
+  <meta name="theme-color" content="#1c0b3a" id="themeColor">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Buzzer Morgane">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="img/icon-192.png" type="image/png">
+  <link rel="apple-touch-icon" href="img/apple-touch-icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bungee&family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/common.css">
+  <link rel="stylesheet" href="css/buzz.css">
+  <script src="vendor/peerjs.min.js"></script>
+  <script type="module" src="js/buzz.js"></script>
+</head>
+<body class="phone" data-state="join">
+  <div class="bg-shapes" aria-hidden="true"></div>
+
+  <header class="ph-head">
+    <div class="ph-brand">🎂 Morgane <b>30</b></div>
+    <div class="ph-team" id="phTeam" hidden>
+      <span class="ph-team-emoji" id="phEmoji"></span>
+      <span class="ph-team-name" id="phName"></span>
+      <b class="ph-team-score" id="phScore">0</b>
+    </div>
+    <span class="net-dot" id="netDot" role="img" aria-label="Connexion"></span>
+  </header>
+
+  <!-- ===== Inscription ===== -->
+  <main id="join" class="ph-screen">
+    <div class="join-hero">
+      <div class="mini-balloon" aria-hidden="true">30</div>
+      <h1>Le blind test des 30 ans de <em>Morgane</em></h1>
+      <p class="join-sub">Choisis ton équipe, et que le meilleur gagne (Morgane, de préférence).</p>
+    </div>
+    <form id="joinForm" class="join-form" autocomplete="off" novalidate>
+      <label class="field" id="codeField">Code du salon
+        <input id="codeInput" maxlength="4" autocapitalize="characters" spellcheck="false" placeholder="ABCD" required>
+      </label>
+      <label class="field">Nom de l'équipe
+        <span class="row">
+          <input id="nameInput" maxlength="28" placeholder="Les Trentenaires Anonymes" required>
+          <button type="button" class="dice" id="diceBtn" aria-label="Nom d'équipe au hasard">🎲</button>
+        </span>
+      </label>
+      <fieldset>
+        <legend>Couleur</legend>
+        <div class="swatches" id="swatches"></div>
+      </fieldset>
+      <fieldset>
+        <legend>Mascotte</legend>
+        <div class="emojis" id="emojis"></div>
+      </fieldset>
+      <button class="btn pink btn-big join-btn" type="submit" id="joinBtn">C'est parti ! 🎉</button>
+      <p class="err" id="joinErr" role="alert"></p>
+    </form>
+  </main>
+
+  <!-- ===== Jeu ===== -->
+  <main id="play" class="ph-screen" hidden>
+    <p class="ph-round" id="phRound"></p>
+
+    <div class="buzz-zone" id="buzzZone">
+      <button class="buzzer" id="buzzer" type="button">
+        <span class="buzzer-label" id="buzzerLabel">…</span>
+      </button>
+      <p class="ph-msg" id="phMsg" aria-live="polite"></p>
+    </div>
+
+    <div class="ph-reveal" id="phReveal" hidden>
+      <img id="revCover" alt="Pochette">
+      <p class="rev-title" id="revTitle"></p>
+      <p class="rev-artist" id="revArtist"></p>
+      <p class="rev-result" id="revResult"></p>
+    </div>
+
+    <div class="ph-end" id="phEnd" hidden>
+      <p class="end-rank" id="endRank"></p>
+      <p class="end-hb">Joyeux anniversaire Morgane ! 🎂</p>
+    </div>
+
+    <ol class="ph-scores" id="phScores"></ol>
+
+    <button class="link-btn" id="leaveBtn" type="button">Changer d'équipe</button>
+  </main>
+
+  <div class="ph-banner" id="banner" hidden></div>
+</body>
+</html>

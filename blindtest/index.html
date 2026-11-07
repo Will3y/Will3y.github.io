@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Blind Test · Les 30 ans de Morgane 🎂</title>
+  <meta name="description" content="Le blind test des 30 ans de Morgane : le PC diffuse la musique, les téléphones servent de buzzers.">
+  <meta name="theme-color" content="#1c0b3a">
+  <link rel="icon" href="img/icon-192.png" type="image/png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bungee&family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/common.css">
+  <link rel="stylesheet" href="css/host.css">
+  <script src="vendor/peerjs.min.js"></script>
+  <script type="module" src="js/host.js"></script>
+</head>
+<body class="host">
+  <div class="bg-shapes" aria-hidden="true"></div>
+
+  <!-- ============ ACCUEIL / LOBBY ============ -->
+  <main id="lobby" class="screen">
+    <header class="hero">
+      <div class="balloon" aria-hidden="true"><span>30</span></div>
+      <div class="hero-text">
+        <p class="eyebrow">🎈 Blind test officiel 🎈</p>
+        <h1>Les 30 ans de <em>Morgane</em></h1>
+        <p class="tagline" id="tagline" aria-live="polite"></p>
+      </div>
+      <div class="hero-deco" aria-hidden="true"><span>🎉</span><span>🎂</span><span>🎵</span></div>
+    </header>
+
+    <div class="lobby-grid">
+      <section class="card join-card" aria-labelledby="joinTitle">
+        <h2 id="joinTitle">📱 Les buzzers</h2>
+        <p class="hint">Chaque équipe scanne le QR code avec son téléphone.</p>
+        <div class="qr" id="qr" role="img" aria-label="QR code pour rejoindre la partie"></div>
+        <p class="join-url" id="joinUrl"></p>
+        <p class="room">Code du salon <strong id="roomCode">····</strong></p>
+        <p class="net-status"><span class="net-dot" id="netDot"></span> <span id="netText">Connexion…</span></p>
+      </section>
+
+      <section class="card teams-card" aria-labelledby="teamsTitle">
+        <h2 id="teamsTitle">👯 Équipes <span class="count" id="teamCount">0</span></h2>
+        <ul class="team-list" id="teamList"></ul>
+        <form id="addTeamForm" class="inline-form" autocomplete="off">
+          <input id="addTeamInput" maxlength="28" placeholder="Équipe sans téléphone…" aria-label="Nom d'une équipe sans téléphone">
+          <button class="btn ghost" type="submit">Ajouter</button>
+        </form>
+      </section>
+
+      <section class="card music-card" aria-labelledby="musicTitle">
+        <h2 id="musicTitle">🎵 La musique</h2>
+        <form id="searchForm" class="inline-form" autocomplete="off">
+          <input id="searchInput" type="search" placeholder="Chercher une playlist Deezer, ou coller son lien…" aria-label="Recherche de playlist Deezer">
+          <button class="btn cyan" type="submit">Chercher</button>
+        </form>
+        <div class="chips" id="themeChips"></div>
+        <div class="results" id="results" aria-live="polite"></div>
+        <div class="selected-wrap">
+          <h3>Playlists choisies <span class="count" id="selCount">0</span></h3>
+          <ul class="selected" id="selected"></ul>
+        </div>
+      </section>
+
+      <section class="card settings-card" aria-labelledby="settingsTitle">
+        <h2 id="settingsTitle">⚙️ Réglages</h2>
+        <label class="field">Nombre de chansons
+          <select id="setRounds">
+            <option>10</option><option>15</option><option selected>20</option><option>25</option>
+            <option>30</option><option>40</option><option>50</option>
+          </select>
+        </label>
+        <label class="toggle"><input type="checkbox" id="setLock" checked><span></span> Équipe bloquée après une mauvaise réponse</label>
+        <label class="toggle"><input type="checkbox" id="setPenalty"><span></span> −1 point par mauvaise réponse</label>
+        <label class="toggle"><input type="checkbox" id="setVoice" checked><span></span> Annonce vocale de l'équipe qui buzze</label>
+        <button id="startBtn" class="btn pink btn-big start-btn">🎉 C'est parti !</button>
+        <p class="hint" id="startHint"></p>
+      </section>
+    </div>
+
+    <footer class="lobby-foot">
+      Astuce : branche le PC sur la TV et passe en plein écran (touche <kbd>F</kbd>). Les raccourcis clavier sont indiqués sur les boutons.
+      · Extraits musicaux fournis par <a href="https://www.deezer.com" target="_blank" rel="noopener">Deezer</a>.
+    </footer>
+  </main>
+
+  <!-- ============ PARTIE ============ -->
+  <main id="game" class="screen" hidden>
+    <header class="topbar">
+      <div class="brand">🎂 Morgane <b>30</b> <span>· Blind Test</span></div>
+      <div class="round-label" id="roundLabel"></div>
+      <div class="top-actions">
+        <span class="mini-code">Code <b id="miniCode"></b> <span class="net-dot" id="miniDot"></span></span>
+        <button class="btn-icon" id="fsBtn" title="Plein écran (F)" aria-label="Plein écran">⛶</button>
+        <button class="btn-icon" id="quitBtn" title="Retour au menu" aria-label="Retour au menu">✕</button>
+      </div>
+    </header>
+
+    <div class="stage">
+      <section class="center">
+        <div class="cd" id="cd">
+          <svg class="cd-ring" viewBox="0 0 200 200" aria-hidden="true">
+            <defs><path id="ringPath" d="M100,100 m-80,0 a80,80 0 1,1 160,0 a80,80 0 1,1 -160,0"/></defs>
+            <text><textPath href="#ringPath" textLength="498" lengthAdjust="spacing">★ BEST OF MORGANE ★ 1996 – 2026 ★ ÉDITION COLLECTOR 30 ANS ★ NE PAS RAYER ★</textPath></text>
+          </svg>
+          <div class="cd-label" id="cdLabel"><span>?</span></div>
+          <div class="cd-hole"></div>
+        </div>
+
+        <div class="timer" id="timer"><div class="timer-bar" id="timerBar"></div><span class="timer-text" id="timerText"></span></div>
+
+        <p class="status" id="status"></p>
+
+        <div class="answer" id="answer" hidden>
+          <p class="answer-title" id="ansTitle"></p>
+          <p class="answer-artist" id="ansArtist"></p>
+          <p class="result" id="result"></p>
+        </div>
+
+        <div class="controls" id="controls"></div>
+      </section>
+
+      <aside class="scoreboard card" aria-labelledby="scoreTitle">
+        <h2 id="scoreTitle">🏆 Scores</h2>
+        <ol class="score-list" id="scoreList"></ol>
+        <p class="hint">Clic sur une équipe pendant la chanson = buzz manuel. Les boutons − / + corrigent les points.</p>
+      </aside>
+    </div>
+
+    <div class="buzz-overlay" id="buzzOverlay" hidden>
+      <div class="sunburst" aria-hidden="true"></div>
+      <div class="buzz-card">
+        <div class="buzz-emoji" id="buzzEmoji"></div>
+        <div class="buzz-name" id="buzzName"></div>
+        <div class="buzz-sub" id="buzzSub"></div>
+        <div class="judge" id="judge">
+          <button class="btn good btn-big" data-act="plus1">✅ +1 <kbd>1</kbd></button>
+          <button class="btn great btn-big" data-act="plus2">🌟 +2 <kbd>2</kbd></button>
+          <button class="btn bad btn-big" data-act="wrong">❌ Faux <kbd>X</kbd></button>
+          <button class="btn ghost" data-act="cancel">↩︎ Annuler le buzz <kbd>A</kbd></button>
+        </div>
+        <p class="judge-hint">+1 = titre <i>ou</i> artiste · +2 = les deux</p>
+      </div>
+    </div>
+  </main>
+
+  <!-- ============ FIN ============ -->
+  <main id="end" class="screen" hidden>
+    <div class="end-head">
+      <div class="balloon small" aria-hidden="true"><span>30</span></div>
+      <div>
+        <h1>Joyeux anniversaire <em>Morgane</em> ! 🎂</h1>
+        <p class="end-sub" id="endSub"></p>
+      </div>
+    </div>
+    <div class="podium" id="podium"></div>
+    <ol class="rest-list" id="restList"></ol>
+    <div class="end-actions">
+      <button class="btn pink btn-big" id="replayBtn">🔁 Rejouer (mêmes équipes)</button>
+      <button class="btn ghost" id="birthdayBtn">🎵 Rejouer « Joyeux anniversaire »</button>
+      <button class="btn ghost" id="menuBtn">⚙️ Retour au menu</button>
+    </div>
+  </main>
+
+  <div class="toast" id="toast" hidden role="status"></div>
+</body>
+</html>
