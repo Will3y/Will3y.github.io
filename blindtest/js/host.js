@@ -17,6 +17,7 @@ const PREVIEW_TTL = 10 * 60 * 1000;
 
 const S = {
   code: '',
+  adminKey: '',
   phase: 'lobby',
   settings: { rounds: 20, lockOnWrong: true, penalty: false, voice: true },
   playlists: [],
@@ -38,10 +39,12 @@ const S = {
 };
 
 const clients = new Map(); // cid -> { conn, teamId, lastSeen }
+const admins = new Map(); // cid -> { conn, lastSeen } : pages animateur connectées
 let host = null;
 let searchResults = [];
 let saveTimer = null;
 
+const newAdminKey = () => Array.from({ length: 6 }, () => 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'[Math.floor(Math.random() * 32)]).join('');
 const newCode = () => Array.from({ length: 4 }, () => CODE_ALPHABET[Math.floor(Math.random() * CODE_ALPHABET.length)]).join('');
 const newId = () => Math.random().toString(36).slice(2, 9);
 const teamList = () => S.order.map((id) => S.teams[id]).filter(Boolean);
@@ -52,7 +55,7 @@ function save() {
   saveTimer = setTimeout(() => {
     const data = {
       v: 1, savedAt: Date.now(),
-      code: S.code, phase: S.phase, settings: S.settings, playlists: S.playlists,
+      code: S.code, adminKey: S.adminKey, phase: S.phase, settings: S.settings, playlists: S.playlists,
       pool: S.pool, cursor: S.cursor, round: S.round, total: S.total, current: S.current,
       teams: S.teams, order: S.order, history: S.history, played: S.played,
     };
@@ -65,7 +68,7 @@ function restore() {
     const d = JSON.parse(localStorage.getItem(STORE_KEY) || 'null');
     if (!d || d.v !== 1 || Date.now() - d.savedAt > 18 * 3600 * 1000) return false;
     Object.assign(S, {
-      code: d.code, settings: { ...S.settings, ...d.settings }, playlists: d.playlists || [],
+      code: d.code, adminKey: d.adminKey || '', settings: { ...S.settings, ...d.settings }, playlists: d.playlists || [],
       pool: d.pool || [], cursor: d.cursor || 0, round: d.round || 0, total: d.total || 0,
       current: d.current || null, teams: d.teams || {}, order: d.order || [],
       history: d.history || [], played: d.played || [],
@@ -106,9 +109,19 @@ function startNetwork() {
 
 function onConnect(conn) {
   let cid = null;
+  let role = null; // 'player' | 'admin'
   conn.onData((m) => {
     if (!m || typeof m !== 'object') return;
-    if (m.t === 'hello') { cid = handleHello(conn, m); return; }
+    if (m.t === 'hello') { cid = handleHello(conn, m); role = cid ? 'player' : null; return; }
+    if (m.t === 'hello-admin') { cid = handleAdminHello(conn, m); role = cid ? 'admin' : null; return; }
+    if (role === 'admin') {
+      const a = admins.get(cid);
+      if (!a || a.conn !== conn) return;
+      a.lastSeen = Date.now();
+      if (m.t === 'ping') conn.send({ t: 'pong' });
+      else if (m.t === 'cmd') handleCmd(m);
+      return;
+    }
     const c = cid && clients.get(cid);
     if (!c || c.conn !== conn) return;
     c.lastSeen = Date.now();
@@ -121,9 +134,125 @@ function onConnect(conn) {
     }
   });
   conn.onClose(() => {
+    if (role === 'admin') {
+      const a = admins.get(cid);
+      if (a && a.conn === conn) { admins.delete(cid); renderAdminPresence(); }
+      return;
+    }
     const c = cid && clients.get(cid);
     if (c && c.conn === conn) { c.conn = null; refreshOnline(); }
   });
+}
+
+/* ----- Page animateur ----- */
+
+function handleAdminHello(conn, m) {
+  if (!m.key || String(m.key).toUpperCase() !== S.adminKey) { conn.send({ t: 'admin-denied' }); return null; }
+  const cid = `admin:${String(m.cid || conn.id).slice(0, 40)}`;
+  const prev = admins.get(cid);
+  if (prev && prev.conn && prev.conn !== conn) prev.conn.close();
+  admins.set(cid, { conn, lastSeen: Date.now() });
+  conn.send({ t: 'admin-welcome', code: S.code });
+  conn.send(adminState());
+  renderAdminPresence();
+  return cid;
+}
+
+function handleCmd(m) {
+  switch (m.action) {
+    case 'plus1': award(1); break;
+    case 'plus2': award(2); break;
+    case 'wrong': wrong(); break;
+    case 'cancel': cancelBuzz(); break;
+    case 'pause': if (S.phase === 'playing') togglePause(); break;
+    case 'unpause': if (S.phase === 'paused') togglePause(); break;
+    case 'skip': nobody('skip'); break;
+    case 'next': next(); break;
+    case 'resume': if (S.phase === 'ready') playRound(S.readyRound); break;
+    case 'start': if (S.phase === 'lobby' || S.phase === 'end') startGame({ remote: true }); break;
+    case 'lobby': if (S.phase !== 'lobby') backToLobby(); break;
+    case 'buzzFor': manualBuzz(String(m.teamId)); break;
+    case 'adjust': {
+      const d = Math.max(-5, Math.min(5, Math.round(Number(m.delta) || 0)));
+      if (d) adjustScore(String(m.teamId), d);
+      break;
+    }
+    default: break;
+  }
+}
+
+function audioInfo() {
+  const el = activeEl();
+  const d = el.duration && Number.isFinite(el.duration) ? el.duration : 30;
+  return { t: Math.min(el.currentTime || 0, d), d, paused: el.paused };
+}
+
+function adminState() {
+  const cur = S.current && S.current.round === (S.phase === 'ready' ? S.readyRound : S.round) ? S.current : null;
+  return {
+    t: 'admin',
+    code: S.code,
+    phase: S.phase,
+    round: S.round,
+    total: S.total,
+    readyRound: S.readyRound,
+    current: cur && !['lobby', 'end'].includes(S.phase)
+      ? { title: cur.title, artist: cur.artist, album: cur.album, cover: cur.cover } : null,
+    teams: ranked().map((t) => ({ ...publicTeam(t), online: isOnline(t.id), phones: phoneCount(t.id), locked: S.locked.has(t.id) })),
+    buzz: S.buzz,
+    result: S.result,
+    history: S.history.slice(-40),
+    playlists: S.playlists.map((p) => ({ title: p.title, nb: p.nb })),
+    audio: audioInfo(),
+  };
+}
+
+function sendAdmins(msg) {
+  if (!admins.size) return;
+  const payload = msg || adminState();
+  for (const a of admins.values()) if (a.conn && a.conn.open) a.conn.send(payload);
+}
+
+const notifyAdmins = (text) => sendAdmins({ t: 'notice', text });
+
+setInterval(() => {
+  if (admins.size && ['playing', 'paused', 'buzzed', 'reveal'].includes(S.phase)) sendAdmins({ t: 'tick', audio: audioInfo() });
+}, 1000);
+
+function adminUrl() {
+  const u = new URL('animateur.html', location.href);
+  u.search = '';
+  u.hash = '';
+  u.searchParams.set('r', S.code);
+  u.searchParams.set('k', S.adminKey);
+  if (isLocalMode()) u.searchParams.set('local', '1');
+  return u.toString();
+}
+
+function renderAdminPresence() {
+  const n = admins.size;
+  document.body.classList.toggle('has-admin', n > 0);
+  $('#adminBadge').hidden = n === 0;
+  const txt = n ? `✅ Animateur connecté${n > 1 ? ` (${n})` : ''}` : 'Personne pour l\'instant.';
+  $('#adminState').textContent = n ? txt : '';
+  $('#adminDialogStatus').textContent = txt;
+  if (!$('#game').hidden) renderGame();
+}
+
+let lastAdminQr = '';
+function openAdminDialog() {
+  const url = adminUrl();
+  if (url !== lastAdminQr) {
+    lastAdminQr = url;
+    const qr = qrcode(0, 'M');
+    qr.addData(url);
+    qr.make();
+    $('#adminQr').innerHTML = qr.createSvgTag({ cellSize: 4, margin: 2, scalable: true });
+  }
+  $('#adminKey').textContent = S.adminKey;
+  $('#adminUrl').innerHTML = `<a href="${F.esc(url)}" target="_blank" rel="noopener">${F.esc(url.replace(/^https?:\/\//, ''))}</a>`;
+  renderAdminPresence();
+  $('#adminDialog').showModal();
 }
 
 function handleHello(conn, m) {
@@ -209,6 +338,7 @@ function stateFor(teamId) {
 
 function broadcast() {
   for (const c of clients.values()) if (c.conn && c.conn.open) c.conn.send(stateFor(c.teamId));
+  sendAdmins();
 }
 
 let onlineSnapshot = '';
@@ -221,8 +351,17 @@ function refreshOnline(force = false) {
   onlineSnapshot = snap;
   renderTeams();
   renderScores();
+  sendAdmins();
 }
-setInterval(() => refreshOnline(), 3000);
+setInterval(() => {
+  refreshOnline();
+  // pages animateur muettes depuis trop longtemps : on les oublie
+  let changed = false;
+  for (const [cid, a] of admins) {
+    if (!a.conn || !a.conn.open || Date.now() - a.lastSeen > 15000) { admins.delete(cid); changed = true; }
+  }
+  if (changed) renderAdminPresence();
+}, 3000);
 
 /* ------------------------------------------------------------------ */
 /* Lecture audio                                                        */
@@ -313,9 +452,16 @@ function setPhase(p) {
   broadcast();
 }
 
-async function startGame() {
-  if (!S.playlists.length) { startHint('Choisis au moins une playlist 🎵'); return; }
-  if (!S.order.length && !confirm('Aucune équipe n\'est connectée. Lancer quand même ?')) return;
+async function startGame({ remote = false } = {}) {
+  if (!S.playlists.length) {
+    startHint('Choisis au moins une playlist 🎵');
+    notifyAdmins('Choisis d\'abord une playlist sur l\'écran du PC 🎵');
+    return;
+  }
+  if (!S.order.length) {
+    if (remote) { notifyAdmins('Aucune équipe connectée pour l\'instant 🤷'); return; }
+    if (!confirm('Aucune équipe n\'est connectée. Lancer quand même ?')) return;
+  }
   audioCtx();
   requestWakeLock();
   const btn = $('#startBtn');
@@ -436,7 +582,7 @@ function award(points) {
   if (!team) return cancelBuzz();
   team.score += points;
   S.result = { type: 'correct', teamId: team.id, points, line: F.pick(F.CORRECT_LINES) };
-  S.history.push({ round: S.round, trackId: S.current?.id, teamId: team.id, points });
+  S.history.push({ round: S.round, trackId: S.current?.id, title: S.current?.title, artist: S.current?.artist, teamId: team.id, points });
   sfx.correct();
   confetti({ count: 200, colors: [team.color, '#ffffff', '#ffd23f', '#ff4fa3'] });
   bumpScore(team.id);
@@ -476,7 +622,7 @@ function nobody(kind) {
   if (!['playing', 'paused'].includes(S.phase)) return;
   const line = kind === 'allwrong' ? 'Tout le monde s\'est trompé ! Bravo… enfin, non. 🙈' : F.pick(F.NOBODY_LINES);
   S.result = { type: 'none', kind, line };
-  S.history.push({ round: S.round, trackId: S.current?.id, teamId: null, points: 0 });
+  S.history.push({ round: S.round, trackId: S.current?.id, title: S.current?.title, artist: S.current?.artist, teamId: null, points: 0 });
   if (kind === 'skip') {
     sfx.pop();
     resumeMusic();
@@ -728,8 +874,9 @@ function renderGame() {
       ? '<button class="btn pink btn-big" data-act="next">🏆 Voir le classement <kbd>Entrée</kbd></button>'
       : '<button class="btn pink btn-big" data-act="next">➡️ Chanson suivante <kbd>Entrée</kbd></button>',
   };
-  const html = buttons[p] ?? '';
-  const key = `${p}|${last}|${S.readyRound}`;
+  const hideCtrl = admins.size > 0 && p !== 'ready';
+  const html = hideCtrl ? '' : buttons[p] ?? '';
+  const key = `${p}|${last}|${S.readyRound}|${hideCtrl}`;
   if (ctrl.dataset.k !== key) { ctrl.dataset.k = key; ctrl.innerHTML = html; }
 
   const ov = $('#buzzOverlay');
@@ -819,6 +966,7 @@ function renderEnd() {
 
 let toastTimer = null;
 function toast(text, ms = 2800) {
+  notifyAdmins(text);
   const el = $('#toast');
   el.textContent = text;
   el.hidden = false;
@@ -852,6 +1000,7 @@ async function addPlaylistById(id) {
     save();
     renderSelected();
     renderResults();
+    sendAdmins();
   } catch (e) {
     toast('Playlist introuvable (est-elle publique ?)');
   }
@@ -860,6 +1009,7 @@ async function addPlaylistById(id) {
 function removePlaylist(id) {
   S.playlists = S.playlists.filter((p) => p.id !== id);
   save();
+  sendAdmins();
   renderSelected();
   renderResults();
 }
@@ -963,7 +1113,18 @@ function bind() {
   $('#setPenalty').addEventListener('change', (e) => { S.settings.penalty = e.target.checked; save(); });
   $('#setVoice').addEventListener('change', (e) => { S.settings.voice = e.target.checked; save(); if (e.target.checked) speak('Joyeux anniversaire Morgane !'); });
 
-  $('#startBtn').addEventListener('click', startGame);
+  $('#startBtn').addEventListener('click', () => startGame());
+
+  $('#adminOpen').addEventListener('click', openAdminDialog);
+  $('#adminClose').addEventListener('click', () => $('#adminDialog').close());
+  $('#adminWindow').addEventListener('click', () => {
+    window.open(adminUrl(), 'animateur-morgane30', 'popup,width=1100,height=820');
+  });
+  $('#adminCopy').addEventListener('click', async () => {
+    try { await navigator.clipboard.writeText(adminUrl()); $('#adminCopy').textContent = '✅ Lien copié'; }
+    catch (e) { $('#adminCopy').textContent = '❌ Copie impossible'; }
+    setTimeout(() => { $('#adminCopy').textContent = '📋 Copier le lien'; }, 2000);
+  });
 
   $('#controls').addEventListener('click', (e) => {
     const b = e.target.closest('[data-act]');
@@ -1046,6 +1207,7 @@ function init() {
   }
   restore();
   if (!S.code) S.code = newCode();
+  if (!S.adminKey) S.adminKey = newAdminKey();
   save();
   bind();
   $('#tagline').textContent = F.TAGLINES[taglineIdx];
@@ -1059,7 +1221,7 @@ function init() {
     runSearch(F.PLAYLIST_THEMES[0].q);
   }
   // Pour les tests et le débogage depuis la console.
-  window.__bt = { S, clients, award, wrong, next, nobody, onBuzz };
+  window.__bt = { S, clients, admins, award, wrong, next, nobody, onBuzz, adminUrl };
 }
 
 init();

@@ -38,6 +38,11 @@
         <p class="join-url" id="joinUrl"></p>
         <p class="room">Code du salon <strong id="roomCode">····</strong></p>
         <p class="net-status"><span class="net-dot" id="netDot"></span> <span id="netText">Connexion…</span></p>
+        <div class="admin-entry">
+          <button class="btn ghost" id="adminOpen" type="button">🎙️ Page animateur</button>
+          <p class="hint">Réponses en avance + scores en direct, sur un autre écran.</p>
+          <p class="admin-state" id="adminState"></p>
+        </div>
       </section>
 
       <section class="card teams-card" aria-labelledby="teamsTitle">
@@ -91,6 +96,7 @@
       <div class="brand">🎂 Morgane <b>30</b> <span>· Blind Test</span></div>
       <div class="round-label" id="roundLabel"></div>
       <div class="top-actions">
+        <span class="admin-badge" id="adminBadge" hidden title="Une page animateur est connectée">🎙️ Animateur</span>
         <span class="mini-code">Code <b id="miniCode"></b> <span class="net-dot" id="miniDot"></span></span>
         <button class="btn-icon" id="fsBtn" title="Plein écran (F)" aria-label="Plein écran">⛶</button>
         <button class="btn-icon" id="quitBtn" title="Retour au menu" aria-label="Retour au menu">✕</button>
@@ -124,7 +130,7 @@
       <aside class="scoreboard card" aria-labelledby="scoreTitle">
         <h2 id="scoreTitle">🏆 Scores</h2>
         <ol class="score-list" id="scoreList"></ol>
-        <p class="hint">Clic sur une équipe pendant la chanson = buzz manuel. Les boutons − / + corrigent les points.</p>
+        <p class="hint score-hint">Clic sur une équipe pendant la chanson = buzz manuel. Les boutons − / + corrigent les points.</p>
       </aside>
     </div>
 
@@ -141,6 +147,7 @@
           <button class="btn ghost" data-act="cancel">↩︎ Annuler le buzz <kbd>A</kbd></button>
         </div>
         <p class="judge-hint">+1 = titre <i>ou</i> artiste · +2 = les deux</p>
+        <p class="admin-wait">🎙️ L'animateur vérifie la réponse…</p>
       </div>
     </div>
   </main>
@@ -162,6 +169,23 @@
       <button class="btn ghost" id="menuBtn">⚙️ Retour au menu</button>
     </div>
   </main>
+
+  <!-- ============ LIEN ANIMATEUR (secret) ============ -->
+  <dialog class="admin-dialog" id="adminDialog" aria-labelledby="adminDialogTitle">
+    <h2 id="adminDialogTitle">🎙️ Page animateur</h2>
+    <p>Elle affiche <b>la réponse dès le début de chaque chanson</b>, les scores de chaque équipe en direct et les boutons pour juger.
+      Ouvre-la sur ton téléphone, une tablette, un autre ordinateur… ou dans une 2ᵉ fenêtre de ce PC (écran du portable, la TV en écran étendu).</p>
+    <p class="warn">🤫 Ne montre pas ce QR code aux joueurs : il donne toutes les réponses !</p>
+    <div class="qr" id="adminQr" role="img" aria-label="QR code de la page animateur"></div>
+    <p class="admin-key">Code animateur <b id="adminKey"></b></p>
+    <p class="join-url" id="adminUrl"></p>
+    <div class="dialog-actions">
+      <button class="btn cyan" id="adminWindow" type="button">🪟 Ouvrir dans une nouvelle fenêtre</button>
+      <button class="btn ghost" id="adminCopy" type="button">📋 Copier le lien</button>
+      <button class="btn ghost" id="adminClose" type="button">Fermer</button>
+    </div>
+    <p class="hint" id="adminDialogStatus"></p>
+  </dialog>
 
   <div class="toast" id="toast" hidden role="status"></div>
 </body>

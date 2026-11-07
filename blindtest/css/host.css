@@ -321,3 +321,32 @@
   #game { height: auto; min-height: 100vh; overflow: visible; }
   .brand span, .mini-code { display: none; }
 }
+
+/* ---------- Animateur ---------- */
+.admin-entry { margin-top: 18px; padding-top: 16px; border-top: 2px dashed var(--line); }
+.admin-entry .hint { margin-top: 8px; font-size: 0.85rem; }
+.admin-state { margin: 6px 0 0; color: var(--green); font-weight: 600; min-height: 1.2em; }
+.admin-badge { background: var(--green); color: #1b0b33; font-weight: 700; border-radius: 999px; padding: 0.3em 0.8em; white-space: nowrap; }
+.admin-wait { display: none; margin: 30px 0 0; font-size: clamp(1.1rem, 2vw, 1.6rem); font-weight: 600; opacity: 0.9; }
+.has-admin .judge, .has-admin .judge-hint, .has-admin .score-hint { display: none; }
+.has-admin .admin-wait { display: block; }
+.has-admin .score-item .adj { display: none !important; }
+
+.admin-dialog {
+  width: min(560px, 94vw);
+  border: 2px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--bg-2);
+  color: var(--ink);
+  padding: 26px;
+  text-align: center;
+  box-shadow: 10px 10px 0 rgba(61, 220, 151, 0.55), 0 30px 80px rgba(0, 0, 0, 0.6);
+}
+.admin-dialog::backdrop { background: rgba(10, 4, 24, 0.75); backdrop-filter: blur(4px); }
+.admin-dialog h2 { font-size: 1.5rem; margin-bottom: 10px; }
+.admin-dialog p { line-height: 1.45; }
+.admin-dialog .warn { background: rgba(255, 210, 63, 0.15); border: 2px solid var(--yellow); border-radius: 14px; padding: 0.6em 0.9em; font-weight: 600; }
+.admin-dialog .qr { width: min(100%, 230px); box-shadow: 0 0 0 6px var(--green), 0 0 0 12px var(--cyan); }
+.admin-key { font-weight: 600; margin: 22px 0 4px; }
+.admin-key b { font-family: var(--display); font-weight: 400; color: var(--green); letter-spacing: 0.12em; font-size: 1.6rem; margin-left: 8px; }
+.dialog-actions { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-top: 16px; }

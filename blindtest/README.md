@@ -1,9 +1,21 @@
 # 🎂 Blind test — Les 30 ans de Morgane
 
-Le PC (branché sur la TV) diffuse les extraits Deezer, les téléphones servent de buzzers.
+Trois écrans :
 
-- **Écran du PC** : `https://will3y.github.io/blindtest/`
-- **Buzzers** : les joueurs scannent le QR code affiché sur le PC (ou vont sur `…/blindtest/buzz.html` et tapent le code à 4 lettres).
+| Écran | Page | Rôle |
+|---|---|---|
+| 📺 **TV** | `https://will3y.github.io/blindtest/` | Diffuse les extraits Deezer, affiche qui a buzzé, la réponse et les scores. |
+| 📱 **Téléphones** | `…/blindtest/buzz.html` (via le QR code) | Les buzzers des équipes. |
+| 🎙️ **Animateur** | `…/blindtest/animateur.html` (bouton « Page animateur ») | **La réponse dès le début de la chanson**, les scores par équipe en direct, les boutons pour juger et piloter la partie. |
+
+La page animateur est protégée par un **code animateur** secret (affiché seulement dans la fenêtre « 🎙️ Page animateur » du PC) : un joueur qui n'a que le code du salon ne peut pas l'ouvrir.
+
+### Installation conseillée
+
+- **PC + TV en écran étendu** (Windows : touche `Windows` + `P` → « Étendre ») : la page du blind test en plein écran sur la TV, et la page animateur (bouton « 🪟 Ouvrir dans une nouvelle fenêtre ») sur l'écran du portable.
+- **Ou** la page animateur sur ton téléphone / une tablette : scanne le QR code de la fenêtre « 🎙️ Page animateur » (avant l'arrivée des invités 😉).
+
+Quand une page animateur est connectée, la TV masque ses boutons (affichage plus propre) ; les raccourcis clavier restent actifs sur les deux écrans.
 
 ## Déroulé d'une soirée
 
@@ -11,9 +23,9 @@ Le PC (branché sur la TV) diffuse les extraits Deezer, les téléphones servent
 2. Choisis une ou plusieurs playlists Deezer (thèmes proposés, recherche, ou lien `deezer.com/…/playlist/123`).
 3. Chaque équipe scanne le QR code, choisit un nom, une couleur et une mascotte. Le bouton **TEST** sur le téléphone permet de vérifier que le PC reçoit bien le buzz.
 4. **C'est parti !** Au premier buzz, la musique se coupe et l'équipe s'affiche en grand.
-5. L'animateur juge la réponse donnée à voix haute.
+5. L'animateur juge la réponse donnée à voix haute (depuis la page animateur, ou directement sur le PC).
 
-## Raccourcis clavier (PC)
+## Raccourcis clavier (PC et page animateur)
 
 | Moment | Touche | Action |
 |---|---|---|
@@ -26,7 +38,7 @@ Le PC (branché sur la TV) diffuse les extraits Deezer, les téléphones servent
 | Réponse affichée | `Entrée` | Chanson suivante |
 | Partout | `F` | Plein écran |
 
-Dans le tableau des scores : clic sur une équipe pendant la chanson = buzz manuel (pour une équipe sans téléphone), boutons `−` / `+` pour corriger les points.
+Corrections et équipes sans téléphone : sur la page animateur, boutons `−` / `+` et 🔔 (buzz pour l'équipe) à côté de chaque score ; sur la TV, clic sur une équipe pendant la chanson = buzz manuel.
 
 ## Bon à savoir
 
@@ -34,7 +46,7 @@ Dans le tableau des scores : clic sur une équipe pendant la chanson = buzz manu
 - Si le PC recharge la page, la partie et les scores sont conservés : les téléphones se reconnectent tout seuls.
 - Si un téléphone se met en veille, il se reconnecte en revenant sur la page.
 - Sur iPhone : Safari → Partager → « Sur l'écran d'accueil » pour avoir le buzzer comme une appli (facultatif).
-- **Mode test sans téléphone** : ouvre `index.html?local=1` sur le PC, puis le lien affiché sous le QR code dans d'autres onglets du même navigateur (chaque onglet = une équipe).
+- **Mode test sans téléphone** : ouvre `index.html?local=1` sur le PC, puis le lien affiché sous le QR code dans d'autres onglets du même navigateur (chaque onglet = une équipe). La page animateur marche aussi dans ce mode.
 
 ## Technique
 

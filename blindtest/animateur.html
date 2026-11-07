@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Animateur · Blind test des 30 ans de Morgane 🎙️</title>
+  <meta name="robots" content="noindex">
+  <meta name="theme-color" content="#1c0b3a">
+  <link rel="icon" href="img/icon-192.png" type="image/png">
+  <link rel="apple-touch-icon" href="img/apple-touch-icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bungee&family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/common.css">
+  <link rel="stylesheet" href="css/admin.css">
+  <script src="vendor/peerjs.min.js"></script>
+  <script type="module" src="js/admin.js"></script>
+</head>
+<body class="admin">
+  <div class="bg-shapes" aria-hidden="true"></div>
+
+  <header class="ad-head">
+    <div class="ad-brand">🎙️ Animateur <span>· Morgane <b>30</b></span></div>
+    <div class="ad-room" id="adRoom"></div>
+    <span class="net-dot" id="netDot" role="img" aria-label="Connexion"></span>
+  </header>
+
+  <!-- ===== Connexion ===== -->
+  <main id="join" class="ad-join" hidden>
+    <form id="joinForm" class="card" autocomplete="off">
+      <h1>🎙️ Page animateur</h1>
+      <p class="hint">Les deux codes sont dans la fenêtre « Page animateur » de l'écran du PC.</p>
+      <label class="field">Code du salon
+        <input id="codeInput" maxlength="4" autocapitalize="characters" spellcheck="false" placeholder="ABCD" required>
+      </label>
+      <label class="field">Code animateur
+        <input id="keyInput" maxlength="8" autocapitalize="characters" spellcheck="false" placeholder="XXXXXX" required>
+      </label>
+      <button class="btn pink btn-big" type="submit" id="joinBtn">Se connecter</button>
+      <p class="err" id="joinErr" role="alert"></p>
+    </form>
+  </main>
+
+  <!-- ===== Régie ===== -->
+  <main id="desk" class="ad-main" hidden>
+    <div class="ad-col">
+      <section class="card now-card" aria-live="polite">
+        <div class="now-top">
+          <span class="round-pill" id="roundPill"></span>
+          <span class="phase-pill" id="phasePill"></span>
+        </div>
+
+        <div class="answer-box" id="answerBox">
+          <img id="ansCover" alt="Pochette">
+          <div class="ans-text">
+            <p class="ans-label">Réponse</p>
+            <p class="ans-title" id="ansTitle"></p>
+            <p class="ans-artist" id="ansArtist"></p>
+            <p class="ans-album" id="ansAlbum"></p>
+          </div>
+        </div>
+        <p class="placeholder" id="placeholder"></p>
+
+        <div class="ad-timer" id="adTimer"><div class="ad-timer-bar" id="adTimerBar"></div><span id="adTimerText"></span></div>
+        <p class="result-line" id="resultLine" hidden></p>
+      </section>
+
+      <section class="buzz-panel" id="buzzPanel" hidden>
+        <p class="who"><span id="buzzEmoji"></span> <span id="buzzName"></span></p>
+        <p class="who-sub">a buzzé ! Réponse attendue : <b id="buzzExpect"></b></p>
+        <div class="judge-grid">
+          <button class="btn good" data-cmd="plus1">✅ +1 <small>titre ou artiste</small> <kbd>1</kbd></button>
+          <button class="btn great" data-cmd="plus2">🌟 +2 <small>les deux</small> <kbd>2</kbd></button>
+          <button class="btn bad" data-cmd="wrong">❌ Faux <kbd>X</kbd></button>
+          <button class="btn ghost" data-cmd="cancel">↩︎ Annuler le buzz <kbd>A</kbd></button>
+        </div>
+      </section>
+
+      <section class="ad-controls" id="controls"></section>
+    </div>
+
+    <div class="ad-col">
+      <section class="card">
+        <h2>🏆 Scores en direct</h2>
+        <ol class="ad-scores" id="scores"></ol>
+        <p class="hint" id="scoresHint">− / + pour corriger · 🔔 = buzzer pour une équipe sans téléphone</p>
+      </section>
+
+      <section class="card" id="lobbyCard" hidden>
+        <h2>🎵 Playlists choisies</h2>
+        <ul class="ad-list" id="playlists"></ul>
+      </section>
+
+      <section class="card" id="historyCard">
+        <h2>📜 Chansons passées</h2>
+        <ol class="ad-history" id="history" reversed></ol>
+      </section>
+
+      <button class="link-btn" id="logoutBtn" type="button">Se déconnecter de la régie</button>
+    </div>
+  </main>
+
+  <div class="toast" id="toast" hidden role="status"></div>
+</body>
+</html>
