@@ -166,6 +166,7 @@ function handleCmd(m) {
     case 'cancel': cancelBuzz(); break;
     case 'pause': if (S.phase === 'playing') togglePause(); break;
     case 'unpause': if (S.phase === 'paused') togglePause(); break;
+    case 'togglePause': if (S.phase === 'playing' || S.phase === 'paused') togglePause(); break;
     case 'skip': nobody('skip'); break;
     case 'next': next(); break;
     case 'resume': if (S.phase === 'ready') playRound(S.readyRound); break;

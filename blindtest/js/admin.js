@@ -330,8 +330,8 @@ document.addEventListener('keydown', (e) => {
   const k = e.key.toLowerCase();
   if (e.target.closest('button') && (k === ' ' || k === 'enter')) return;
   const map = {
-    playing: { ' ': 'pause', r: 'skip' },
-    paused: { ' ': 'unpause', r: 'skip' },
+    playing: { ' ': 'togglePause', r: 'skip' },
+    paused: { ' ': 'togglePause', r: 'skip' },
     buzzed: { 1: 'plus1', '&': 'plus1', 2: 'plus2', 'é': 'plus2', x: 'wrong', 0: 'wrong', 'à': 'wrong', backspace: 'wrong', a: 'cancel', q: 'cancel', escape: 'cancel' },
     reveal: { enter: 'next', n: 'next', arrowright: 'next', ' ': 'next' },
     ready: { enter: 'resume', ' ': 'resume' },
