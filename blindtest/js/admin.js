@@ -158,6 +158,7 @@ const PHASES = {
   lobby: ['', '⏳ En attente du lancement'],
   ready: ['paused', '⏸ Prêt à lancer'],
   loading: ['', '⏳ Chargement…'],
+  countdown: ['paused', '⏳ Ça commence…'],
   playing: ['playing', '🎵 En écoute'],
   paused: ['paused', '⏸ Pause'],
   buzzed: ['buzzed', '🔔 BUZZ !'],
@@ -174,7 +175,8 @@ function render() {
   // En-tête de la chanson
   $('#roundPill').textContent = st.total && !['lobby', 'end'].includes(p)
     ? `Chanson ${p === 'ready' ? st.readyRound : st.round} / ${st.total}` : (p === 'end' ? 'Fin' : 'Accueil');
-  const [cls, label] = PHASES[p] || ['', p];
+  const [cls, phaseLabel] = PHASES[p] || ['', p];
+  const label = p === 'countdown' && st.countdown ? `⏳ Départ dans ${st.countdown}…` : phaseLabel;
   const pill = $('#phasePill');
   pill.className = `phase-pill ${cls}`;
   pill.textContent = label;

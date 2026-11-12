@@ -171,3 +171,10 @@ body[data-state='other'] .link-btn { visibility: hidden; }
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
+/* Décompte avant la chanson */
+body[data-state='countdown'] .buzzer-label { font-size: calc(var(--size) * 0.46); }
+.buzzer-label.tick { display: inline-block; animation: count-tick 0.9s ease-out both; }
+@keyframes count-tick { 0% { transform: scale(1.7); opacity: 0; } 25% { transform: scale(1); opacity: 1; } 100% { transform: scale(0.9); } }
+body[data-state='countdown'] .ph-scores { display: none; }
+body[data-state='countdown'] .link-btn { visibility: hidden; }

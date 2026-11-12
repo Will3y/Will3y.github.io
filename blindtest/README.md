@@ -20,9 +20,9 @@ Quand une page animateur est connectée, la TV masque ses boutons (affichage plu
 ## Déroulé d'une soirée
 
 1. Sur le PC, ouvre la page (Chrome ou Edge conseillés), branche la TV et l'enceinte, puis appuie sur `F` pour le plein écran.
-2. Choisis une ou plusieurs playlists Deezer (thèmes proposés, recherche, ou lien `deezer.com/…/playlist/123`).
+2. Choisis une ou plusieurs playlists Deezer (thèmes proposés, recherche, ou lien `deezer.com/…/playlist/123`) : chaque clic ajoute ou retire une playlist, et l'encadré vert « ✅ N playlists sélectionnées » récapitule la sélection. Les chansons de toutes les playlists choisies sont mélangées.
 3. Chaque équipe scanne le QR code, choisit un nom, une couleur et une mascotte. Le bouton **TEST** sur le téléphone permet de vérifier que le PC reçoit bien le buzz.
-4. **C'est parti !** Au premier buzz, la musique se coupe et l'équipe s'affiche en grand.
+4. **C'est parti !** Un décompte 3, 2, 1 (réglable : aucun, 3 ou 5 secondes) s'affiche sur la TV et les téléphones avant chaque chanson. Au premier buzz, la musique se coupe et l'équipe s'affiche en grand.
 5. L'animateur juge la réponse donnée à voix haute (depuis la page animateur, ou directement sur le PC).
 
 ## Raccourcis clavier (PC et page animateur)

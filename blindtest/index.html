@@ -56,16 +56,17 @@
 
       <section class="card music-card" aria-labelledby="musicTitle">
         <h2 id="musicTitle">🎵 La musique</h2>
+        <p class="hint music-help">Choisis <b>une ou plusieurs playlists</b> : leurs chansons sont mélangées puis tirées au sort.</p>
+        <div class="selection-box" id="selectionBox" aria-live="polite">
+          <p class="selection-title" id="selectionTitle"></p>
+          <ul class="selected" id="selected"></ul>
+        </div>
         <form id="searchForm" class="inline-form" autocomplete="off">
           <input id="searchInput" type="search" placeholder="Chercher une playlist Deezer, ou coller son lien…" aria-label="Recherche de playlist Deezer">
           <button class="btn cyan" type="submit">Chercher</button>
         </form>
         <div class="chips" id="themeChips"></div>
         <div class="results" id="results" aria-live="polite"></div>
-        <div class="selected-wrap">
-          <h3>Playlists choisies <span class="count" id="selCount">0</span></h3>
-          <ul class="selected" id="selected"></ul>
-        </div>
       </section>
 
       <section class="card settings-card" aria-labelledby="settingsTitle">
@@ -74,6 +75,11 @@
           <select id="setRounds">
             <option>10</option><option>15</option><option selected>20</option><option>25</option>
             <option>30</option><option>40</option><option>50</option>
+          </select>
+        </label>
+        <label class="field">Décompte avant chaque chanson
+          <select id="setCountdown">
+            <option value="0">Aucun</option><option value="3" selected>3 secondes</option><option value="5">5 secondes</option>
           </select>
         </label>
         <label class="toggle"><input type="checkbox" id="setLock" checked><span></span> Équipe bloquée après une mauvaise réponse</label>

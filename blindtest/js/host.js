@@ -8,7 +8,7 @@ import qrcode from '../vendor/qrcode.mjs';
 const $ = (sel) => document.querySelector(sel);
 const STORE_KEY = 'blindtest-host-v1';
 const CODE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
-const GAME_PHASES = ['ready', 'loading', 'playing', 'paused', 'buzzed', 'reveal'];
+const GAME_PHASES = ['ready', 'loading', 'countdown', 'playing', 'paused', 'buzzed', 'reveal'];
 const PREVIEW_TTL = 10 * 60 * 1000;
 
 /* ------------------------------------------------------------------ */
@@ -19,7 +19,7 @@ const S = {
   code: '',
   adminKey: '',
   phase: 'lobby',
-  settings: { rounds: 20, lockOnWrong: true, penalty: false, voice: true },
+  settings: { rounds: 20, countdown: 3, lockOnWrong: true, penalty: false, voice: true },
   playlists: [],
   pool: [],
   cursor: 0,
@@ -206,6 +206,7 @@ function adminState() {
     round: S.round,
     total: S.total,
     readyRound: S.readyRound,
+    countdown: S.phase === 'countdown' ? S.countdown : null,
     current: cur && !['lobby', 'end'].includes(S.phase)
       ? { title: cur.title, artist: cur.artist, album: cur.album, cover: cur.cover } : null,
     teams: ranked().map((t) => ({ ...publicTeam(t), online: isOnline(t.id), phones: phoneCount(t.id), locked: S.locked.has(t.id) })),
@@ -337,6 +338,7 @@ function stateFor(teamId) {
     round: S.round,
     total: S.total,
     readyRound: S.readyRound,
+    countdown: S.phase === 'countdown' ? S.countdown : null,
     teams: ranked().map(publicTeam),
     buzz: S.buzz,
     locked: [...S.locked],
@@ -391,7 +393,7 @@ players.forEach((el) => {
   });
   el.addEventListener('error', () => {
     if (el !== activeEl() || !el.src) return;
-    if (S.phase === 'playing' || S.phase === 'loading') {
+    if (['playing', 'loading', 'countdown'].includes(S.phase)) {
       toast('😬 Extrait illisible, on passe au suivant…');
       S.current = null;
       setTimeout(() => playRound(S.round), 600);
@@ -408,7 +410,8 @@ function resumeMusic() {
   if (el.src && !el.ended) el.play().catch(() => {});
 }
 
-async function playUrl(url) {
+/** Prépare l'extrait (chargement pendant le décompte) sans le lancer. */
+function prepareUrl(url) {
   let el;
   if (prefetched && prefetched.url === url) {
     el = prefetched.el;
@@ -416,11 +419,16 @@ async function playUrl(url) {
   } else {
     el = activeEl();
     el.src = url;
+    el.load();
   }
   prefetched = null;
   players.forEach((p) => { if (p !== el) p.pause(); });
   el.volume = 1;
   try { el.currentTime = 0; } catch (e) { /* ignore */ }
+  return el;
+}
+
+async function startEl(el) {
   try {
     await el.play();
     return 'ok';
@@ -555,7 +563,12 @@ async function playRound(n) {
   S.current = { ...track, round: n };
   if (!S.played.includes(track.id)) S.played.push(track.id);
   if (S.played.length > 2000) S.played = S.played.slice(-2000);
-  const status = await playUrl(fresh.url);
+  const el = prepareUrl(fresh.url);
+  if (S.settings.countdown > 0) {
+    const done = await runCountdown(my, S.settings.countdown);
+    if (!done || my !== roundToken) return;
+  }
+  const status = await startEl(el);
   if (my !== roundToken) return;
   if (status === 'error') {
     toast('😬 Extrait illisible, on passe au suivant…');
@@ -571,6 +584,24 @@ async function playRound(n) {
   }
   setPhase('playing');
   prefetchNext();
+}
+
+/** Décompte 3, 2, 1 avant la musique (affiché sur la TV, les téléphones et l'animateur). */
+function runCountdown(my, secs) {
+  return new Promise((resolve) => {
+    let left = secs;
+    const step = () => {
+      if (my !== roundToken) { resolve(false); return; }
+      if (left <= 0) { resolve(true); return; }
+      S.countdown = left;
+      if (S.phase !== 'countdown') setPhase('countdown');
+      else { render(); broadcast(); }
+      sfx.tick(left === 1);
+      left -= 1;
+      setTimeout(step, 1000);
+    };
+    step();
+  });
 }
 
 function onBuzz(teamId, round) {
@@ -720,6 +751,7 @@ function renderLobby() {
   $('#setLock').checked = S.settings.lockOnWrong;
   $('#setPenalty').checked = S.settings.penalty;
   $('#setVoice').checked = S.settings.voice;
+  $('#setCountdown').value = String(S.settings.countdown);
 }
 
 function joinUrl() {
@@ -796,29 +828,44 @@ function renderResults(message) {
   if (message) { box.innerHTML = `<p class="msg">${message}</p>`; return; }
   if (!searchResults.length) { box.innerHTML = '<p class="msg">Choisis un thème ou cherche une playlist 👆</p>'; return; }
   const sel = new Set(S.playlists.map((p) => p.id));
-  box.innerHTML = searchResults.map((p) => `
-    <button class="pl-card ${sel.has(p.id) ? 'added' : ''}" data-pl="${p.id}" title="${F.esc(p.title)}">
+  box.innerHTML = searchResults.map((p) => {
+    const on = sel.has(p.id);
+    return `
+    <button class="pl-card ${on ? 'added' : ''}" data-pl="${p.id}" aria-pressed="${on}"
+      title="${F.esc(p.title)} — ${on ? 'cliquer pour la retirer' : 'cliquer pour l\'ajouter'}">
       <img src="${F.esc(p.picture)}" alt="" loading="lazy">
       <span class="t">${F.esc(p.title)}</span>
       <span class="s">${p.nb} titres${p.by ? ' · ' + F.esc(p.by) : ''}</span>
-    </button>`).join('');
+      <span class="pl-action">${on ? '✓ Sélectionnée' : '＋ Ajouter'}</span>
+    </button>`;
+  }).join('');
 }
 
 function renderSelected() {
-  const ul = $('#selected');
-  $('#selCount').textContent = S.playlists.length;
-  if (!S.playlists.length) {
-    ul.innerHTML = '<li class="empty">Aucune pour l\'instant. Tu peux en mélanger plusieurs !</li>';
-  } else {
-    ul.innerHTML = S.playlists.map((p) => `
-      <li>
-        <img src="${F.esc(p.picture)}" alt="">
-        <div class="info"><div class="t">${F.esc(p.title)}</div><div class="s">${p.nb} titres</div></div>
-        <button class="btn-icon" data-unpl="${p.id}" title="Retirer" aria-label="Retirer ${F.esc(p.title)}">✕</button>
-      </li>`).join('');
-  }
-  const total = S.playlists.reduce((n, p) => n + (p.nb || 0), 0);
-  if (S.playlists.length) startHint(`${total} chansons au total, ${Math.min(total, S.settings.rounds)} seront tirées au sort.`);
+  const n = S.playlists.length;
+  const total = S.playlists.reduce((sum, p) => sum + (p.nb || 0), 0);
+  const plural = n > 1 ? 's' : '';
+  $('#selectionBox').classList.toggle('has', n > 0);
+  $('#selectionTitle').innerHTML = n
+    ? `✅ <b>${n} playlist${plural} sélectionnée${plural}</b> · ${total} chansons${n > 1 ? ' mélangées ensemble' : ''}`
+    : '👇 <b>Aucune playlist sélectionnée.</b> Clique sur une ou plusieurs playlists ci-dessous.';
+  $('#selected').innerHTML = S.playlists.map((p) => `
+    <li title="${F.esc(p.title)}">
+      <img src="${F.esc(p.picture)}" alt="">
+      <span class="t">${F.esc(p.title)}</span>
+      <span class="s">${p.nb}</span>
+      <button class="x" type="button" data-unpl="${p.id}" title="Retirer cette playlist" aria-label="Retirer ${F.esc(p.title)}">✕</button>
+    </li>`).join('');
+  startHint(n
+    ? `🎵 ${n} playlist${plural} · ${total} chansons → ${Math.min(total, S.settings.rounds)} tirées au sort.`
+    : '👉 Choisis d\'abord au moins une playlist dans « La musique ».');
+}
+
+function popSelection() {
+  const box = $('#selectionBox');
+  box.classList.remove('pop');
+  void box.offsetWidth;
+  box.classList.add('pop');
 }
 
 function startHint(text) { $('#startHint').textContent = text; }
@@ -833,11 +880,14 @@ function renderGame() {
 
   const label = $('#cdLabel');
   const cover = p === 'reveal' && S.current?.cover;
-  const wanted = cover ? `img:${cover}` : 'q';
+  const counting = p === 'countdown';
+  const wanted = cover ? `img:${cover}` : counting ? `n:${S.countdown}` : 'q';
   cd.classList.toggle('mystery', !cover);
+  cd.classList.toggle('counting', counting);
   if (label.dataset.k !== wanted) {
     label.dataset.k = wanted;
-    label.innerHTML = cover ? `<img src="${F.esc(cover)}" alt="Pochette">` : '<span>?</span>';
+    label.innerHTML = cover ? `<img src="${F.esc(cover)}" alt="Pochette">`
+      : counting ? `<span class="count-num">${S.countdown}</span>` : '<span>?</span>';
   }
 
   $('#timer').classList.toggle('hidden', !['playing', 'paused', 'buzzed', 'reveal'].includes(p));
@@ -845,6 +895,7 @@ function renderGame() {
   const statusMap = {
     ready: S.readyRound > 1 ? `Partie en pause. Prêts pour la chanson ${S.readyRound} ?` : 'Prêts ?',
     loading: '⏳ Chargement de la chanson…',
+    countdown: 'Prêts ? Doigts sur les buzzers ! ☝️',
     playing: S.playLine,
     paused: '⏸ Pause ! On reprend quand vous voulez.',
     buzzed: '',
@@ -1011,14 +1062,19 @@ async function addPlaylistById(id) {
     save();
     renderSelected();
     renderResults();
+    popSelection();
     sendAdmins();
+    const n = S.playlists.length;
+    toast(`✅ « ${p.title} » ajoutée · ${n} playlist${n > 1 ? 's' : ''} sélectionnée${n > 1 ? 's' : ''}`);
   } catch (e) {
     toast('Playlist introuvable (est-elle publique ?)');
   }
 }
 
 function removePlaylist(id) {
+  const removed = S.playlists.find((p) => p.id === id);
   S.playlists = S.playlists.filter((p) => p.id !== id);
+  if (removed) toast(`🗑️ « ${removed.title} » retirée de la sélection`);
   save();
   sendAdmins();
   renderSelected();
@@ -1122,6 +1178,7 @@ function bind() {
   $('#setRounds').addEventListener('change', (e) => { S.settings.rounds = Number(e.target.value); save(); renderSelected(); });
   $('#setLock').addEventListener('change', (e) => { S.settings.lockOnWrong = e.target.checked; save(); });
   $('#setPenalty').addEventListener('change', (e) => { S.settings.penalty = e.target.checked; save(); });
+  $('#setCountdown').addEventListener('change', (e) => { S.settings.countdown = Number(e.target.value); save(); });
   $('#setVoice').addEventListener('change', (e) => { S.settings.voice = e.target.checked; save(); if (e.target.checked) speak('Bienvenue au blind test !'); });
 
   $('#startBtn').addEventListener('click', () => startGame());
@@ -1204,7 +1261,7 @@ function bind() {
   });
 
   window.addEventListener('beforeunload', (e) => {
-    if (['playing', 'paused', 'buzzed', 'reveal', 'loading'].includes(S.phase)) { e.preventDefault(); e.returnValue = ''; }
+    if (['playing', 'paused', 'buzzed', 'reveal', 'loading', 'countdown'].includes(S.phase)) { e.preventDefault(); e.returnValue = ''; }
   });
 }
 
@@ -1232,7 +1289,7 @@ function init() {
     runSearch(F.PLAYLIST_THEMES[0].q);
   }
   // Pour les tests et le débogage depuis la console.
-  window.__bt = { S, clients, admins, cmdLog, award, wrong, next, nobody, onBuzz, adminUrl };
+  window.__bt = { S, clients, admins, cmdLog, players, award, wrong, next, nobody, onBuzz, adminUrl };
 }
 
 init();

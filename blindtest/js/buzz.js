@@ -264,6 +264,7 @@ function computeState() {
     case 'lobby': return 'lobby';
     case 'ready':
     case 'loading': return 'waiting';
+    case 'countdown': return 'countdown';
     case 'playing':
       if (state.locked.includes(me)) return 'locked';
       return pendingBuzz && Date.now() - pendingBuzz < 2000 ? 'sent' : 'active';
@@ -302,6 +303,7 @@ function renderPlay() {
     connecting: ['…', 'Connexion au PC… ⏳'],
     lobby: ['TEST', Date.now() < testUntil ? 'Ça marche ! 💪 Le PC a bien reçu ton buzz.' : 'Vous êtes dans la partie ! 🎉 Appuie pour tester, on attend le lancement…'],
     waiting: ['…', s?.phase === 'ready' ? 'Prêts ? La chanson arrive…' : '🎶 Chanson suivante…'],
+    countdown: [String(s?.countdown ?? ''), 'Prêts ? Doigts sur le buzzer ! ☝️'],
     active: ['BUZZ !', 'Appuie dès que tu as la réponse !'],
     sent: ['!!!', 'Buzz envoyé…'],
     locked: ['🔒', line(key, F.LOCKED_LINES)],
@@ -311,7 +313,14 @@ function renderPlay() {
     reveal: ['', ''],
     end: ['', ''],
   }[st] || ['…', ''];
-  $('#buzzerLabel').textContent = view[0];
+  const labelEl = $('#buzzerLabel');
+  if (st === 'countdown' && labelEl.textContent !== view[0]) {
+    // relance la petite animation à chaque chiffre
+    labelEl.classList.remove('tick');
+    void labelEl.offsetWidth;
+    labelEl.classList.add('tick');
+  } else if (st !== 'countdown') labelEl.classList.remove('tick');
+  labelEl.textContent = view[0];
   $('#phMsg').textContent = view[1];
 
   const inBuzzZone = !['reveal', 'end'].includes(st);

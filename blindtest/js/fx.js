@@ -79,6 +79,8 @@ export const sfx = {
     });
   },
   pop() { note(N.E5, 0, 0.06, { type: 'triangle', vol: 0.2 }); },
+  /** Bip du décompte (plus aigu sur le dernier). */
+  tick(last = false) { note(last ? N.A5 : N.E5, 0, last ? 0.22 : 0.12, { type: 'square', vol: 0.2 }); },
   /** Petite fanfare de victoire en version 8-bit. */
   fanfare() {
     const b = 0.15;
