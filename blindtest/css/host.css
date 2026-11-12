@@ -15,29 +15,6 @@
 .hero-deco span:nth-child(2) { animation-delay: -1.5s; }
 .hero-deco span:nth-child(3) { animation-delay: -3s; }
 
-/* Ballon "30" façon ballon alu */
-.balloon { position: relative; font-family: var(--display); font-size: clamp(96px, 12vw, 190px); line-height: 0.8; animation: float 5s ease-in-out infinite; padding-bottom: 26px; flex: 0 0 auto; }
-.balloon span {
-  display: block;
-  background: linear-gradient(165deg, #fff 0%, #ffd1ea 10%, #ff4fa3 32%, #b3165f 55%, #ff7cc0 76%, #ffe3f1 93%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  -webkit-text-stroke: 3px rgba(255, 255, 255, 0.28);
-  filter: drop-shadow(0 6px 0 rgba(90, 10, 60, 0.6)) drop-shadow(0 0 28px rgba(255, 79, 163, 0.45));
-}
-.balloon::after {
-  content: '';
-  position: absolute;
-  left: 47%;
-  bottom: -46px;
-  width: 2px;
-  height: 74px;
-  background: linear-gradient(rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0));
-  transform: rotate(7deg);
-  transform-origin: top;
-}
-
 .lobby-grid {
   display: grid;
   gap: 28px;
@@ -296,7 +273,6 @@
 .end-head { display: flex; align-items: center; gap: 28px; justify-content: center; }
 .end-head h1 { font-size: clamp(2rem, 4.5vw, 3.9rem); line-height: 1.05; text-shadow: 4px 4px 0 var(--pink-dark); }
 .end-sub { color: var(--muted); font-size: 1.25rem; margin: 10px 0 0; }
-.balloon.small { font-size: clamp(70px, 9vw, 130px); }
 .podium { display: flex; align-items: flex-end; justify-content: center; gap: 18px; margin-top: 8px; min-height: 330px; }
 .step { width: min(230px, 28vw); display: flex; flex-direction: column; align-items: center; gap: 6px; animation: rise 0.8s cubic-bezier(0.2, 1.2, 0.4, 1) both; }
 .step .emoji { font-size: 3.6rem; line-height: 1; }

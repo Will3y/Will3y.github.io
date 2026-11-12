@@ -1,0 +1,17 @@
+{
+  "name": "Buzzer · Les 30 ans de Morgane",
+  "short_name": "Buzzer Morgane",
+  "description": "Le buzzer du blind test des 30 ans de Morgane.",
+  "lang": "fr",
+  "start_url": "./buzz.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#1c0b3a",
+  "theme_color": "#1c0b3a",
+  "icons": [
+    { "src": "img/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "img/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "img/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

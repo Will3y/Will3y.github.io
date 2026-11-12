@@ -4,7 +4,7 @@ import * as F from './fun.js';
 
 const $ = (sel) => document.querySelector(sel);
 const params = new URLSearchParams(location.search);
-const SAVE_KEY = 'morgane30-admin-v1';
+const SAVE_KEY = 'blindtest-admin-v1';
 const store = params.has('local') ? sessionStorage : localStorage;
 
 const cleanCode = (v) => String(v || '').toUpperCase().replace(/[^A-Z]/g, '').slice(0, 4);
@@ -15,7 +15,7 @@ let code = cleanCode(params.get('r')) || saved.code || '';
 let key = cleanKey(params.get('k')) || saved.key || '';
 let active = false; // on veut rester connecté
 
-const CID_KEY = 'morgane30-admin-cid';
+const CID_KEY = 'blindtest-admin-cid';
 const cid = sessionStorage.getItem(CID_KEY) || (crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`).slice(0, 36);
 try { sessionStorage.setItem(CID_KEY, cid); } catch (e) { /* ignore */ }
 
@@ -123,9 +123,11 @@ function onMsg(m) {
   }
 }
 
+let cmdSeq = 0;
 function send(action, extra = {}) {
   if (!conn || !conn.open) { toast('Pas connecté au PC… 🔄'); return; }
-  conn.send({ t: 'cmd', action, ...extra });
+  // Identifiant unique : le PC ignore une commande qu'il aurait déjà reçue.
+  conn.send({ t: 'cmd', action, id: `${cid}:${Date.now().toString(36)}:${++cmdSeq}`, ...extra });
   navigator.vibrate?.(15);
 }
 
@@ -194,7 +196,7 @@ function render() {
       ? `${teams.length} équipe${teams.length > 1 ? 's' : ''} connectée${teams.length > 1 ? 's' : ''}. Lance la partie quand tout le monde est prêt !`
       : 'Choisis une ou plusieurs playlists sur l\'écran du PC, puis lance la partie.',
     loading: '🎧 Chargement de la chanson…',
-    end: 'Partie terminée ! Joyeux anniversaire Morgane 🎂',
+    end: 'Partie terminée ! Bravo à tous 🎉',
   }[p] || '🎧 La réponse s\'affichera ici dès le lancement de la chanson.';
 
   $('#adTimer').hidden = !['playing', 'paused', 'buzzed', 'reveal'].includes(p);

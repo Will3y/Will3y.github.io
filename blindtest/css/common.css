@@ -1,4 +1,4 @@
-/* ===== Thème "30 ans de Morgane" : soirée années 90 ===== */
+/* ===== Thème blind test : soirée années 90 ===== */
 :root {
   --bg: #1c0b3a;
   --bg-2: #2a0f55;
@@ -204,6 +204,26 @@ select option { color: #1b0b33; }
   60% { transform: translateX(-6px) rotate(-1deg); }
   80% { transform: translateX(4px) rotate(1deg); }
 }
+
+/* Égaliseur animé (logo) */
+.eq { display: flex; align-items: flex-end; gap: clamp(6px, 0.8vw, 12px); height: clamp(90px, 11vw, 170px); flex: 0 0 auto; }
+.eq span {
+  width: clamp(16px, 2vw, 30px);
+  height: 40%;
+  border-radius: 999px;
+  background: var(--c);
+  box-shadow: 0 6px 0 rgba(0, 0, 0, 0.28), 0 0 22px color-mix(in srgb, var(--c) 45%, transparent);
+  animation: eq 1.1s ease-in-out infinite alternate;
+}
+.eq span:nth-child(1) { --c: var(--pink); animation-duration: 0.9s; animation-delay: -0.3s; }
+.eq span:nth-child(2) { --c: var(--yellow); animation-duration: 1.2s; animation-delay: -0.8s; }
+.eq span:nth-child(3) { --c: var(--cyan); animation-duration: 0.8s; animation-delay: -0.1s; }
+.eq span:nth-child(4) { --c: var(--violet); animation-duration: 1.05s; animation-delay: -0.5s; }
+.eq span:nth-child(5) { --c: var(--green); animation-duration: 0.95s; animation-delay: -0.65s; }
+.eq.small { height: clamp(64px, 7vw, 110px); }
+.eq.mini { height: 64px; justify-content: center; gap: 6px; }
+.eq.mini span { width: 14px; }
+@keyframes eq { 0% { height: 22%; } 50% { height: 100%; } 100% { height: 48%; } }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; }

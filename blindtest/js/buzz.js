@@ -3,7 +3,7 @@ import { createClient } from './net.js';
 import * as F from './fun.js';
 
 const $ = (sel) => document.querySelector(sel);
-const PROFILE_KEY = 'morgane30-phone-v1';
+const PROFILE_KEY = 'blindtest-phone-v1';
 const params = new URLSearchParams(location.search);
 
 /* ------------------------------------------------------------------ */
@@ -18,7 +18,7 @@ const profile = (() => {
 const saveProfile = () => { try { store.setItem(PROFILE_KEY, JSON.stringify(profile)); } catch (e) { /* ignore */ } };
 
 // Identifiant de l'appareil : propre à chaque onglet, pour que deux onglets ne se marchent jamais dessus.
-const CID_KEY = 'morgane30-cid';
+const CID_KEY = 'blindtest-cid';
 profile.cid = sessionStorage.getItem(CID_KEY)
   || (crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`).slice(0, 36);
 try { sessionStorage.setItem(CID_KEY, profile.cid); } catch (e) { /* ignore */ }
@@ -175,7 +175,7 @@ function buildJoinForm() {
   $('#joinForm').addEventListener('submit', (e) => {
     e.preventDefault();
     const code = cleanCode($('#codeInput').value);
-    const name = $('#nameInput').value.trim().replace(/\s+/g, ' ').slice(0, 28);
+    const name = $('#nameInput').value.trim().replace(/\s+/g, ' ').slice(0, 32);
     if (code.length !== 4) { joinFail('Le code du salon fait 4 lettres (il est affiché sur l\'écran du PC).'); return; }
     if (!name) { joinFail('Il faut un nom d\'équipe ! (🎲 pour en tirer un au hasard)'); return; }
     profile.code = code;

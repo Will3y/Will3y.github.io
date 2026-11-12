@@ -1,5 +1,5 @@
 // Service worker minimal : réseau d'abord (toujours la dernière version), cache en secours.
-const CACHE = 'morgane30-blindtest-v1';
+const CACHE = 'blindtest-v2';
 
 self.addEventListener('install', () => self.skipWaiting());
 

@@ -45,18 +45,7 @@ body.phone {
 
 /* ---------- Inscription ---------- */
 .join-hero { text-align: center; margin: 8px 0 18px; }
-.mini-balloon {
-  display: inline-block;
-  font-family: var(--display);
-  font-size: 64px;
-  line-height: 0.9;
-  background: linear-gradient(165deg, #fff 0%, #ffd1ea 10%, #ff4fa3 32%, #b3165f 55%, #ff7cc0 76%, #ffe3f1 93%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  filter: drop-shadow(0 4px 0 rgba(90, 10, 60, 0.6));
-  animation: float 5s ease-in-out infinite;
-}
+.join-hero .eq { margin: 0 auto; }
 .join-hero h1 { font-size: 1.55rem; line-height: 1.15; margin-top: 8px; text-shadow: 3px 3px 0 var(--pink-dark); }
 .join-sub { color: var(--muted); margin: 10px 0 0; }
 

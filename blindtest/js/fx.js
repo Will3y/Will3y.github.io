@@ -51,7 +51,7 @@ function note(freq, start, dur, { type = 'square', vol = 0.25, slide = null, vib
 }
 
 const N = { A3: 220, B3: 246.94, C4: 261.63, D4: 293.66, E4: 329.63, F4: 349.23, G4: 392, A4: 440, Bb4: 466.16, B4: 493.88,
-  C5: 523.25, D5: 587.33, E5: 659.25, F5: 698.46, G5: 783.99, A5: 880, C6: 1046.5 };
+  C5: 523.25, D5: 587.33, E5: 659.25, F5: 698.46, G5: 783.99, A5: 880, B5: 987.77, C6: 1046.5 };
 
 export const sfx = {
   /** Une équipe vient de buzzer. */
@@ -79,21 +79,22 @@ export const sfx = {
     });
   },
   pop() { note(N.E5, 0, 0.06, { type: 'triangle', vol: 0.2 }); },
-  /** Joyeux anniversaire en version 8-bit (mélodie du domaine public). */
-  happyBirthday() {
-    const b = 0.36;
+  /** Petite fanfare de victoire en version 8-bit. */
+  fanfare() {
+    const b = 0.15;
     const m = [
-      ['G4', 0.75], ['G4', 0.25], ['A4', 1], ['G4', 1], ['C5', 1], ['B4', 2],
-      ['G4', 0.75], ['G4', 0.25], ['A4', 1], ['G4', 1], ['D5', 1], ['C5', 2],
-      ['G4', 0.75], ['G4', 0.25], ['G5', 1], ['E5', 1], ['C5', 1], ['B4', 1], ['A4', 2],
-      ['F5', 0.75], ['F5', 0.25], ['E5', 1], ['C5', 1], ['D5', 1], ['C5', 3],
+      ['G4', 1], ['C5', 1], ['E5', 1], ['G5', 2], ['E5', 1], ['G5', 4],
+      ['A4', 1], ['D5', 1], ['F5', 1], ['A5', 2], ['F5', 1], ['A5', 4],
+      ['B4', 1], ['D5', 1], ['G5', 1], ['B5', 2], ['A5', 1], ['B5', 1], ['C6', 7],
     ];
     let t = 0.1;
     m.forEach(([n, d]) => {
-      note(N[n], t, d * b * 0.92, { type: 'square', vol: 0.16 });
-      note(N[n] / 2, t, d * b * 0.92, { type: 'triangle', vol: 0.18 });
+      note(N[n], t, d * b * 0.9, { type: 'square', vol: 0.15 });
+      note(N[n] / 2, t, d * b * 0.9, { type: 'triangle', vol: 0.18 });
       t += d * b;
     });
+    // accord final
+    [N.C5, N.E5, N.G5].forEach((f) => note(f, t - 7 * b, 7 * b, { type: 'triangle', vol: 0.12 }));
     return t;
   },
 };

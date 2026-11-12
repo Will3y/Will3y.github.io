@@ -6,7 +6,7 @@ import * as F from './fun.js';
 import qrcode from '../vendor/qrcode.mjs';
 
 const $ = (sel) => document.querySelector(sel);
-const STORE_KEY = 'morgane30-host-v1';
+const STORE_KEY = 'blindtest-host-v1';
 const CODE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
 const GAME_PHASES = ['ready', 'loading', 'playing', 'paused', 'buzzed', 'reveal'];
 const PREVIEW_TTL = 10 * 60 * 1000;
@@ -158,7 +158,16 @@ function handleAdminHello(conn, m) {
   return cid;
 }
 
+const cmdLog = [];
+const seenCmdIds = new Set();
 function handleCmd(m) {
+  if (m.id) {
+    if (seenCmdIds.has(m.id)) return; // commande déjà traitée
+    seenCmdIds.add(m.id);
+    if (seenCmdIds.size > 300) seenCmdIds.delete(seenCmdIds.values().next().value);
+  }
+  cmdLog.push({ action: m.action, at: Date.now() });
+  if (cmdLog.length > 50) cmdLog.shift();
   switch (m.action) {
     case 'plus1': award(1); break;
     case 'plus2': award(2); break;
@@ -258,7 +267,7 @@ function openAdminDialog() {
 
 function handleHello(conn, m) {
   const cid = String(m.cid || '').slice(0, 40);
-  const name = String(m.name || '').trim().replace(/\s+/g, ' ').slice(0, 28);
+  const name = String(m.name || '').trim().replace(/\s+/g, ' ').slice(0, 32);
   if (!cid || !name) { conn.send({ t: 'error', msg: 'Nom d\'équipe manquant.' }); return null; }
   const color = F.TEAM_COLORS.some((c) => c.hex === m.color) ? m.color : F.TEAM_COLORS[0].hex;
   const emoji = F.TEAM_EMOJIS.includes(m.emoji) ? m.emoji : F.TEAM_EMOJIS[0];
@@ -655,11 +664,12 @@ function endGame() {
 
 function celebrate() {
   audioCtx();
-  const dur = sfx.happyBirthday();
+  const dur = sfx.fanfare();
   const burst = () => confetti({ count: 140 });
   burst();
   [1.2, 2.6, 4.2, 6].forEach((s) => setTimeout(burst, s * 1000));
-  if (S.settings.voice) setTimeout(() => speak('Joyeux anniversaire Morgane !'), (dur + 0.4) * 1000);
+  const winner = ranked()[0];
+  if (S.settings.voice && winner) setTimeout(() => speak(`Bravo ${winner.name} !`), (dur + 0.3) * 1000);
 }
 
 function backToLobby() {
@@ -755,7 +765,7 @@ function renderTeams() {
   $('#teamCount').textContent = list.length;
   const ul = $('#teamList');
   if (!list.length) {
-    ul.innerHTML = '<li class="empty">Personne pour l\'instant… Morgane, appelle tes potes ! 📞</li>';
+    ul.innerHTML = '<li class="empty">Personne pour l\'instant… Scannez le QR code avec vos téléphones ! 📱</li>';
     return;
   }
   ul.innerHTML = list.map((t) => {
@@ -1094,7 +1104,7 @@ function bind() {
   $('#addTeamForm').addEventListener('submit', (e) => {
     e.preventDefault();
     const input = $('#addTeamInput');
-    const name = input.value.trim().replace(/\s+/g, ' ').slice(0, 28);
+    const name = input.value.trim().replace(/\s+/g, ' ').slice(0, 32);
     if (!name) return;
     if (teamList().some((t) => F.normName(t.name) === F.normName(name))) { toast('Ce nom d\'équipe existe déjà'); return; }
     const used = new Set(teamList().map((t) => t.color));
@@ -1112,14 +1122,14 @@ function bind() {
   $('#setRounds').addEventListener('change', (e) => { S.settings.rounds = Number(e.target.value); save(); renderSelected(); });
   $('#setLock').addEventListener('change', (e) => { S.settings.lockOnWrong = e.target.checked; save(); });
   $('#setPenalty').addEventListener('change', (e) => { S.settings.penalty = e.target.checked; save(); });
-  $('#setVoice').addEventListener('change', (e) => { S.settings.voice = e.target.checked; save(); if (e.target.checked) speak('Joyeux anniversaire Morgane !'); });
+  $('#setVoice').addEventListener('change', (e) => { S.settings.voice = e.target.checked; save(); if (e.target.checked) speak('Bienvenue au blind test !'); });
 
   $('#startBtn').addEventListener('click', () => startGame());
 
   $('#adminOpen').addEventListener('click', openAdminDialog);
   $('#adminClose').addEventListener('click', () => $('#adminDialog').close());
   $('#adminWindow').addEventListener('click', () => {
-    window.open(adminUrl(), 'animateur-morgane30', 'popup,width=1100,height=820');
+    window.open(adminUrl(), 'animateur-blindtest', 'popup,width=1100,height=820');
   });
   $('#adminCopy').addEventListener('click', async () => {
     try { await navigator.clipboard.writeText(adminUrl()); $('#adminCopy').textContent = '✅ Lien copié'; }
@@ -1157,7 +1167,7 @@ function bind() {
     await startGame();
     if (S.phase === 'end') render();
   });
-  $('#birthdayBtn').addEventListener('click', celebrate);
+  $('#fanfareBtn').addEventListener('click', celebrate);
   $('#menuBtn').addEventListener('click', backToLobby);
 
   document.addEventListener('keydown', (e) => {
@@ -1222,7 +1232,7 @@ function init() {
     runSearch(F.PLAYLIST_THEMES[0].q);
   }
   // Pour les tests et le débogage depuis la console.
-  window.__bt = { S, clients, admins, award, wrong, next, nobody, onBuzz, adminUrl };
+  window.__bt = { S, clients, admins, cmdLog, award, wrong, next, nobody, onBuzz, adminUrl };
 }
 
 init();

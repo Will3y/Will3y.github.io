@@ -1,7 +1,7 @@
 {
-  "name": "Buzzer · Les 30 ans de Morgane",
-  "short_name": "Buzzer Morgane",
-  "description": "Le buzzer du blind test des 30 ans de Morgane.",
+  "name": "Buzzer · Blind Test",
+  "short_name": "Buzzer",
+  "description": "Le buzzer du blind test de la soirée.",
   "lang": "fr",
   "start_url": "./buzz.html",
   "scope": "./",

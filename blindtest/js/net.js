@@ -4,7 +4,7 @@
 //
 // Un "conn" exposé au reste de l'appli : { id, send(obj), onData(fn), onClose(fn), close(), open }
 
-const PREFIX = 'morgane30-blindtest-';
+const PREFIX = 'will3y-blindtest-';
 
 export const isLocalMode = () => new URLSearchParams(location.search).has('local');
 const peerIdFor = (code) => PREFIX + code.toUpperCase();

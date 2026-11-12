@@ -1,4 +1,4 @@
-# 🎂 Blind test — Les 30 ans de Morgane
+# 🎵 Blind test — le jeu musical de la soirée
 
 Trois écrans :
 
@@ -50,4 +50,8 @@ Corrections et équipes sans téléphone : sur la page animateur, boutons `−` 
 
 ## Technique
 
-HTML/CSS/JavaScript sans compilation. Connexion PC ↔ téléphones en WebRTC via [PeerJS](https://peerjs.com) (serveur public gratuit), extraits de 30 s via l'API publique Deezer (JSONP), QR code via [qrcode-generator](https://github.com/kazuhikoarase/qrcode-generator). Sons et « Joyeux anniversaire » en 8-bit synthétisés dans le navigateur. Licences des bibliothèques : `vendor/LICENSES.txt`.
+HTML/CSS/JavaScript sans compilation. Connexion PC ↔ téléphones en WebRTC via [PeerJS](https://peerjs.com) (serveur public gratuit), extraits de 30 s via l'API publique Deezer (JSONP), QR code via [qrcode-generator](https://github.com/kazuhikoarase/qrcode-generator). Sons et fanfare en 8-bit synthétisés dans le navigateur. Licences des bibliothèques : `vendor/LICENSES.txt`.
+
+## Version souvenir
+
+La version spéciale « 30 ans de Morgane » (textes, ballon 30, « Joyeux anniversaire » en 8-bit) reste en ligne, figée, sur `https://will3y.github.io/morgane30/`.

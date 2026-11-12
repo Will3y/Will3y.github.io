@@ -1,6 +1,4 @@
-// Textes, couleurs et petites blagues pour les 30 ans de Morgane.
-
-export const BIRTHDAY_NAME = 'Morgane';
+// Textes, couleurs et petites blagues du blind test.
 
 export const TEAM_COLORS = [
   { name: 'Rouge', hex: '#ff4d6d' },
@@ -13,26 +11,25 @@ export const TEAM_COLORS = [
   { name: 'Rose', hex: '#ff5fd2' },
 ];
 
-export const TEAM_EMOJIS = ['🎂', '🎤', '🎸', '🦄', '🐑', '🍕', '💿', '🦖', '👑', '🍾', '🐙', '🔥', '🌮', '🐸', '🎺', '👵'];
+export const TEAM_EMOJIS = ['🎤', '🎸', '🎧', '🦄', '🐑', '🍕', '💿', '🦖', '👑', '🍾', '🐙', '🔥', '🌮', '🐸', '🎺', '🥁'];
 
 export const TEAM_NAMES = [
-  'Les Trentenaires Anonymes', 'Team Dolly la Brebis', 'Les Spice Mamies', 'Les Tamagotchis',
-  'Les Rois de la Macarena', 'Morgane Fan Club', 'Les Genoux qui Craquent', 'Team Modem 56k',
-  'Les Cassettes Rembobinées', 'Les Bougies Soufflées', 'Les Fausses Notes', 'Les Walkmans',
-  'Les Pros du Playback', 'Les Minitels en Folie', 'Les Boys Band du Dimanche', 'Les Pas Encore 30',
-  'Les Lunettes de Soleil la Nuit', 'Les Divas du Karaoké', 'Les Rembobineurs Fous', 'Team Dernière Part de Gâteau',
+  'Les Fausses Notes', 'Les Walkmans', 'Les Pros du Playback', 'Les Cassettes Rembobinées',
+  'Team Modem 56k', 'Les Tamagotchis', 'Les Divas du Karaoké', 'Les Rois du Refrain',
+  'Les Oreilles d\'Or', 'Les Boys Band du Dimanche', 'Les Lunettes de Soleil la Nuit', 'Les Minitels en Folie',
+  'Les Shazam Humains', 'Les Platines Rayées', 'Les Air Guitaristes', 'Les Chanteurs de Salle de Bain',
+  'Les Sans Paroles', 'Les Tubes de l\'Été', 'Les Rembobineurs Fous', 'Les Mélomanes Anonymes',
 ];
 
 export const TAGLINES = [
-  'Née en 1996, l\'année de la Macarena. Coïncidence ? Nous ne pensons pas.',
-  '30 ans : les genoux craquent, mais l\'oreille est intacte.',
-  '1996 : Dolly la brebis est clonée. Morgane, elle, reste unique.',
-  'Règle n°1 : interdit de dire « c\'était mieux avant ».',
+  'Règle n°1 : on buzze d\'abord, on réfléchit après.',
   'Règle n°2 : chanter faux, oui. Buzzer faux, non.',
-  'Morgane a 30 ans, elle connaît donc toutes les chansons. Aucune pression.',
-  'Spice Girls, Tamagotchi, modem 56k… bienvenue chez les trentenaires.',
+  'Shazam est formellement interdit. On vous voit.',
+  '« Je l\'ai sur le bout de la langue » ne rapporte aucun point.',
+  'L\'oreille absolue n\'est pas obligatoire. Mais elle aide.',
+  'Tout le monde connaît par cœur une chanson honteuse. Ce soir, on la trouve.',
   'Ce blind test est garanti sans Macarena. Ou presque.',
-  'Trente bougies, zéro fausse note (on va vérifier).',
+  'Échauffez vos doigts : le buzzer n\'attend personne.',
 ];
 
 export const PLAYING_LINES = [
@@ -41,7 +38,7 @@ export const PLAYING_LINES = [
   'Chut… on écoute.',
   'Ça vous dit quelque chose ?',
   'Pas de Shazam, on vous voit 👀',
-  'Morgane, interdiction de souffler la réponse.',
+  'Interdit de fredonner pour aider… enfin, discrètement.',
 ];
 
 export const BUZZ_LINES = [
@@ -53,17 +50,17 @@ export const BUZZ_LINES = [
 ];
 
 export const CORRECT_LINES = [
-  'Bravo ! Morgane valide. 🎂',
-  'Quelle oreille ! Ça mérite une part de gâteau.',
-  'Une oreille de vingt ans !',
+  'Bravo ! Quelle oreille 👂',
   'Shazam peut aller se rhabiller.',
   'Vous connaissez vos classiques, respect.',
-  'Champions ! Même Morgane est jalouse.',
+  'Champions ! Le public est en délire.',
+  'Imparable. On applaudit 👏',
+  'Trop forts ! Vous avez révisé ou quoi ?',
 ];
 
 export const WRONG_LINES = [
   'Raté ! Même un Tamagotchi aurait trouvé.',
-  'Aïe. On met ça sur le compte de l\'âge ?',
+  'Aïe. On fera comme si on n\'avait rien entendu.',
   'Faux ! Mais on vous aime quand même.',
   'C\'était audacieux. Et faux.',
   'Le modem 56k de votre cerveau a planté.',
@@ -71,15 +68,15 @@ export const WRONG_LINES = [
 ];
 
 export const NOBODY_LINES = [
-  'Personne ? Vraiment ? On sent la trentaine…',
+  'Personne ? Vraiment ? 🦗',
   'Silence radio. Comme un modem 56k qui se connecte.',
-  'Même Morgane séchait. (Ou pas, elle ne dira rien.)',
-  'Celle-là, on la ressortira pour ses 40 ans.',
-  'Personne… Le gâteau, ce n\'est pas pour tout de suite.',
+  'Celle-là, on la garde pour la revanche.',
+  'Personne… L\'animateur est déçu.',
+  'Même le DJ ne la connaissait pas.',
 ];
 
 export const LOCKED_LINES = [
-  'Bloqués pour cette chanson 🔒 Profitez-en pour reprendre du gâteau 🍰',
+  'Bloqués pour cette chanson 🔒 Profitez-en pour aller chercher à boire 🥤',
   'Raté ! Pénitence : chantez le refrain 🙈',
   'Hors-jeu pour ce morceau. Dansez en attendant 💃',
 ];
@@ -91,15 +88,16 @@ export const WAITING_OTHERS_LINES = [
 ];
 
 export const PLAYLIST_THEMES = [
-  { label: '🎂 Tubes de 1996', q: 'hits 1996' },
+  { label: '🔥 Hits du moment', q: 'hits du moment' },
   { label: '📼 Années 90', q: 'années 90' },
   { label: '💿 Années 2000', q: 'années 2000' },
   { label: '📱 Années 2010', q: 'années 2010' },
+  { label: '🕺 Années 80', q: 'années 80' },
   { label: '🇫🇷 Variété française', q: 'variété française' },
+  { label: '🎤 Rap FR', q: 'rap français' },
+  { label: '🎸 Rock', q: 'rock classics' },
   { label: '🏰 Disney', q: 'disney' },
   { label: '📺 Génériques dessins animés', q: 'génériques dessins animés' },
-  { label: '🎤 Rap FR', q: 'rap français' },
-  { label: '🕺 Années 80', q: 'années 80' },
   { label: '🎉 Soirée', q: 'soirée' },
 ];
 

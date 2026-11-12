@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Blind Test · Les 30 ans de Morgane 🎂</title>
-  <meta name="description" content="Le blind test des 30 ans de Morgane : le PC diffuse la musique, les téléphones servent de buzzers.">
+  <title>Blind Test 🎵 Le jeu musical de la soirée</title>
+  <meta name="description" content="Blind test pour vos soirées : le PC diffuse la musique, les téléphones servent de buzzers.">
   <meta name="theme-color" content="#1c0b3a">
   <link rel="icon" href="img/icon-192.png" type="image/png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -21,13 +21,13 @@
   <!-- ============ ACCUEIL / LOBBY ============ -->
   <main id="lobby" class="screen">
     <header class="hero">
-      <div class="balloon" aria-hidden="true"><span>30</span></div>
+      <div class="eq" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span></div>
       <div class="hero-text">
-        <p class="eyebrow">🎈 Blind test officiel 🎈</p>
-        <h1>Les 30 ans de <em>Morgane</em></h1>
+        <p class="eyebrow">🎶 Le jeu musical de la soirée 🎶</p>
+        <h1>Blind <em>Test</em></h1>
         <p class="tagline" id="tagline" aria-live="polite"></p>
       </div>
-      <div class="hero-deco" aria-hidden="true"><span>🎉</span><span>🎂</span><span>🎵</span></div>
+      <div class="hero-deco" aria-hidden="true"><span>🎧</span><span>🎤</span><span>🎵</span></div>
     </header>
 
     <div class="lobby-grid">
@@ -49,7 +49,7 @@
         <h2 id="teamsTitle">👯 Équipes <span class="count" id="teamCount">0</span></h2>
         <ul class="team-list" id="teamList"></ul>
         <form id="addTeamForm" class="inline-form" autocomplete="off">
-          <input id="addTeamInput" maxlength="28" placeholder="Équipe sans téléphone…" aria-label="Nom d'une équipe sans téléphone">
+          <input id="addTeamInput" maxlength="32" placeholder="Équipe sans téléphone…" aria-label="Nom d'une équipe sans téléphone">
           <button class="btn ghost" type="submit">Ajouter</button>
         </form>
       </section>
@@ -93,7 +93,7 @@
   <!-- ============ PARTIE ============ -->
   <main id="game" class="screen" hidden>
     <header class="topbar">
-      <div class="brand">🎂 Morgane <b>30</b> <span>· Blind Test</span></div>
+      <div class="brand">🎵 Blind <b>Test</b></div>
       <div class="round-label" id="roundLabel"></div>
       <div class="top-actions">
         <span class="admin-badge" id="adminBadge" hidden title="Une page animateur est connectée">🎙️ Animateur</span>
@@ -108,7 +108,7 @@
         <div class="cd" id="cd">
           <svg class="cd-ring" viewBox="0 0 200 200" aria-hidden="true">
             <defs><path id="ringPath" d="M100,100 m-80,0 a80,80 0 1,1 160,0 a80,80 0 1,1 -160,0"/></defs>
-            <text><textPath href="#ringPath" textLength="498" lengthAdjust="spacing">★ BEST OF MORGANE ★ 1996 – 2026 ★ ÉDITION COLLECTOR 30 ANS ★ NE PAS RAYER ★</textPath></text>
+            <text><textPath href="#ringPath" textLength="498" lengthAdjust="spacing">★ BLIND TEST ★ LE GRAND QUIZ MUSICAL ★ ÉDITION SOIRÉE ★ NE PAS RAYER ★</textPath></text>
           </svg>
           <div class="cd-label" id="cdLabel"><span>?</span></div>
           <div class="cd-hole"></div>
@@ -155,9 +155,9 @@
   <!-- ============ FIN ============ -->
   <main id="end" class="screen" hidden>
     <div class="end-head">
-      <div class="balloon small" aria-hidden="true"><span>30</span></div>
+      <div class="eq small" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span></div>
       <div>
-        <h1>Joyeux anniversaire <em>Morgane</em> ! 🎂</h1>
+        <h1>Et les gagnants sont… <em>🏆</em></h1>
         <p class="end-sub" id="endSub"></p>
       </div>
     </div>
@@ -165,7 +165,7 @@
     <ol class="rest-list" id="restList"></ol>
     <div class="end-actions">
       <button class="btn pink btn-big" id="replayBtn">🔁 Rejouer (mêmes équipes)</button>
-      <button class="btn ghost" id="birthdayBtn">🎵 Rejouer « Joyeux anniversaire »</button>
+      <button class="btn ghost" id="fanfareBtn">🎺 Rejouer la fanfare</button>
       <button class="btn ghost" id="menuBtn">⚙️ Retour au menu</button>
     </div>
   </main>
