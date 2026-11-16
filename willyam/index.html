@@ -166,6 +166,8 @@ mark{background:var(--accent-soft);color:inherit;border-bottom:4px solid var(--a
 /* Pause & parent */
 .overlay{position:fixed;inset:0;background:rgba(27,38,50,.55);display:grid;place-items:center;padding:16px;z-index:10}
 .pause{max-width:420px;width:100%;padding:26px 20px;text-align:center;display:grid;gap:12px;justify-items:center}
+.pause .btn:disabled{opacity:.55;box-shadow:0 2px 0 var(--ink);transform:translateY(2px)}
+.timer{margin:12px 2px 0;font-family:var(--display);font-weight:600;color:var(--muted)}
 .pause .mv{font-size:24px;font-family:var(--display);font-weight:600}
 .count{width:90px;height:90px;border-radius:50%;border:4px solid var(--ink);display:grid;place-items:center;font-family:var(--display);font-weight:700;font-size:38px;background:var(--star);font-variant-numeric:tabular-nums}
 .parent{padding:20px 18px;display:grid;gap:14px}
@@ -196,13 +198,14 @@ mark{background:var(--accent-soft);color:inherit;border-bottom:4px solid var(--a
 .hist time{color:var(--muted);font-size:15px;margin-left:auto;font-variant-numeric:tabular-nums}
 .rhead,.redit{display:grid;grid-template-columns:68px 1fr 86px auto;gap:8px;align-items:center}
 .rhead{font-size:14px;color:var(--muted)}
-.redit select,.redit input,.pinrow input{font:inherit;font-size:18px;border:3px solid var(--ink);border-radius:12px;padding:8px 8px;background:var(--paper);color:var(--ink);min-width:0;width:100%}
+.redit select,.redit input,.pinrow input,.pinrow select{font:inherit;font-size:18px;border:3px solid var(--ink);border-radius:12px;padding:8px 8px;background:var(--paper);color:var(--ink);min-width:0;width:100%}
 .savebox{font:inherit;font-size:14px;width:100%;border:3px solid var(--ink);border-radius:12px;padding:8px 10px;background:var(--paper);color:var(--ink);resize:vertical;word-break:break-all}
 .savebox[readonly]{background:var(--bg);color:var(--muted)}
 .savebox:focus-visible,.redit select:focus-visible,.redit input:focus-visible,.pinrow input:focus-visible{outline:4px solid var(--fr);outline-offset:2px}
 .redit .del{padding:8px 12px}
 .pinrow{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
 .pinrow input{width:120px;letter-spacing:.3em}
+.pinrow select{width:auto}
 .pindots{display:flex;gap:14px;justify-content:center}
 .pindots span{width:22px;height:22px;border-radius:50%;border:3px solid var(--ink)}
 .pindots span.f{background:var(--ink)}
@@ -455,7 +458,7 @@ const LEVELS={
   ]
 };
 const GEN=Object.assign({},GM,GF);
-const MOVES=['Fais 10 sauts de grenouille.','Marche comme un ours jusqu’à la porte et reviens.','Fais 5 grands cercles avec tes bras.','Saute 10 fois sur un pied, puis sur l’autre.','Étire-toi comme un chat, le plus haut possible.','Fais 8 flexions comme un robot.','Tape 10 fois dans tes mains au-dessus de ta tête.'];
+const MOVES=['Fais 10 sauts de grenouille.','Marche comme un ours jusqu’à la porte et reviens.','Fais 5 grands cercles avec tes bras.','Saute 10 fois sur un pied, puis sur l’autre.','Étire-toi comme un chat, le plus haut possible.','Fais 8 flexions comme un robot.','Tape 10 fois dans tes mains au-dessus de ta tête.','Cours sur place en comptant jusqu’à 20.','Fais l’avion : bras écartés, tiens sur un pied jusqu’à 10.','Touche tes pieds, puis tends les bras vers le ciel. Fais-le 5 fois.','Fais 5 sauts d’étoile : bras et jambes écartés.','Fais 5 pompes contre le mur.'];
 const PRAISE=['Bravo !','Super !','Génial !','Exact !','Trop fort !','Bien joué !','Oui !'];
 
 /* ---------- État ---------- */
@@ -467,15 +470,24 @@ try{const raw=localStorage.getItem(STORE);if(raw)S=Object.assign(S,JSON.parse(ra
 if(typeof S.wallet!=='number')S.wallet=Object.values(S.stars).reduce((a,b)=>a+b,0)+Object.values(S.crayon).filter(Boolean).length;
 if(!Array.isArray(S.rewards))S.rewards=DEFAULT_REWARDS();
 if(!Array.isArray(S.claimed))S.claimed=[];
-if(typeof S.pin!=='string')S.pin='';
-if(typeof S.lastExport!=='string')S.lastExport='';
+// Nouveaux champs : initialisés ici pour ne pas casser une sauvegarde existante (rappelé après un import).
+function ensureFields(){
+  if(typeof S.pin!=='string')S.pin='';
+  if(typeof S.lastExport!=='string')S.lastExport='';
+  if(!Number.isInteger(S.limitMin)||S.limitMin<0)S.limitMin=10;          // limite de jeu par jour, en minutes (0 = sans limite)
+  const u=S.usage&&typeof S.usage==='object'?S.usage:{};
+  S.usage={day:typeof u.day==='string'?u.day:'',sec:Math.max(0,+u.sec||0),bonus:Math.max(0,+u.bonus||0)};
+  if(!Array.isArray(S.moveBag))S.moveBag=[];                              // mouvements pas encore tirés
+  if(typeof S.lastMove!=='number')S.lastMove=-1;
+}
+ensureFields();
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 function save(){try{localStorage.setItem(STORE,JSON.stringify(S));}catch(e){}}
 
 /* ---------- Sauvegarde : export / import ---------- */
 // Code = "WILLYAM1-" + JSON en base64 (UTF-8). Le fichier .json contient le même JSON en clair.
 const CODE_PREFIX='WILLYAM1-';
-function exportPayload(){const d=JSON.parse(JSON.stringify(S));delete d.lastExport;return {app:'missions-willyam',v:1,date:new Date().toISOString(),data:d};}
+function exportPayload(){const d=JSON.parse(JSON.stringify(S));delete d.lastExport;delete d.usage;delete d.moveBag;delete d.lastMove;return {app:'missions-willyam',v:1,date:new Date().toISOString(),data:d};}
 function toB64(str){const b=new TextEncoder().encode(str);let s='';for(let i=0;i<b.length;i++)s+=String.fromCharCode(b[i]);return btoa(s);}
 function fromB64(b64){const s=atob(b64);const b=new Uint8Array(s.length);for(let i=0;i<s.length;i++)b[i]=s.charCodeAt(i);return new TextDecoder().decode(b);}
 const exportCode=()=>CODE_PREFIX+toB64(JSON.stringify(exportPayload()));
@@ -500,9 +512,27 @@ function cleanState(d){
   if(Array.isArray(d.claimed))o.claimed=d.claimed.filter(c=>c&&typeof c==='object').slice(0,50).map(c=>({icon:str(c.icon,8,'🎁'),name:str(c.name,40,'Surprise'),cost:int(c.cost,0,999,0),date:isNaN(Date.parse(c.date))?new Date().toISOString():c.date}));
   // Le code parent voyage avec la sauvegarde ; s'il n'y en a pas, on garde celui de cet appareil.
   o.pin=typeof d.pin==='string'&&/^\d{4}$/.test(d.pin)?d.pin:S.pin;
+  o.limitMin=int(d.limitMin,0,240,S.limitMin);
   return o;
 }
-let track='maths',M=null,sessionCount=0,lastPause=0,resetArmed=false;
+let track='maths',M=null,sessionCount=0,lastPause=0,resetArmed=false,curView='home';
+
+/* ---------- Temps de jeu par jour ---------- */
+// Compte le temps où l'appli est visible, hors espace parent. Remis à zéro chaque jour.
+// Quand le temps est fini : la mission en cours se termine, puis l'écran « À demain ».
+const dayKey=()=>{const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;};
+function usage(){const k=dayKey();if(S.usage.day!==k)S.usage={day:k,sec:0,bonus:0};return S.usage;}
+const limitSec=()=>S.limitMin?(S.limitMin+usage().bonus)*60:Infinity;
+const timeLeft=()=>Math.max(0,limitSec()-usage().sec);
+const timeUp=()=>timeLeft()<=0;
+const timeLabel=()=>S.limitMin?`⏱ Encore ${Math.ceil(timeLeft()/60)} min de jeu aujourd’hui`:'';
+function tick(){
+  if(document.visibilityState!=='visible'||curView==='parent')return;
+  const was=timeUp(),u=usage();u.sec++;if(u.sec%10===0)save();
+  const el=document.getElementById('timeLeft');if(el)el.textContent=timeLabel();
+  // Le temps vient de finir : on arrête tout de suite sur la carte ou les récompenses, jamais en pleine mission.
+  if(!was&&timeUp()&&(curView==='home'||curView==='rewards')&&!document.querySelector('#layer .overlay')){save();renderTimeUp();}
+}
 const canSpeak=typeof window!=='undefined'&&'speechSynthesis' in window&&typeof SpeechSynthesisUtterance!=='undefined';
 const reduced=typeof window!=='undefined'&&window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -521,9 +551,11 @@ const unlocked=l=>S.unlockAll||l.i===0||(S.stars[lvls(l.track)[l.i-1].id]||0)>=1
 const totalStars=()=>Object.values(S.stars).reduce((a,b)=>a+b,0)+Object.values(S.crayon).filter(Boolean).length;
 
 function renderHome(){
-  document.body.dataset.track=track;M=null;
+  if(timeUp()){renderTimeUp();return;}
+  document.body.dataset.track=track;M=null;curView='home';
   const L=lvls(track);const nextId=(L.find(l=>unlocked(l)&&!(S.stars[l.id]>=1))||{}).id;
   let html=`<header class="top"><h1>Les missions de Willyam<small>Du CE1 vers le CE2, une mission à la fois</small></h1><button class="tirelire sticker" id="rewBtn" aria-label="Mes récompenses : ${S.wallet} étoiles dans la tirelire">${starSvg(true)}<span>${S.wallet}<small>Récompenses</small></span></button></header>
+  ${S.limitMin?`<p class="timer" id="timeLeft">${timeLabel()}</p>`:''}
   <div class="tabs" role="tablist">
     <button class="tab sticker maths" role="tab" aria-selected="${track==='maths'}" data-track="maths"><span class="ic">12</span>Maths</button>
     <button class="tab sticker fr" role="tab" aria-selected="${track==='fr'}" data-track="fr"><span class="ic">Aa</span>Français</button>
@@ -554,6 +586,7 @@ function makeMission(id){
   return qs;
 }
 function startLevel(id){
+  if(timeUp()){renderTimeUp();return;}
   if(sessionCount>0&&sessionCount%2===0&&lastPause!==sessionCount){lastPause=sessionCount;showPause(()=>startLevel(id));return;}
   const l=findLvl(id);track=l.track;document.body.dataset.track=track;
   M={lvl:l,qs:makeMission(id),i:0,attempt:1,points:0,results:[],entry:'',locked:false};
@@ -563,7 +596,7 @@ function speechText(q){if(q.say)return q.say;const d=document.createElement('div
 function speak(t){if(!canSpeak)return;try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.lang='fr-FR';u.rate=.9;speechSynthesis.speak(u);}catch(e){}}
 
 function renderQuestion(){
-  const q=M.qs[M.i];
+  curView='mission';const q=M.qs[M.i];
   let ans='';
   if(q.type==='choice'){
     const ch=q._ch;const long=ch.some(c=>c.length>9);
@@ -617,10 +650,11 @@ function answer(v,btn){
 function next(){M.i++;M.attempt=1;M.locked=false;M.entry='';if(M.i>=M.qs.length)finish();else renderQuestion();}
 
 function finish(){
+  curView='result';
   const l=M.lvl,p=M.points,stars=p>=9?3:p>=7?2:p>=5?1:0;
   const L=lvls(l.track),nx=L[l.i+1];const wasLocked=nx&&!unlocked(nx);
   S.stars[l.id]=Math.max(S.stars[l.id]||0,stars);S.missions++;S.wallet+=stars;sessionCount++;save();
-  const newly=wasLocked&&nx&&unlocked(nx);
+  const newly=wasLocked&&nx&&unlocked(nx),over=timeUp();
   const msg=stars===3?'Mission parfaite !':stars===2?'Super travail !':stars===1?'Mission réussie !':'Tu y es presque !';
   const sub=stars===0?'Encore un essai et tu vas y arriver.':`${M.results.filter(r=>r==='ok').length} bonnes réponses du premier coup.`;
   view().innerHTML=`<div class="result sticker"><h2>${msg}</h2>
@@ -628,23 +662,45 @@ function finish(){
     <p class="score">${sub}</p>${newly?`<span class="unlock">Mission ${nx.i+1} débloquée !</span>`:''}
     <p class="tirinfo" id="tirinfo"></p>
     <div class="crayon"><h3>${pencilSvg}Défi crayon</h3><p>${l.crayon}</p><div id="crayonZone"></div></div>
-    <div class="actions">${stars>=1&&nx?`<button class="btn go" id="nextL">Mission suivante →</button>`:''}<button class="btn" id="again">${stars===0?'Réessayer':'Rejouer'}</button><button class="btn" id="rew">Récompenses</button><button class="btn" id="home">Carte</button></div></div>`;
+    ${over?'<p class="unlock">⏱ Le temps de jeu est fini pour aujourd’hui.</p>':''}
+    <div class="actions">${over?'<button class="btn go" id="endT">Terminer</button>':`${stars>=1&&nx?`<button class="btn go" id="nextL">Mission suivante →</button>`:''}<button class="btn" id="again">${stars===0?'Réessayer':'Rejouer'}</button>`}<button class="btn" id="rew">Récompenses</button>${over?'':'<button class="btn" id="home">Carte</button>'}</div></div>`;
   window.scrollTo(0,0);
   const updTir=()=>{$('#tirinfo').innerHTML=(stars?`<b>+${stars} ★</b> dans ta tirelire. `:'')+rewardStatus();};
   let crayonDone=false;
   const cz=()=>{$('#crayonZone').innerHTML=crayonDone?'<span class="done">Défi validé ✓ +1 étoile</span>':'<button class="btn small" id="valid">Un adulte a vérifié ✓ (+1 étoile)</button>';const v=$('#valid');if(v)v.onclick=()=>askPin(()=>{crayonDone=true;S.crayon[l.id]=true;S.crayonN=(S.crayonN||0)+1;S.wallet++;save();cz();updTir();},'Un adulte valide le défi');};
   cz();updTir();$('#rew').onclick=renderRewards;
-  if(nx&&stars>=1)$('#nextL').onclick=()=>startLevel(nx.id);
-  $('#again').onclick=()=>startLevel(l.id);$('#home').onclick=renderHome;
+  if(over)$('#endT').onclick=renderTimeUp;
+  else{if(nx&&stars>=1)$('#nextL').onclick=()=>startLevel(nx.id);$('#again').onclick=()=>startLevel(l.id);$('#home').onclick=renderHome;}
   if(stars===3)confetti();
 }
 function confetti(){if(reduced)return;const cols=['#ffc226','#ff7a3d','#4c5ff5','#1c9e61','#d93b45'];for(let i=0;i<40;i++){const c=document.createElement('span');c.className='cf';c.style.left=Math.random()*100+'vw';c.style.background=pick(cols);c.style.animationDelay=Math.random()*.6+'s';document.body.appendChild(c);setTimeout(()=>c.remove(),3200);}}
 
+// Tous les mouvements passent une fois avant qu'un même revienne, et jamais deux fois de suite.
+function nextMove(){
+  let bag=S.moveBag.filter(i=>Number.isInteger(i)&&i>=0&&i<MOVES.length);
+  if(!bag.length){bag=shuffle(MOVES.map((_,i)=>i));if(bag.length>1&&bag[0]===S.lastMove)bag.push(bag.shift());}
+  const i=bag.shift();S.moveBag=bag;S.lastMove=i;save();return MOVES[i];
+}
 function showPause(done){
-  const layer=document.getElementById('layer');let n=20;
-  layer.innerHTML=`<div class="overlay" role="dialog" aria-modal="true" aria-labelledby="pt"><div class="pause sticker"><h2 id="pt">Pause bouge !</h2><p class="mv">${pick(MOVES)}</p><div class="count" id="cnt">${n}</div><button class="btn go" id="pdone">J’ai fini !</button></div></div>`;
-  const t=setInterval(()=>{n--;const c=document.getElementById('cnt');if(c)c.textContent=Math.max(n,0);if(n<=0)clearInterval(t);},1000);
-  const b=document.getElementById('pdone');b.focus();b.onclick=()=>{clearInterval(t);layer.innerHTML='';done();};
+  const layer=document.getElementById('layer'),end=Date.now()+20000;
+  layer.innerHTML=`<div class="overlay" role="dialog" aria-modal="true" aria-labelledby="pt"><div class="pause sticker"><h2 id="pt">Pause bouge !</h2><p class="mv">${nextMove()}</p><div class="count" id="cnt">20</div><button class="btn go" id="pdone" disabled>⏳ Attends la fin…</button></div></div>`;
+  const c=document.getElementById('cnt'),b=document.getElementById('pdone');
+  // Calculé sur l'horloge : le compte reste juste même si l'appli passe en arrière-plan.
+  const upd=()=>{const n=Math.max(0,Math.ceil((end-Date.now())/1000));c.textContent=n;if(n<=0){clearInterval(t);b.disabled=false;b.textContent='J’ai fini !';b.focus();}};
+  const t=setInterval(upd,250);
+  b.onclick=()=>{if(b.disabled)return;clearInterval(t);layer.innerHTML='';done();};
+}
+function renderTimeUp(){
+  M=null;curView='timeup';document.getElementById('layer').innerHTML='';
+  view().innerHTML=`<div class="result sticker"><div class="pic">🌙</div><h2>C’est fini pour aujourd’hui !</h2>
+    <p class="tirinfo">Bravo, tu as bien travaillé. Ton cerveau a besoin de repos. Reviens demain pour de nouvelles missions !</p>
+    <div class="wallet" aria-label="${S.wallet} étoiles dans ta tirelire">${starSvg(true)}${S.wallet}</div><p class="score">étoiles dans ta tirelire</p>
+    <div class="actions"><button class="btn go" id="rew">Mes récompenses</button><button class="btn" id="more">Un adulte ajoute 10 min</button></div></div>
+    <div class="foot"><button class="linkbtn" id="parentBtn">Espace parent</button></div>`;
+  window.scrollTo(0,0);
+  $('#rew').onclick=renderRewards;
+  $('#more').onclick=()=>askPin(()=>{usage().bonus+=10;save();renderHome();},'Ajouter 10 minutes');
+  $('#parentBtn').onclick=()=>askPin(renderParent);
 }
 
 /* ---------- Récompenses ---------- */
@@ -655,7 +711,7 @@ function rewardStatus(){
 }
 function histList(n){return `<ul class="hist">${S.claimed.slice(0,n).map(c=>`<li><span>${esc(c.icon)}</span>${esc(c.name)}<time>${new Date(c.date).toLocaleDateString('fr-FR',{day:'numeric',month:'short'})}</time></li>`).join('')}</ul>`;}
 function renderRewards(){
-  M=null;const list=S.rewards.slice().sort((a,b)=>a.cost-b.cost);
+  M=null;curView='rewards';const list=S.rewards.slice().sort((a,b)=>a.cost-b.cost);
   view().innerHTML=`<div class="mtop"><button class="btn small" id="back">← Carte</button><span></span></div>
   <div class="result sticker" style="margin-top:14px"><h2>Ma tirelire</h2>
   <div class="wallet" aria-label="${S.wallet} étoiles">${starSvg(true)}${S.wallet}</div>
@@ -698,7 +754,7 @@ function askPin(fn,title){
 }
 
 function renderParent(){
-  resetArmed=false;const count=t=>lvls(t).reduce((a,l)=>a+(S.stars[l.id]||0),0),max=t=>lvls(t).length*3;
+  resetArmed=false;curView='parent';const count=t=>lvls(t).reduce((a,l)=>a+(S.stars[l.id]||0),0),max=t=>lvls(t).length*3;
   const crayons=S.crayonN||Object.values(S.crayon).filter(Boolean).length;
   const opts=sel=>ICONS.map(i=>`<option ${i===sel?'selected':''}>${i}</option>`).join('');
   view().innerHTML=`<div class="parent sticker"><h2>Espace parent</h2>
@@ -711,6 +767,11 @@ function renderParent(){
     <h3>Tirelire</h3>
     <div class="walletrow"><button class="btn small" id="wMinus" aria-label="Retirer une étoile">−1</button><b id="wVal">${S.wallet}</b><button class="btn small" id="wPlus" aria-label="Ajouter une étoile">+1</button><span class="hint2">étoiles à dépenser : pour donner un bonus ou corriger</span></div>
     ${S.claimed.length?`<h3>Récompenses obtenues</h3>${histList(10)}`:''}
+    <h3>Temps de jeu</h3>
+    <p class="hint2">Limite par jour. Quand le temps est fini, il termine sa mission en cours, puis le jeu s’arrête jusqu’au lendemain. Le temps passé dans l’espace parent ne compte pas.</p>
+    <div class="pinrow"><select id="limSel" aria-label="Temps de jeu par jour">${[...new Set([5,10,15,20,30,45,60,S.limitMin,0])].sort((a,b)=>(a||1e9)-(b||1e9)).map(m=>`<option value="${m}" ${m===S.limitMin?'selected':''}>${m?m+' min par jour':'Sans limite'}</option>`).join('')}</select>
+    <span class="hint2">Aujourd’hui : ${Math.floor(usage().sec/60)} min jouées${S.limitMin?` sur ${S.limitMin+usage().bonus}`:''}</span></div>
+    ${S.limitMin?'<div class="row"><button class="btn small" id="addT">+10 min aujourd’hui</button><button class="btn small" id="rstT">Remettre le temps du jour à zéro</button></div>':''}
     <h3>Code parent</h3>
     <p class="hint2">${S.pin?'Le code protège cet espace, la validation des récompenses et celle des défis crayon.':'Optionnel : avec un code à 4 chiffres, il ne peut plus valider lui-même les récompenses et les défis crayon, ni ouvrir cet espace.'}</p>
     <div class="pinrow"><input id="pinIn" type="password" inputmode="numeric" maxlength="4" placeholder="••••" aria-label="Nouveau code à 4 chiffres"><button class="btn small" id="pinSave">${S.pin?'Changer le code':'Enregistrer le code'}</button>${S.pin?'<button class="btn small" id="pinDel">Supprimer le code</button>':''}</div>
@@ -727,7 +788,7 @@ function renderParent(){
     <ul><li>Une mission dure 3 à 5 minutes. Deux ou trois missions par jour valent mieux qu’une longue séance.</li>
     <li>Laisse-le choisir entre maths et français : choisir lui donne envie de commencer.</li>
     <li>Le défi crayon est le moment d’écriture : court, concret, sur une feuille. Vérifie avec lui avant d’appuyer sur le bouton.</li>
-    <li>Une pause bouge apparaît toutes les deux missions. Ne la saute pas : elle aide à se reconcentrer.</li>
+    <li>Une pause bouge apparaît toutes les deux missions. Le bouton « J’ai fini ! » ne s’active qu’à la fin des 20 secondes : elle aide à se reconcentrer.</li>
     <li>Le bouton haut-parleur lit la question à voix haute s’il bloque sur la lecture.</li>
     <li>Une bonne réponse au premier essai vaut 2 points, au deuxième essai 1 point. 9-10 points = 3 étoiles, 7-8 = 2, 5-6 = 1.</li>
     <li>Chaque partie remplit la tirelire, même quand il rejoue une mission. S’il gagne trop vite, augmente simplement le prix des récompenses.</li>
@@ -748,8 +809,10 @@ function renderParent(){
   $('#wPlus').onclick=()=>{S.wallet++;save();wv();};
   $('#pinSave').onclick=()=>{const v=$('#pinIn').value.trim();if(!/^\d{4}$/.test(v)){$('#pinMsg').textContent='Le code doit faire exactement 4 chiffres.';return;}S.pin=v;save();renderParent();$('#pinMsg').textContent='Code enregistré. Retiens-le bien.';};
   if(S.pin)$('#pinDel').onclick=()=>{S.pin='';save();renderParent();$('#pinMsg').textContent='Code supprimé.';};
+  $('#limSel').onchange=e=>{S.limitMin=parseInt(e.target.value,10)||0;save();renderParent();};
+  if(S.limitMin){$('#addT').onclick=()=>{usage().bonus+=10;save();renderParent();};$('#rstT').onclick=()=>{const u=usage();u.sec=0;u.bonus=0;save();renderParent();};}
   $('#unl').onclick=()=>{S.unlockAll=!S.unlockAll;save();renderParent();};
-  $('#rst').onclick=e=>{if(!resetArmed){resetArmed=true;e.target.textContent='Sûr ? Touche encore pour tout effacer';e.target.style.background='var(--bad-soft)';return;}S={stars:{},crayon:{},crayonN:0,missions:0,unlockAll:false,wallet:0,rewards:S.rewards,claimed:[],pin:S.pin,lastExport:S.lastExport};save();renderParent();};
+  $('#rst').onclick=e=>{if(!resetArmed){resetArmed=true;e.target.textContent='Sûr ? Touche encore pour tout effacer';e.target.style.background='var(--bad-soft)';return;}S={stars:{},crayon:{},crayonN:0,missions:0,unlockAll:false,wallet:0,rewards:S.rewards,claimed:[],pin:S.pin,lastExport:S.lastExport,limitMin:S.limitMin,usage:S.usage,moveBag:S.moveBag,lastMove:S.lastMove};save();renderParent();};
   $('#back').onclick=renderHome;
   bindBackup();
 }
@@ -781,7 +844,7 @@ function bindBackup(){
     const st=Object.values(d.stars).reduce((a,b)=>a+b,0);
     msg(`<p style="margin:0 0 8px">Sauvegarde trouvée : <b>${d.missions}</b> missions jouées, <b>${st}</b> étoiles, <b>${d.wallet} ★</b> dans la tirelire.<br>Elle va <b>remplacer</b> la progression de cet appareil.</p><button class="btn small" id="impOk" style="background:var(--bad-soft)">Oui, remplacer</button> <button class="btn small" id="impNo">Annuler</button>`);
     $('#impNo').onclick=()=>msg('');
-    $('#impOk').onclick=()=>{S=Object.assign(d,{lastExport:S.lastExport});save();renderParent();$('#saveMsg').textContent='Sauvegarde importée ✓';};
+    $('#impOk').onclick=()=>{S=Object.assign(d,{lastExport:S.lastExport,usage:S.usage,moveBag:S.moveBag,lastMove:S.lastMove});ensureFields();save();renderParent();$('#saveMsg').textContent='Sauvegarde importée ✓';};
   };
   $('#impBtn').onclick=()=>{const v=$('#impIn').value;if(!v.trim()){msg('Colle d’abord un code dans la case.');return;}tryImport(v);};
   $('#impFile').onclick=()=>$('#impPick').click();
@@ -791,6 +854,9 @@ function bindBackup(){
 if(typeof document!=='undefined'&&document.getElementById('view')){
   document.addEventListener('keydown',e=>{if(!M||!M.qs[M.i]||M.qs[M.i].type!=='num'||!$('#pad'))return;if(/^[0-9]$/.test(e.key))key(e.key);else if(e.key==='Backspace')key('del');else if(e.key==='Enter'){e.preventDefault();key('ok');}});
   renderHome();
+  setInterval(tick,1000);
+  document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')save();});
+  window.addEventListener('pagehide',save);
   // Hors ligne (version en ligne seulement : pas de service worker en double-clic / file://).
   if('serviceWorker' in navigator&&/^https?:$/.test(location.protocol))window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
 }
