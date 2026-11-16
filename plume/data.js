@@ -1,0 +1,455 @@
+// Contenu de Plume : niveaux, règles et phrases d'entraînement.
+//
+// Chaque phrase contient UN mot (ou groupe de mots) piégé, écrit entre crochets ou accolades :
+//   [affiché|correct]        → la phrase CONTIENT une faute : on affiche « affiché », il fallait « correct ».
+//   [affiché|correct|autre]  → idem, « autre » sert de leurre en plus dans les QCM.
+//   {correct|leurre|...}     → la phrase est JUSTE : on affiche « correct », les leurres servent aux QCM.
+// Pour ajouter des phrases, il suffit de suivre ce modèle dans la règle voulue.
+
+const NIVEAUX = [
+  { n: 1, titre: 'Les fondamentaux', sous: 'a/à, et/est, on/ont, son/sont, ou/où, -é/-er' },
+  { n: 2, titre: 'Homophones', sous: 'ce/se, ces/ses, leur(s), peu/peut, la/là, quel/qu\'elle, sans/s\'en' },
+  { n: 3, titre: 'Accords du groupe nominal', sous: 'pluriels, adjectifs, couleurs, nombres, tout' },
+  { n: 4, titre: 'Conjugaison', sous: 'présent, futur/conditionnel, impératif, subjonctif, participes en -i/-is/-it' },
+  { n: 5, titre: 'Le participe passé', sous: 'avec être, avec avoir, pronominaux, fait/laissé, ci-joint' },
+  { n: 6, titre: 'Les pièges des experts', sous: 'quel que, quoique, davantage, tournures fautives, paronymes' },
+];
+
+const REGLES = [
+  // ───────────────────────── Niveau 1 ─────────────────────────
+  {
+    id: 'a-a', niveau: 1, titre: '« a » ou « à »',
+    regle: '<b>a</b> est le verbe <i>avoir</i> : on peut le remplacer par <b>avait</b>. <b>à</b> est une préposition : le remplacement est impossible.',
+    exemple: 'Il <b>a</b> faim (il avait faim). Je vais <b>à</b> Paris.',
+    items: [
+      'Mon frère [à|a] oublié ses clés dans la voiture.',
+      'Nous partons {à|a} la mer dès demain matin.',
+      'Elle {a|à} toujours le dernier mot.',
+      'Il faut répondre [a|à] ce courriel avant midi.',
+      'Le train [à|a] encore du retard ce matin.',
+      'C\'est une machine {à|a} café très bruyante.',
+      'Qui [à|a] laissé la fenêtre ouverte ?',
+      'Il y [à|a] beaucoup de monde au marché.',
+    ],
+  },
+  {
+    id: 'et-est', niveau: 1, titre: '« et » ou « est »',
+    regle: '<b>est</b> est le verbe <i>être</i> : on peut le remplacer par <b>était</b>. <b>et</b> relie deux mots ou deux idées : on peut le remplacer par <b>et puis</b>.',
+    exemple: 'Le ciel <b>est</b> bleu (était bleu). Paul <b>et</b> Marie.',
+    items: [
+      'Le ciel [et|est] parfaitement dégagé ce soir.',
+      'Paul {et|est} Marie arrivent ensemble.',
+      'Cette tarte aux pommes [et|est] délicieuse.',
+      'Il est tard [est|et] tout le monde dort.',
+      'Le colis {est|et} enfin arrivé.',
+      'Elle a pris son sac [est|et] son manteau.',
+    ],
+  },
+  {
+    id: 'on-ont', niveau: 1, titre: '« on » ou « ont »',
+    regle: '<b>ont</b> est le verbe <i>avoir</i> : on peut le remplacer par <b>avaient</b>. <b>on</b> est un pronom sujet : on peut le remplacer par <b>il</b>.',
+    exemple: 'Ils <b>ont</b> gagné (avaient gagné). <b>On</b> part (il part).',
+    items: [
+      'Les voisins [on|ont] repeint leur façade.',
+      '{On|Ont} se retrouve devant le cinéma ?',
+      'Mes parents [on|ont] trouvé une maison à la campagne.',
+      '[Ont|On] dirait qu\'il va pleuvoir.',
+      'Les enfants {ont|on} très bien dormi.',
+      'Ils [on|ont] gagné le match de justesse.',
+    ],
+  },
+  {
+    id: 'son-sont', niveau: 1, titre: '« son » ou « sont »',
+    regle: '<b>sont</b> est le verbe <i>être</i> : on peut le remplacer par <b>étaient</b>. <b>son</b> est un déterminant possessif : on peut le remplacer par <b>mon</b> ou <b>ton</b>.',
+    exemple: 'Ils <b>sont</b> là (étaient là). Il prend <b>son</b> vélo (mon vélo).',
+    items: [
+      'Mes amis [son|sont] partis en vacances.',
+      'Il a encore perdu {son|sont} parapluie.',
+      'Ces fleurs [son|sont] magnifiques.',
+      'Elle range [sont|son] bureau chaque vendredi.',
+      'Où {sont|son} passées mes lunettes ?',
+    ],
+  },
+  {
+    id: 'ou-ou', niveau: 1, titre: '« ou » ou « où »',
+    regle: '<b>ou</b> (sans accent) indique un choix : on peut le remplacer par <b>ou bien</b>. <b>où</b> (avec accent) indique un lieu ou un moment.',
+    exemple: 'Thé <b>ou</b> café ? La ville <b>où</b> je suis né.',
+    items: [
+      'Tu préfères du thé [où|ou] du café ?',
+      'La ville [ou|où] je suis né a beaucoup changé.',
+      'Je ne sais pas {où|ou} il habite.',
+      'Le jour [ou|où] tu es arrivé, il neigeait.',
+      'Prends le bus {ou|où} le métro, comme tu veux.',
+      '[Ou|Où] as-tu rangé les ciseaux ?',
+    ],
+  },
+  {
+    id: 'e-er', niveau: 1, titre: 'Terminaison « -é » ou « -er »',
+    regle: 'Remplacez le verbe par un verbe comme <i>vendre</i> : si on dit <b>vendre</b>, on écrit <b>-er</b> (infinitif) ; si on dit <b>vendu</b>, on écrit <b>-é</b> (participe passé).',
+    exemple: 'Je vais <b>manger</b> (vendre). J\'ai <b>mangé</b> (vendu).',
+    items: [
+      'Je vais [acheté|acheter] du pain en rentrant.',
+      'Nous avons [marcher|marché] pendant deux heures.',
+      'Elle aime {danser|dansé} le samedi soir.',
+      'Tu as {oublié|oublier} ton écharpe chez moi.',
+      'Il est parti sans [fermé|fermer] la porte.',
+      'Ils ont [décider|décidé] de déménager.',
+      'Vous devez [envoyé|envoyer|envoyez] le dossier avant lundi.',
+    ],
+  },
+
+  // ───────────────────────── Niveau 2 ─────────────────────────
+  {
+    id: 'ce-se', niveau: 2, titre: '« ce » ou « se »',
+    regle: '<b>se</b> accompagne un verbe pronominal (se lever, se demander) : on peut le remplacer par <b>me</b> ou <b>te</b> en changeant le sujet. <b>ce</b> signifie « cela » ou accompagne un nom.',
+    exemple: 'Il <b>se</b> lève (je me lève). <b>Ce</b> livre. <b>Ce</b> que tu dis.',
+    items: [
+      'Il [ce|se] lève tôt tous les matins.',
+      '{Ce|Se} livre m\'a vraiment passionné.',
+      'Elle [ce|se] demande pourquoi il est parti.',
+      '[Se|Ce] matin, j\'ai raté le bus.',
+      'Ils {se|ce} sont disputés hier soir.',
+      'Je ne comprends pas [se|ce] que tu veux dire.',
+    ],
+  },
+  {
+    id: 'ces-ses', niveau: 2, titre: '« ces », « ses », « c\'est », « s\'est »',
+    regle: '<b>ces</b> montre (ces gens-là), <b>ses</b> indique la possession (les siens). <b>c\'est</b> = « cela est » ; <b>s\'est</b> précède un participe passé d\'un verbe pronominal (il s\'est trompé).',
+    exemple: 'Regarde <b>ces</b> nuages. Il prend <b>ses</b> affaires. <b>C\'est</b> beau. Il <b>s\'est</b> perdu.',
+    items: [
+      'Chaque soir, Paul relit [ces|ses] propres notes.',
+      'Il [c\'est|s\'est] trompé de route.',
+      '{C\'est|S\'est} une excellente idée !',
+      '[S\'est|C\'est] dommage que tu partes si tôt.',
+      'Regarde {ces|ses|c\'est} nuages noirs là-bas !',
+      'Elle [c\'est|s\'est] coupée en cuisinant.',
+    ],
+  },
+  {
+    id: 'leur', niveau: 2, titre: '« leur » ou « leurs »',
+    regle: 'Devant un verbe, <b>leur</b> est un pronom (= à eux) et ne prend <b>jamais de s</b>. Devant un nom, il s\'accorde : <b>leur</b> + singulier, <b>leurs</b> + pluriel.',
+    exemple: 'Je <b>leur</b> parle. <b>Leur</b> maison. <b>Leurs</b> enfants.',
+    items: [
+      'Je [leurs|leur] ai dit toute la vérité.',
+      'Les élèves rangent {leurs|leur} cahiers.',
+      'Ils ont vendu [leur|leurs] deux voitures.',
+      'Nous {leur|leurs} téléphonerons demain.',
+      'Donne-[leurs|leur] un peu de temps.',
+      'Les voisins promènent [leurs|leur] chien chaque matin.',
+    ],
+  },
+  {
+    id: 'peu-peut', niveau: 2, titre: '« peu », « peut », « peux »',
+    regle: '<b>peut</b> et <b>peux</b> viennent du verbe <i>pouvoir</i> (remplaçable par <b>pouvait</b>) : je/tu <b>peux</b>, il <b>peut</b>. <b>peu</b> signifie « pas beaucoup ».',
+    exemple: 'Il <b>peut</b> venir. Tu <b>peux</b> venir. J\'ai <b>peu</b> de temps.',
+    items: [
+      'Il [peu|peut] venir dîner ce soir.',
+      'J\'ai {peu|peut} de temps aujourd\'hui.',
+      'Je ne [peut|peux] pas t\'aider maintenant.',
+      'Elle mange un [peut|peu] trop vite.',
+      'Tu {peux|peut|peu} compter sur moi.',
+    ],
+  },
+  {
+    id: 'la-la', niveau: 2, titre: '« la », « là », « l\'a »',
+    regle: '<b>là</b> (accent) indique un lieu : on peut le remplacer par <b>ici</b>. <b>l\'a</b> = « l\'avait ». <b>la</b> est un article ou un pronom (la voiture, je la vois).',
+    exemple: 'Pose-le <b>là</b>. Il <b>l\'a</b> vue (il l\'avait vue). <b>La</b> voiture.',
+    items: [
+      'Pose ton sac [la|là], près de la porte.',
+      'Il {l\'a|la|là} rencontrée à Lyon.',
+      'Cette maison, il [la|l\'a] achetée l\'an dernier.',
+      '{La|Là|L\'a} voiture est garée devant chez nous.',
+      'Je suis [la|là] si tu as besoin de moi.',
+    ],
+  },
+  {
+    id: 'quel', niveau: 2, titre: '« quel(le)(s) » ou « qu\'elle(s) »',
+    regle: '<b>qu\'elle</b> = « que + elle » : on peut le remplacer par <b>qu\'il</b>. <b>quel</b> s\'accorde avec le nom qu\'il accompagne : quel, quelle, quels, quelles.',
+    exemple: 'Je pense <b>qu\'elle</b> viendra (qu\'il viendra). <b>Quelle</b> heure est-il ?',
+    items: [
+      '[Qu\'elle|Quelle] heure est-il ?',
+      'Je pense [quelle|qu\'elle] a raison.',
+      '{Quel|Quelle|Qu\'elle} beau temps aujourd\'hui !',
+      'Il faut [quelle|qu\'elle] parte avant huit heures.',
+      '[Quel|Quelles] sont tes intentions ?',
+    ],
+  },
+  {
+    id: 'sans', niveau: 2, titre: '« sans » ou « s\'en »',
+    regle: '<b>s\'en</b> accompagne un verbe pronominal (s\'en aller, s\'en souvenir) : on peut le remplacer par <b>m\'en</b>. <b>sans</b> est le contraire de « avec ».',
+    exemple: 'Il <b>s\'en</b> va (je m\'en vais). Un café <b>sans</b> sucre.',
+    items: [
+      'Il est parti [s\'en|sans] dire au revoir.',
+      'Elle {s\'en|sans} souviendra longtemps.',
+      'Il [sans|s\'en] va dès demain.',
+      'Un café {sans|s\'en} sucre, s\'il vous plaît.',
+    ],
+  },
+
+  // ───────────────────────── Niveau 3 ─────────────────────────
+  {
+    id: 'pluriels', niveau: 3, titre: 'Pluriel des noms',
+    regle: 'Les noms en <b>-al</b> font <b>-aux</b> (sauf bal, carnaval, festival, récital…). Sept noms en <b>-ou</b> prennent un <b>x</b> : bijou, caillou, chou, genou, hibou, joujou, pou. Les noms en <b>-eu</b> prennent un <b>x</b>, sauf pneu, bleu, émeu.',
+    exemple: 'Des cheva<b>ux</b>, des festival<b>s</b>, des bijou<b>x</b>, des pneu<b>s</b>.',
+    items: [
+      'Les [chevals|chevaux] galopent dans le pré.',
+      'Elle a hérité de [bijous|bijoux] anciens.',
+      'Les {festivals|festivaux} d\'été attirent beaucoup de monde.',
+      'Les enfants ramassent des [caillous|cailloux] sur la plage.',
+      'Les {pneus|pneux} de la voiture sont usés.',
+      'Les [journals|journaux] du matin sont arrivés.',
+      'Ils ont fait des {travaux|travails} dans la cuisine.',
+    ],
+  },
+  {
+    id: 'adjectifs', niveau: 3, titre: 'Accord de l\'adjectif',
+    regle: 'L\'adjectif s\'accorde en genre et en nombre avec le nom qu\'il qualifie. S\'il qualifie un nom masculin et un nom féminin, il se met au <b>masculin pluriel</b>.',
+    exemple: 'Des robes élégant<b>es</b>. Une soupe et un plat chaud<b>s</b>.',
+    items: [
+      'Ces robes sont vraiment [élégante|élégantes].',
+      'On nous a servi une soupe et un plat {chauds|chaudes|chaud}.',
+      'Les fenêtres [ouverts|ouvertes] laissent entrer le froid.',
+      'Elle porte des chaussures [neuf|neuves].',
+      'J\'ai trouvé cette réunion {intéressante|intéressant}.',
+      'Il a les cheveux [frisé|frisés] comme son père.',
+    ],
+  },
+  {
+    id: 'couleurs', niveau: 3, titre: 'Adjectifs de couleur',
+    regle: 'Un adjectif de couleur simple s\'accorde (des yeux bleus). Il reste <b>invariable</b> s\'il vient d\'un nom (orange, marron, kaki, crème…) ou s\'il est composé (bleu clair, vert foncé). Exceptions accordées : rose, mauve, fauve, pourpre.',
+    exemple: 'Des pulls <b>marron</b>, des yeux <b>bleu clair</b>, des fleurs <b>roses</b>.',
+    items: [
+      'Elle porte des chaussettes [oranges|orange].',
+      'Il a les yeux {bleu clair|bleus clairs}.',
+      'Les volets sont peints en [verts foncés|vert foncé].',
+      'Des tulipes {rouges|rouge} ornent la table.',
+      'Deux pulls [marrons|marron] sont en solde.',
+      'Elle a acheté des robes [blanc|blanches] pour l\'été.',
+    ],
+  },
+  {
+    id: 'nombres', niveau: 3, titre: 'Vingt, cent, mille',
+    regle: '<b>Vingt</b> et <b>cent</b> prennent un <b>s</b> quand ils sont multipliés et <b>non suivis</b> d\'un autre nombre (quatre-vingts, deux cents ; mais quatre-vingt-deux, deux cent trois). <b>Mille</b> est toujours invariable. Quand le nombre indique un rang (page, année), il reste invariable.',
+    exemple: 'Quatre-vingt<b>s</b> places, deux cent<b>s</b> euros, trois cent vingt pages, deux mille personnes.',
+    items: [
+      'Le stade compte [quatre-vingt|quatre-vingts] places assises.',
+      'Il a payé ce vélo {deux cents|deux cent} euros.',
+      'Il me reste [trois cents|trois cent] vingt pages à lire.',
+      'Ce château a plus de {mille|milles} ans.',
+      'Il y avait [deux milles|deux mille] personnes au concert.',
+      'Ouvrez votre livre à la page {deux cent|deux cents}.',
+    ],
+  },
+  {
+    id: 'tout', niveau: 3, titre: '« tout », « tous », « toute(s) »',
+    regle: 'Devant un nom ou un pronom, <b>tout</b> s\'accorde (tous les élèves, toute la journée). Devant un adjectif, il signifie « entièrement » et reste <b>invariable</b>, sauf devant un adjectif féminin commençant par une consonne ou un h aspiré : <i>elles sont <b>toutes</b> contentes</i>, mais <i>elle est <b>tout</b> émue</i>.',
+    exemple: '<b>Tous</b> les jours. Elle est <b>tout</b> étonnée. Elles sont <b>toutes</b> pâles.',
+    items: [
+      'Elles sont [tout|toutes] contentes de partir.',
+      '[Tout|Tous] les élèves sont présents.',
+      'Elle est restée {toute|tout} la journée au bureau.',
+      'Elle était [toute|tout] émue en recevant le prix.',
+      'Ces pommes, je les ai {toutes|tous|tout} mangées.',
+      'Ils sont arrivés [tout|tous] les trois en même temps.',
+    ],
+  },
+
+  // ───────────────────────── Niveau 4 ─────────────────────────
+  {
+    id: 'present', niveau: 4, titre: 'Terminaisons du présent',
+    regle: 'Verbes en <b>-er</b> : je mang<b>e</b>, tu mang<b>es</b>, il mang<b>e</b>. Autres verbes : je/tu se terminent par <b>-s</b> (ou -x), il par <b>-t</b> ou <b>-d</b> (il prend, il répond). Les verbes en <b>-indre</b> et <b>-soudre</b> font <b>-t</b> : il peint, il résout.',
+    exemple: 'Je vois, tu cours, il prend, elle peint, il résout.',
+    items: [
+      'Il [prends|prend] le train chaque matin.',
+      'Je [voit|vois] très bien d\'ici.',
+      'Tu {cours|court} beaucoup trop vite pour moi.',
+      'Elle [peind|peint] un portrait de sa fille.',
+      'Il {résout|résoud} toujours les énigmes en premier.',
+      'Je [manges|mange] une pomme à chaque goûter.',
+      'Il [répont|répond] toujours très vite aux messages.',
+    ],
+  },
+  {
+    id: 'futur-cond', niveau: 4, titre: 'Futur (-rai) ou conditionnel (-rais)',
+    regle: 'À la 1<sup>re</sup> personne, le futur s\'écrit <b>-rai</b> (demain, je partirai) et le conditionnel <b>-rais</b> (si j\'avais…, je partirais ; formule de politesse : j\'aimerais). Astuce : passez à « nous » : <i>nous partirons</i> (futur) / <i>nous partirions</i> (conditionnel).',
+    exemple: 'Demain, je <b>viendrai</b>. Si je pouvais, je <b>viendrais</b>.',
+    items: [
+      'Demain, je [partirais|partirai] très tôt.',
+      'Si j\'avais le temps, je {lirais|lirai} davantage.',
+      'J\'[aimerai|aimerais] un café, s\'il vous plaît.',
+      'Quand tu {viendras|viendrais}, nous irons au parc.',
+      'Je te [téléphonerais|téléphonerai] dès mon arrivée demain.',
+      'Si tu venais, je {serais|serai} très content.',
+    ],
+  },
+  {
+    id: 'imperatif', niveau: 4, titre: 'L\'impératif',
+    regle: 'À la 2<sup>e</sup> personne du singulier, les verbes en <b>-er</b> (et aller, cueillir, ouvrir, offrir…) ne prennent <b>pas de s</b> : mange, va, ouvre. On ajoute un <b>s</b> devant <b>en</b> et <b>y</b> pour faciliter la prononciation : manges-en, vas-y. Les autres verbes gardent leur s : prends, finis.',
+    exemple: '<b>Mange</b> ta soupe. <b>Vas-y</b>. <b>Prends</b> ton temps.',
+    items: [
+      '[Manges|Mange] ta soupe avant qu\'elle refroidisse.',
+      '{Va|Vas} chercher le pain, s\'il te plaît.',
+      '[Va-y|Vas-y], je te suis.',
+      '{Prends|Prend} tout ton temps.',
+      '[Écoutes|Écoute] bien ce que je vais dire.',
+      'Des cerises ? [Cueille-en|Cueilles-en] quelques-unes.',
+    ],
+  },
+  {
+    id: 'subjonctif', niveau: 4, titre: 'Subjonctif ou indicatif',
+    regle: 'Le <b>subjonctif</b> suit les expressions de volonté, d\'obligation ou de doute : il faut que, je veux que, bien que, il est possible que. Mais <b>après que</b> est suivi de l\'<b>indicatif</b> (le fait est réel), tout comme « je crois que ».',
+    exemple: 'Il faut que tu <b>viennes</b>. Bien qu\'il <b>soit</b> tard. Après qu\'il <b>est</b> parti.',
+    items: [
+      'Il faut que tu [viens|viennes] demain.',
+      'Bien qu\'il {soit|est} fatigué, il continue.',
+      'Après qu\'il {est|soit} parti, nous avons rangé.',
+      'Je veux que tu [fais|fasses] tes devoirs.',
+      'Je crois qu\'il {viendra|vienne} demain.',
+      'Il est possible qu\'elle [a|ait] raison.',
+    ],
+  },
+  {
+    id: 'part-i', niveau: 4, titre: 'Participe en -i, -is ou -it',
+    regle: 'Pour trouver la lettre finale d\'un participe passé, mettez-le au <b>féminin</b> : prise → pri<b>s</b>, dite → di<b>t</b>, finie → fin<b>i</b>, mise → mi<b>s</b>, écrite → écri<b>t</b>.',
+    exemple: 'Il a <b>pris</b> (une chose prise). Elle a <b>dit</b> (une chose dite). J\'ai <b>fini</b>.',
+    items: [
+      'Il a [prit|pris] le dernier train.',
+      'Elle a {dit|dis} la vérité à tout le monde.',
+      'Nous avons [finis|fini] le repas très tard.',
+      'Tu as [mit|mis] la table ?',
+      'Ils ont {conduit|conduis} toute la nuit.',
+      'J\'ai [écris|écrit] une longue lettre à ma grand-mère.',
+    ],
+  },
+
+  // ───────────────────────── Niveau 5 ─────────────────────────
+  {
+    id: 'pp-etre', niveau: 5, titre: 'Participe passé avec « être »',
+    regle: 'Avec l\'auxiliaire <b>être</b> (et à la voix passive), le participe passé s\'accorde avec le <b>sujet</b>.',
+    exemple: 'Elles sont parti<b>es</b>. La lettre a été envoy<b>ée</b>.',
+    items: [
+      'Mes cousines sont [arrivé|arrivées] hier soir.',
+      'La lettre a été {envoyée|envoyé} ce matin.',
+      'Paul et moi sommes [allé|allés] au cinéma.',
+      'Elles sont {parties|partis} sans prévenir.',
+      'Les résultats seront [publié|publiés] lundi.',
+    ],
+  },
+  {
+    id: 'pp-avoir', niveau: 5, titre: 'Participe passé avec « avoir »',
+    regle: 'Avec <b>avoir</b>, le participe passé ne s\'accorde <b>jamais avec le sujet</b>. Il s\'accorde avec le <b>complément d\'objet direct (COD)</b> uniquement si celui-ci est placé <b>avant</b> le verbe (que, les, la, l\'…).',
+    exemple: 'Elles ont mangé. Les fleurs que tu m\'as offert<b>es</b>. Ces photos, je les ai pris<b>es</b>.',
+    items: [
+      'Elles ont [mangées|mangé] au restaurant.',
+      'Les fleurs que tu m\'as [offert|offertes] sont superbes.',
+      'Elle a {acheté|achetée} une robe pour le mariage.',
+      'Ces photos, je les ai [pris|prises] en Italie.',
+      'Quelle décision as-tu {prise|pris} ?',
+      'Ils ont [reçus|reçu] nos invitations.',
+      'La lettre qu\'il a [écrit|écrite] m\'a beaucoup ému.',
+    ],
+  },
+  {
+    id: 'pp-pronominal', niveau: 5, titre: 'Participe passé des verbes pronominaux',
+    regle: 'En général, il s\'accorde avec le <b>sujet</b> (elles se sont lavées). Mais s\'il y a un COD placé <b>après</b> le verbe, pas d\'accord (elle s\'est lavé <i>les mains</i>). Et quand « se » signifie « à soi / l\'un à l\'autre » (se parler, se téléphoner, se sourire), pas d\'accord non plus.',
+    exemple: 'Elles se sont promen<b>ées</b>. Elle s\'est lavé les mains. Ils se sont parlé.',
+    items: [
+      'Elles se sont [lavé|lavées] avant le dîner.',
+      'Elle s\'est {lavé|lavée} les mains avant de passer à table.',
+      'Ils se sont [parlés|parlé] longuement au téléphone.',
+      'Nous nous sommes {promenés|promené} au bord du lac.',
+      'Elles se sont [téléphonées|téléphoné] hier soir.',
+      'Marie s\'est [coupé|coupée] en épluchant les légumes.',
+      'Ils se sont {souvenus|souvenu} de cette soirée.',
+    ],
+  },
+  {
+    id: 'pp-infinitif', niveau: 5, titre: 'Participe passé suivi d\'un infinitif',
+    regle: '<b>Fait</b> suivi d\'un infinitif est <b>toujours invariable</b> (elle s\'est fait couper les cheveux). Il en va de même pour <b>dû</b>, <b>pu</b>, <b>voulu</b> quand un infinitif est sous-entendu (les efforts qu\'il a dû [faire]).',
+    exemple: 'Elle s\'est <b>fait</b> couper les cheveux. Les maisons qu\'il a <b>fait</b> construire.',
+    items: [
+      'Elle s\'est [faite|fait] couper les cheveux.',
+      'Les maisons qu\'il a {fait|faites} construire sont très belles.',
+      'Les difficultés qu\'il a [dues|dû] surmonter étaient nombreuses.',
+      'Ils ont fourni tous les efforts qu\'ils ont {pu|pus}.',
+    ],
+  },
+  {
+    id: 'ci-joint', niveau: 5, titre: 'Ci-joint, excepté, vu',
+    regle: '<b>Ci-joint</b>, <b>excepté</b>, <b>vu</b>, <b>étant donné</b> restent <b>invariables</b> quand ils sont placés <b>avant</b> le nom (ils jouent le rôle d\'une préposition). Placés <b>après</b> le nom, ils s\'accordent comme des adjectifs.',
+    exemple: '<b>Ci-joint</b> la facture. Les pièces <b>ci-jointes</b>. <b>Excepté</b> la fin.',
+    items: [
+      '[Ci-jointe|Ci-joint] la facture que vous avez demandée.',
+      'Les pièces {ci-jointes|ci-joint} sont à signer.',
+      '[Exceptée|Excepté] la dernière question, tout était facile.',
+      '{Vu|Vue} la situation, nous restons à la maison.',
+      '[Étant donnée|Étant donné] les circonstances, la fête est annulée.',
+    ],
+  },
+
+  // ───────────────────────── Niveau 6 ─────────────────────────
+  {
+    id: 'quel-que', niveau: 6, titre: '« quelque » ou « quel que »',
+    regle: 'Devant le verbe <b>être</b> (au subjonctif), on écrit <b>quel que</b> en deux mots, et <b>quel</b> s\'accorde avec le sujet : quel que soit, quelle que soit, quels que soient. Devant un nom, <b>quelque(s)</b> = « plusieurs, un peu de ». Devant un nombre, <b>quelque</b> = « environ » et reste invariable.',
+    exemple: '<b>Quelle que</b> soit ta décision. <b>Quelques</b> amis. <b>Quelque</b> trente ans.',
+    items: [
+      '[Quelque|Quel que] soit ton choix, je te soutiendrai.',
+      'Il reste {quelques|quelque} gâteaux dans la boîte.',
+      '[Quelque soient|Quels que soient] les obstacles, il avance.',
+      'Il avait alors {quelque|quelques} trente ans.',
+      '[Quelque soit|Quelle que soit] la météo, nous partirons.',
+    ],
+  },
+  {
+    id: 'quoique', niveau: 6, titre: '« quoique » ou « quoi que »',
+    regle: '<b>quoique</b> (un mot) signifie « bien que » : on peut le remplacer par <b>bien que</b>. <b>quoi que</b> (deux mots) signifie « quelle que soit la chose que ».',
+    exemple: '<b>Quoiqu\'</b>il soit tard (bien qu\'il soit tard). <b>Quoi que</b> tu dises.',
+    items: [
+      '[Quoique|Quoi que] tu dises, je ne changerai pas d\'avis.',
+      '{Quoiqu\'il|Quoi qu\'il} soit tard, il travaille encore.',
+      '[Quoiqu\'il|Quoi qu\'il] arrive, reste calme.',
+      '{Quoi que|Quoique} tu fasses, fais-le bien.',
+      '[Quoi qu\'elle|Quoiqu\'elle] soit malade, elle est venue.',
+    ],
+  },
+  {
+    id: 'davantage', niveau: 6, titre: '« davantage », « plutôt » ou « plus tôt »',
+    regle: '<b>davantage</b> (un mot) = « plus ». <b>d\'avantage</b> n\'existe que dans le sens de « avantage » (il n\'a pas <i>d\'avantage</i> à le faire). <b>plus tôt</b> s\'oppose à « plus tard » ; <b>plutôt</b> signifie « de préférence ».',
+    exemple: 'Travaille <b>davantage</b>. Viens <b>plus tôt</b> (≠ plus tard). Prends <b>plutôt</b> le train.',
+    items: [
+      'Il faudrait travailler [d\'avantage|davantage].',
+      'Je viendrai [plutôt|plus tôt] que prévu.',
+      'Prends {plutôt|plus tôt} le train que la voiture.',
+      'Je n\'en sais pas [d\'avantage|davantage].',
+      'Nous avons dîné {plus tôt|plutôt} que d\'habitude.',
+    ],
+  },
+  {
+    id: 'tournures', niveau: 6, titre: 'Tournures fautives',
+    regle: 'On dit <b>bien que</b> (et non « malgré que »), <b>se rappeler quelque chose</b> (sans « de »), <b>pallier quelque chose</b> (sans « à »), <b>au temps pour moi</b> (pour reconnaître une erreur), et <b>soi-disant</b> (de « soi »).',
+    exemple: '<b>Bien qu\'</b>il pleuve. Je me <b>rappelle</b> ce jour. <b>Pallier</b> un manque.',
+    items: [
+      '[Malgré qu\'il|Bien qu\'il] pleuve, nous sortons.',
+      'Je me [rappelle de|rappelle] très bien cette histoire.',
+      'Il faut [pallier à|pallier] ce manque de personnel.',
+      '{Au temps pour moi|Autant pour moi}, je me suis trompé.',
+      'C\'est un [soit-disant|soi-disant] expert.',
+      'Je {me souviens de|me rappelle de} ce jour-là.',
+    ],
+  },
+  {
+    id: 'paronymes', niveau: 6, titre: 'Les paronymes',
+    regle: 'Des mots qui se ressemblent mais n\'ont pas le même sens : <b>imminent</b> (qui va arriver) / <b>éminent</b> (remarquable) ; <b>conjoncture</b> (situation) / <b>conjecture</b> (supposition) ; <b>irruption</b> (entrée brusque) / <b>éruption</b> (sortie, volcan) ; <b>censé</b> (supposé) / <b>sensé</b> (raisonnable).',
+    exemple: 'Un départ <b>imminent</b>. Un <b>éminent</b> chercheur. Il est <b>censé</b> venir.',
+    items: [
+      'Leur départ est [éminent|imminent].',
+      'C\'est un {éminent|imminent} spécialiste du cœur.',
+      'La [conjecture|conjoncture] économique est difficile cette année.',
+      'Il a fait [éruption|irruption] dans la salle de réunion.',
+      'Le volcan est entré en {éruption|irruption} cette nuit.',
+      'Ce plat est {censé|sensé} être épicé.',
+      'Il est [sensé|censé] arriver à dix-huit heures.',
+      'Le dossier reste en [suspend|suspens] jusqu\'à lundi.',
+    ],
+  },
+];
