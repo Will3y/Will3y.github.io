@@ -1,0 +1,16 @@
+{
+  "name": "Les missions de Willyam",
+  "short_name": "Missions",
+  "description": "Des petites missions de maths et de français, du CE1 vers le CE2.",
+  "lang": "fr",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#e4f1ec",
+  "theme_color": "#e4f1ec",
+  "icons": [
+    { "src": "img/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "img/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "img/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

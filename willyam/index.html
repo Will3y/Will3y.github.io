@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Les missions de Willyam</title>
+<!-- Écran d'accueil (iPhone / Android) et hors ligne : ne sert que sur la version en ligne, sans effet en double-clic. -->
+<meta name="theme-color" content="#e4f1ec">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="img/icon-192.png">
+<link rel="apple-touch-icon" href="img/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Missions">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Andika:wght@400;700&family=Fredoka:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  /* Monde "cahier d'aventure" : autocollants épais, une couleur par matière. Colonne unique, carte des niveaux par étape CE1 → CE2. */
+  --bg:#e4f1ec; --paper:#ffffff; --ink:#1b2632; --muted:#56636f;
+  --maths:#ff7a3d; --maths-soft:#ffe4d6; --fr:#4c5ff5; --fr-soft:#e0e4ff;
+  --star:#ffc226; --star-soft:#fff1c7; --ok:#1c9e61; --ok-soft:#d5f2e3; --bad:#d93b45; --bad-soft:#fde1e2;
+  --display:"Fredoka","Trebuchet MS",system-ui,sans-serif;
+  --body:"Andika","Comic Sans MS",system-ui,sans-serif;
+  --accent:var(--maths); --accent-soft:var(--maths-soft); --on-accent:var(--ink);
+  color-scheme:light;
+}
+body[data-track="fr"]{--accent:var(--fr);--accent-soft:var(--fr-soft);--on-accent:#fff}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:18px;line-height:1.45;-webkit-tap-highlight-color:transparent}
+.wrap{max-width:720px;margin:0 auto;padding:18px 16px 56px}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible{outline:4px solid var(--fr);outline-offset:3px}
+h1,h2,h3{font-family:var(--display);text-wrap:balance;margin:0}
+.sticker{background:var(--paper);border:3px solid var(--ink);border-radius:18px;box-shadow:0 5px 0 var(--ink)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;background:var(--paper);border:3px solid var(--ink);border-radius:16px;box-shadow:0 4px 0 var(--ink);padding:12px 18px;font-family:var(--display);font-weight:600;font-size:20px;transition:transform .08s,box-shadow .08s}
+.btn:active:not(:disabled){transform:translateY(3px);box-shadow:0 1px 0 var(--ink)}
+.btn.go{background:var(--star)}
+.btn.small{padding:8px 12px;font-size:17px;border-radius:12px}
+.btn:disabled{cursor:default}
+
+/* Accueil */
+.top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.top h1{font-size:30px;font-weight:700;line-height:1.1}
+.top h1 small{display:block;font-family:var(--body);font-weight:400;font-size:16px;color:var(--muted);margin-top:4px}
+.total{display:flex;align-items:center;gap:6px;padding:6px 14px;font-family:var(--display);font-weight:700;font-size:24px;font-variant-numeric:tabular-nums}
+.total svg{width:28px;height:28px}
+.tabs{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:20px}
+.tab{display:flex;align-items:center;justify-content:center;gap:10px;padding:14px 10px;font-size:22px}
+.tab .ic{width:44px;height:44px;border-radius:12px;border:3px solid var(--ink);display:grid;place-items:center;font-family:var(--display);font-weight:700;font-size:20px}
+.tab.maths .ic{background:var(--maths)}
+.tab.fr .ic{background:var(--fr);color:#fff}
+.tab[aria-selected="true"].maths{background:var(--maths-soft)}
+.tab[aria-selected="true"].fr{background:var(--fr-soft)}
+.tab[aria-selected="false"]{box-shadow:0 2px 0 var(--ink);transform:translateY(2px);opacity:.8}
+.intro{margin:16px 2px 0;color:var(--muted)}
+.stage-h{display:flex;align-items:center;gap:12px;margin:28px 0 12px;flex-wrap:wrap}
+.pill{font-family:var(--display);font-weight:600;font-size:18px;padding:4px 14px;border-radius:999px;border:3px solid var(--ink);background:var(--accent);color:var(--on-accent)}
+.stage-h p{margin:0;color:var(--muted)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:14px}
+.tile{position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:8px;padding:14px;text-align:left;min-height:136px;border-radius:18px}
+.tile .n{width:42px;height:42px;border-radius:50%;background:var(--accent);color:var(--on-accent);border:3px solid var(--ink);display:grid;place-items:center;font-family:var(--display);font-weight:700;font-size:19px}
+.tile .tt{font-family:var(--display);font-weight:600;font-size:18px;line-height:1.2;flex:1}
+.tile .st{display:flex;gap:2px}
+.tile .st svg{width:22px;height:22px}
+.tile.next{outline:4px solid var(--star);outline-offset:3px}
+.tile .badge{position:absolute;top:-12px;right:10px;background:var(--star);border:3px solid var(--ink);border-radius:999px;padding:0 10px;font-family:var(--display);font-weight:700;font-size:15px}
+.tile.locked{background:#edf0f2;border-color:#9aa5af;box-shadow:0 5px 0 #9aa5af;color:#6f7a85}
+.tile.locked .n{background:#d3d9de;border-color:#9aa5af;color:#6f7a85}
+.foot{margin-top:36px;display:flex;justify-content:center}
+.linkbtn{background:none;border:none;color:var(--muted);text-decoration:underline;font-size:16px;padding:8px}
+
+/* Étoiles */
+.star path{fill:#d6dce1;stroke:var(--ink);stroke-width:1.6;stroke-linejoin:round}
+.star.on path{fill:var(--star)}
+
+/* Mission */
+.mtop{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.dots{display:flex;gap:8px}
+.dot{width:18px;height:18px;border-radius:50%;border:3px solid var(--ink);background:var(--paper)}
+.dot.cur{background:var(--accent-soft);transform:scale(1.25)}
+.dot.ok{background:var(--ok)}
+.dot.half{background:var(--star)}
+.dot.ko{background:var(--bad)}
+.level-name{margin:14px 2px 8px;font-family:var(--display);font-weight:600;color:var(--muted);font-size:17px}
+.qcard{padding:20px 16px 24px}
+.prompt{font-size:19px;color:var(--muted);text-align:center;margin-bottom:12px}
+.qzone{display:flex;flex-direction:column;gap:14px;align-items:center}
+.big{font-family:var(--display);font-weight:600;font-size:clamp(38px,11vw,62px);text-align:center;line-height:1.15;font-variant-numeric:tabular-nums}
+.mid{font-family:var(--display);font-weight:500;font-size:clamp(24px,6.6vw,34px);text-align:center;line-height:1.3}
+.story{font-size:22px;line-height:1.55;max-width:34ch}
+.text{font-size:21px;line-height:1.65;background:var(--accent-soft);border-radius:14px;padding:14px 16px;max-width:36ch}
+.qq{font-family:var(--display);font-weight:600;font-size:23px;text-align:center}
+.pic{font-size:76px;line-height:1}
+.tag{font-size:16px;color:var(--muted);border:2px dashed var(--muted);border-radius:999px;padding:2px 12px}
+.slot{display:inline-block;min-width:1.5em;padding:0 .1em;border-bottom:5px dashed var(--accent);color:var(--accent);text-align:center}
+mark{background:var(--accent-soft);color:inherit;border-bottom:4px solid var(--accent);padding:0 .12em;border-radius:4px}
+.abc{font-family:var(--display);font-size:18px;letter-spacing:.18em;color:var(--muted);text-align:center;max-width:30ch}
+.answers{margin-top:18px;display:grid;gap:12px}
+.answers.grid2{grid-template-columns:1fr 1fr}
+.answers.row2{grid-template-columns:1fr 1fr}
+.answers.row3{grid-template-columns:repeat(3,1fr)}
+.answers.list{grid-template-columns:1fr}
+.answers.chips{display:flex;flex-wrap:wrap;justify-content:center}
+.choice{min-height:72px;font-size:30px}
+.answers.list .choice{font-size:21px;justify-content:flex-start;text-align:left;font-family:var(--body);font-weight:700;min-height:60px}
+.answers.chips .choice{font-size:24px;min-height:58px;padding:8px 16px}
+.choice.right{background:var(--ok);color:#fff}
+.choice.wrong{background:var(--bad-soft);border-color:var(--bad);color:var(--bad);text-decoration:line-through;box-shadow:0 2px 0 var(--bad)}
+.choice.reveal{background:var(--ok-soft);border-color:var(--ok)}
+.entry{margin:18px auto 0;width:min(240px,80%);height:76px;display:grid;place-items:center;font-family:var(--display);font-weight:700;font-size:44px;font-variant-numeric:tabular-nums;background:var(--paper);border:3px solid var(--ink);border-radius:16px}
+.entry.empty{color:#b6bec6}
+.pad{margin:14px auto 0;max-width:360px;display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.pad .btn{height:64px;font-size:28px}
+.pad .ok{background:var(--star)}
+.fb{margin-top:16px;padding:14px 16px;border-radius:16px;border:3px solid transparent;font-size:20px;display:none}
+.fb.show{display:block}
+.fb.ok{background:var(--ok-soft);border-color:var(--ok)}
+.fb.try{background:var(--star-soft);border-color:#e0a800}
+.fb.ko{background:var(--bad-soft);border-color:var(--bad)}
+.fb .btn{margin-top:12px}
+.shake{animation:shake .35s}
+@keyframes shake{20%{transform:translateX(-8px)}40%{transform:translateX(8px)}60%{transform:translateX(-5px)}80%{transform:translateX(5px)}}
+
+/* Visuels maths */
+.blocks{display:flex;gap:8px;justify-content:center;align-items:flex-end;flex-wrap:wrap}
+.stick{box-sizing:content-box;width:16px;height:180px;border:2px solid var(--ink);border-radius:4px;background:repeating-linear-gradient(to bottom,var(--maths) 0 16px,var(--ink) 16px 18px)}
+.cubes{display:grid;grid-template-columns:repeat(2,18px);gap:4px;align-content:end}
+.cube{box-sizing:content-box;width:16px;height:16px;background:var(--star);border:2px solid var(--ink);border-radius:3px}
+.clock svg{width:min(230px,62vw);height:auto;display:block}
+.clock .face{fill:#fff;stroke:var(--ink);stroke-width:6}
+.clock .ticks line{stroke:var(--ink)}
+.clock .nums text{font-family:var(--display);font-size:21px;font-weight:600;fill:var(--ink)}
+.clock .hh{stroke:var(--ink);stroke-width:9;stroke-linecap:round}
+.clock .mh{stroke:var(--maths);stroke-width:5;stroke-linecap:round}
+.clock .pin{fill:var(--ink)}
+.money{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;align-items:center}
+.coin{width:60px;height:60px;border-radius:50%;display:grid;place-items:center;border:3px solid var(--ink);font-family:var(--display);font-weight:700;font-size:18px}
+.c1{background:#e9c46a}
+.c2{background:radial-gradient(circle,#e9c46a 0 54%,#c9ced3 55%)}
+.bill{width:96px;height:54px;border-radius:8px;border:3px solid var(--ink);display:grid;place-items:center;font-family:var(--display);font-weight:700;font-size:21px}
+.b5{background:#c9ccd1}.b10{background:#f4a8a4}.b20{background:#a3c6f2}
+.dotsviz{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;max-width:300px}
+.dotsviz span{width:18px;height:18px;border-radius:50%;background:var(--star);border:2px solid var(--ink)}
+
+/* Résultat */
+.result{padding:24px 18px;text-align:center}
+.result h2{font-size:32px}
+.bigstars{display:flex;justify-content:center;gap:8px;margin:16px 0 8px}
+.bigstars svg{width:72px;height:72px}
+.bigstars .on{animation:pop .5s both}
+.bigstars .on:nth-child(2){animation-delay:.15s}
+.bigstars .on:nth-child(3){animation-delay:.3s}
+@keyframes pop{0%{transform:scale(.2)}70%{transform:scale(1.2)}100%{transform:scale(1)}}
+.score{color:var(--muted);margin:0}
+.unlock{display:inline-block;margin-top:12px;font-family:var(--display);font-weight:600;background:var(--star-soft);border:3px solid var(--ink);border-radius:999px;padding:4px 14px}
+.crayon{margin-top:20px;padding:18px;border:3px dashed var(--ink);border-radius:18px;background:var(--paper);text-align:left;display:grid;gap:10px}
+.crayon h3{display:flex;align-items:center;gap:10px;font-size:22px}
+.crayon p{margin:0;font-size:21px}
+.crayon .done{font-family:var(--display);font-weight:600;color:var(--ok)}
+.actions{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;margin-top:22px}
+
+/* Pause & parent */
+.overlay{position:fixed;inset:0;background:rgba(27,38,50,.55);display:grid;place-items:center;padding:16px;z-index:10}
+.pause{max-width:420px;width:100%;padding:26px 20px;text-align:center;display:grid;gap:12px;justify-items:center}
+.pause .mv{font-size:24px;font-family:var(--display);font-weight:600}
+.count{width:90px;height:90px;border-radius:50%;border:4px solid var(--ink);display:grid;place-items:center;font-family:var(--display);font-weight:700;font-size:38px;background:var(--star);font-variant-numeric:tabular-nums}
+.parent{padding:20px 18px;display:grid;gap:14px}
+.parent h2{font-size:26px}
+.parent ul{margin:0;padding-left:20px;display:grid;gap:8px}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}
+.stat{border:3px solid var(--ink);border-radius:14px;padding:10px 12px;background:var(--bg)}
+.stat b{display:block;font-family:var(--display);font-size:28px;font-variant-numeric:tabular-nums}
+.row{display:flex;gap:12px;flex-wrap:wrap}
+.tirelire{display:flex;align-items:center;gap:8px;padding:6px 14px 6px 10px;font-family:var(--display);font-weight:700;font-size:24px;line-height:1;font-variant-numeric:tabular-nums;text-align:left}
+.tirelire svg{width:30px;height:30px}
+.tirelire small{font-size:14px;font-weight:600;color:var(--muted);display:block;margin-top:2px}
+.tirinfo{margin:14px 0 0;font-size:19px}
+.wallet{display:flex;align-items:center;justify-content:center;gap:10px;font-family:var(--display);font-weight:700;font-size:48px;margin:8px 0 4px;font-variant-numeric:tabular-nums}
+.wallet svg{width:50px;height:50px}
+.rewards{display:grid;gap:14px;margin-top:18px;text-align:left}
+.reward{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;align-items:center;padding:14px 16px}
+.reward .ri{font-size:44px;line-height:1;grid-row:span 2}
+.reward .rn{font-family:var(--display);font-weight:600;font-size:21px;line-height:1.2}
+.reward .rc{color:var(--muted);font-size:16px}
+.bar{grid-column:1/-1;height:18px;margin-top:6px;border:3px solid var(--ink);border-radius:999px;background:var(--bg);overflow:hidden}
+.bar span{display:block;height:100%;background:var(--star)}
+.reward .btn{grid-column:1/-1;margin-top:6px}
+.reward .btn:disabled{opacity:.75;box-shadow:0 2px 0 var(--ink)}
+.reward.ready{background:var(--star-soft)}
+.hist{margin:0;padding:0;list-style:none;display:grid;gap:6px}
+.hist li{display:flex;gap:10px;align-items:center}
+.hist time{color:var(--muted);font-size:15px;margin-left:auto;font-variant-numeric:tabular-nums}
+.rhead,.redit{display:grid;grid-template-columns:68px 1fr 86px auto;gap:8px;align-items:center}
+.rhead{font-size:14px;color:var(--muted)}
+.redit select,.redit input,.pinrow input{font:inherit;font-size:18px;border:3px solid var(--ink);border-radius:12px;padding:8px 8px;background:var(--paper);color:var(--ink);min-width:0;width:100%}
+.savebox{font:inherit;font-size:14px;width:100%;border:3px solid var(--ink);border-radius:12px;padding:8px 10px;background:var(--paper);color:var(--ink);resize:vertical;word-break:break-all}
+.savebox[readonly]{background:var(--bg);color:var(--muted)}
+.savebox:focus-visible,.redit select:focus-visible,.redit input:focus-visible,.pinrow input:focus-visible{outline:4px solid var(--fr);outline-offset:2px}
+.redit .del{padding:8px 12px}
+.pinrow{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.pinrow input{width:120px;letter-spacing:.3em}
+.pindots{display:flex;gap:14px;justify-content:center}
+.pindots span{width:22px;height:22px;border-radius:50%;border:3px solid var(--ink)}
+.pindots span.f{background:var(--ink)}
+.walletrow{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.walletrow b{font-family:var(--display);font-size:28px;min-width:3ch;text-align:center;font-variant-numeric:tabular-nums}
+.hint2{margin:0;color:var(--muted);font-size:16px}
+@media (max-width:420px){.rhead,.redit{grid-template-columns:58px 1fr 68px auto}}
+.cf{position:fixed;top:-20px;width:10px;height:14px;z-index:20;animation:fall 2.3s linear forwards;pointer-events:none}
+@keyframes fall{to{transform:translateY(110vh) rotate(720deg)}}
+@media (max-width:420px){.answers.row3{grid-template-columns:1fr 1fr 1fr}.choice{font-size:26px}.top h1{font-size:26px}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body data-track="maths">
+<main class="wrap" id="view"></main>
+<div id="layer"></div>
+<script>
+/* ---------- Outils ---------- */
+const R=(a,b)=>Math.floor(Math.random()*(b-a+1))+a;
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const pl=(n,w)=>`${n} ${w}${n>1?'s':''}`;
+const SLOT='<span class="slot">?</span>';
+const nf=n=>String(n).replace(/\B(?=(\d{3})+(?!\d))/g,' ');
+function uniqChoices(correct,wrongs,n=4){const out=[correct];for(const w of shuffle(wrongs)){if(out.length>=n)break;if(!out.includes(w))out.push(w);}return shuffle(out);}
+const hm=(h,m)=>m===0?`${h} h`:`${h} h ${String(m).padStart(2,'0')}`;
+
+function frNum(n){
+  const u=['zéro','un','deux','trois','quatre','cinq','six','sept','huit','neuf','dix','onze','douze','treize','quatorze','quinze','seize','dix-sept','dix-huit','dix-neuf'];
+  const t=['','','vingt','trente','quarante','cinquante','soixante'];
+  function u100(n){if(n<20)return u[n];const d=Math.floor(n/10),r=n%10;
+    if(d<7)return t[d]+(r===0?'':(r===1?' et un':'-'+u[r]));
+    if(d===7)return 'soixante'+(r===1?' et onze':'-'+u[10+r]);
+    if(d===8)return r===0?'quatre-vingts':'quatre-vingt-'+u[r];
+    return 'quatre-vingt-'+u[10+r];}
+  function u1000(n){const c=Math.floor(n/100),r=n%100;let s='';
+    if(c===1)s='cent';else if(c>1)s=u[c]+(r===0?' cents':' cent');
+    if(r>0)s+=(s?' ':'')+u100(r);return s;}
+  if(n===0)return 'zéro';const m=Math.floor(n/1000),r=n%1000;let s='';
+  if(m===1)s='mille';else if(m>1)s=u1000(m)+' mille';
+  if(r>0)s+=(s?' ':'')+u1000(r);return s;
+}
+
+/* ---------- Visuels ---------- */
+function blocks(d,u){return `<div class="blocks" aria-label="${d} barres de dix et ${u} cubes">${'<span class="stick"></span>'.repeat(d)}<span class="cubes">${'<span class="cube"></span>'.repeat(u)}</span></div>`;}
+function money(items){return `<div class="money">${items.map(v=>v<=2?`<span class="coin c${v}">${v} €</span>`:`<span class="bill b${v}">${v} €</span>`).join('')}</div>`;}
+function dots(n){return `<div class="dotsviz">${'<span></span>'.repeat(n)}</div>`;}
+function clock(h,m){
+  const f=x=>x.toFixed(1);const ha=((h%12)+m/60)*30,ma=m*6;let nums='',ticks='';
+  for(let i=1;i<=12;i++){const a=(i*30-90)*Math.PI/180;nums+=`<text x="${f(100+70*Math.cos(a))}" y="${f(100+70*Math.sin(a)+7)}" text-anchor="middle">${i}</text>`;}
+  for(let i=0;i<60;i++){const a=(i*6-90)*Math.PI/180,r1=i%5?87:82,r2=91;ticks+=`<line x1="${f(100+r1*Math.cos(a))}" y1="${f(100+r1*Math.sin(a))}" x2="${f(100+r2*Math.cos(a))}" y2="${f(100+r2*Math.sin(a))}" stroke-width="${i%5?1.5:3.5}"/>`;}
+  return `<div class="clock"><svg viewBox="0 0 200 200" role="img" aria-label="Horloge"><circle cx="100" cy="100" r="95" class="face"/><g class="ticks">${ticks}</g><g class="nums">${nums}</g><line x1="100" y1="100" x2="100" y2="54" class="hh" transform="rotate(${ha} 100 100)"/><line x1="100" y1="100" x2="100" y2="22" class="mh" transform="rotate(${ma} 100 100)"/><circle cx="100" cy="100" r="7" class="pin"/></svg></div>`;
+}
+
+/* ---------- Questions de maths ---------- */
+function cmpQ(a,b){const ans=a<b?'<':a>b?'>':'=';return {p:'Choisis le bon signe',q:`<div class="big">${nf(a)} ${SLOT} ${nf(b)}</div>`,say:`Compare ${a} et ${b}.`,type:'choice',choices:['<','=','>'],keep:true,answer:ans,
+  explain:ans==='='?'Les deux nombres sont égaux.':`${nf(Math.min(a,b))} est plus petit que ${nf(Math.max(a,b))}. La pointe du signe montre le plus petit.`};}
+function opQ(a,op,b,ans,explain){const w={'+':'plus','−':'moins','×':'fois'}[op];return {p:'Calcule',q:`<div class="big">${a} ${op} ${b} = ${SLOT}</div>`,say:`${a} ${w} ${b}, ça fait combien ?`,type:'num',answer:String(ans),explain};}
+function tableQ(t,n){const [a,b]=Math.random()<.5?[n,t]:[t,n];const ex=n<=6?`${n} fois ${t}, c’est ${Array(n).fill(t).join(' + ')} = ${n*t}`:`${a} × ${b} = ${n*t}`;return opQ(a,'×',b,n*t,ex);}
+function storyQ(T){const [t,ans,ex]=pick(T)();return {p:'Lis le problème et trouve la réponse',q:`<div class="story">${t}</div>`,say:t,type:'num',answer:String(ans),explain:ex};}
+
+const GM={
+  M1(){const a=R(10,99);let b;const r=Math.random();if(r<.12)b=a;else if(r<.6)b=clamp(a+pick([-1,1])*R(1,9),10,99);else b=R(10,99);return cmpQ(a,b);},
+  M2(){const d=R(1,9),u=R(0,9),n=d*10+u,k=R(0,2);
+    if(k===0)return {p:'Combien de cubes en tout ? (une barre = 10)',q:blocks(d,u),say:'Combien de cubes en tout ? Une barre, c’est dix cubes.',type:'num',answer:String(n),explain:`${pl(d,'dizaine')} et ${pl(u,'unité')} = ${n}.`};
+    if(k===1)return {p:'Quel est le chiffre des dizaines ?',q:`<div class="big">${n}</div>`,say:`Dans ${n}, quel est le chiffre des dizaines ?`,type:'num',answer:String(d),explain:`Dans ${n}, il y a ${pl(d,'dizaine')} et ${pl(u,'unité')}.`};
+    return {p:'Écris le nombre',q:`<div class="mid">${pl(d,'dizaine')} et ${pl(u,'unité')}</div>`,type:'num',answer:String(n),explain:`${pl(d,'dizaine')} = ${d*10}, et ${d*10} + ${u} = ${n}.`};},
+  M3(){const at=R(1,7),bt=R(1,9-at),au=R(0,8),bu=R(0,9-au),a=at*10+au,b=bt*10+bu;return opQ(a,'+',b,a+b,`On ajoute les unités (${au} + ${bu}), puis les dizaines (${at} + ${bt}).`);},
+  M4(){const at=R(3,9),au=R(1,9),bt=R(1,at-1),bu=R(0,au),a=at*10+au,b=bt*10+bu;return opQ(a,'−',b,a-b,`Unités : ${au} − ${bu} = ${au-bu}. Dizaines : ${at} − ${bt} = ${at-bt}.`);},
+  M5(){const at=R(1,6),bt=R(1,8-at),au=R(2,9),bu=R(10-au,9),a=at*10+au,b=bt*10+bu;return opQ(a,'+',b,a+b,`${au} + ${bu} = ${au+bu} : on écrit ${(au+bu)%10} et on retient 1 dizaine.`);},
+  M6(){return tableQ(pick([2,5,10]),R(1,10));},
+  M7(){return storyQ([
+    ()=>{const a=R(12,45),b=R(3,25);return [`Willyam a ${a} billes. Il en gagne ${b} à la récré. Combien de billes a-t-il maintenant ?`,a+b,`${a} + ${b} = ${a+b}`];},
+    ()=>{const a=R(20,50),b=R(4,a-5);return [`Dans le bus, il y a ${a} personnes. ${b} personnes descendent. Combien en reste-t-il dans le bus ?`,a-b,`${a} − ${b} = ${a-b}`];},
+    ()=>{const a=R(10,40),b=R(3,15);return [`Hailey a ${a} autocollants. Willyam en a ${b} de plus qu’elle. Combien Willyam a-t-il d’autocollants ?`,a+b,`${a} + ${b} = ${a+b}`];},
+    ()=>{const a=R(15,40),b=R(3,12);return [`Un paquet contient ${a} gâteaux. On en mange ${b}. Combien en reste-t-il ?`,a-b,`${a} − ${b} = ${a-b}`];},
+    ()=>{const a=R(10,35),b=R(10,35);return [`Le chat dort ${a} minutes le matin et ${b} minutes l’après-midi. Combien de minutes dort-il en tout ?`,a+b,`${a} + ${b} = ${a+b}`];},
+    ()=>{const a=R(25,60),b=R(5,20);return [`Papa a ${a} € dans son porte-monnaie. Il achète un livre à ${b} €. Combien lui reste-t-il ?`,a-b,`${a} − ${b} = ${a-b}`];}
+  ]);},
+  M8(){const h=R(1,12),m=pick([0,30]),nx=h===12?1:h+1,pv=h===1?12:h-1;
+    const wr=m===0?[hm(h,30),hm(nx,0),hm(pv,0),hm(nx,30)]:[hm(h,0),hm(nx,30),hm(pv,30),hm(nx,0)];
+    return {p:'Quelle heure est-il ?',q:clock(h,m),say:'Regarde l’horloge. Quelle heure est-il ?',type:'choice',choices:uniqChoices(hm(h,m),wr),answer:hm(h,m),
+      explain:m===0?'La grande aiguille orange est sur le 12 : c’est l’heure pile. La petite aiguille montre l’heure.':'La grande aiguille orange est sur le 6 : c’est la demie. La petite aiguille est entre deux nombres : on lit celui qu’elle vient de dépasser.'};},
+  M9(){if(Math.random()<.3){const price=R(2,9);return {p:'Combien te rend-on ?',q:`<div class="story">Un jouet coûte <b>${price} €</b>. Tu paies avec un billet de <b>10 €</b>. Combien d’euros te rend-on ?</div>${money([10])}`,type:'num',answer:String(10-price),explain:`10 − ${price} = ${10-price} €`};}
+    let items,sum;do{items=[];const n=R(2,4);for(let i=0;i<n;i++)items.push(pick([1,2,5,10,20]));sum=items.reduce((a,b)=>a+b,0);}while(sum>50);
+    items.sort((a,b)=>b-a);return {p:'Combien d’euros en tout ?',q:money(items),say:'Combien d’euros en tout ?',type:'num',answer:String(sum),explain:`${items.join(' + ')} = ${sum} €`};},
+  M10(){const k=R(0,3);
+    if(k===0){const a=R(100,999);let b=Math.random()<.6?clamp(a+pick([-1,1])*R(1,90),100,999):R(100,999);if(Math.random()<.1)b=a;return cmpQ(a,b);}
+    if(k===1){const n=pick([R(1,9)*100-1,R(10,99)*10-1,R(100,998)]);return {p:'Quel nombre vient juste après ?',q:`<div class="big">${n} → ${SLOT}</div>`,say:`Quel nombre vient juste après ${n} ?`,type:'num',answer:String(n+1),explain:`${n} + 1 = ${n+1}`};}
+    if(k===2){const c=R(1,9),d=R(0,9),u=R(0,9);return {p:'Écris le nombre',q:`<div class="mid">${pl(c,'centaine')}, ${pl(d,'dizaine')} et ${pl(u,'unité')}</div>`,type:'num',answer:String(c*100+d*10+u),explain:`${c*100} + ${d*10} + ${u} = ${c*100+d*10+u}`};}
+    const n=R(100,999);return {p:'Écris ce nombre en chiffres',q:`<div class="mid">${frNum(n)}</div>`,type:'num',answer:String(n),explain:`${frNum(n)} = ${n}`};},
+  M11(){const at=R(3,9),au=R(0,8),bu=R(au+1,9),bt=R(1,at-1),a=at*10+au,b=bt*10+bu;return opQ(a,'−',b,a-b,`${au} − ${bu}, impossible : on casse une dizaine. ${au+10} − ${bu} = ${au+10-bu}, et il reste ${at-1-bt} dizaine${at-1-bt>1?'s':''}.`);},
+  M12(){return tableQ(pick([3,4]),R(1,10));},
+  M13(){if(Math.random()<.5){const n=R(3,50);return {p:'Calcule le double',q:`<div class="mid">Le double de <b>${n}</b></div>`,say:`Quel est le double de ${n} ?`,type:'num',answer:String(2*n),explain:`Le double, c’est deux fois : ${n} + ${n} = ${2*n}.`};}
+    const m=R(2,50)*2;return {p:'Calcule la moitié',q:`<div class="mid">La moitié de <b>${m}</b></div>`,say:`Quelle est la moitié de ${m} ?`,type:'num',answer:String(m/2),explain:`La moitié, c’est partager en deux : ${m/2} + ${m/2} = ${m}.`};},
+  M14(){const k=R(0,3);
+    if(k===0){const a=R(1000,9999);let b=Math.random()<.6?clamp(a+pick([-1,1])*R(1,900),1000,9999):R(1000,9999);return cmpQ(a,b);}
+    if(k===1){const n=pick([R(1,9)*1000-1,R(10,99)*100-1,R(1000,9998)]);return {p:'Quel nombre vient juste après ?',q:`<div class="big">${nf(n)} → ${SLOT}</div>`,say:`Quel nombre vient juste après ${n} ?`,type:'num',answer:String(n+1),explain:`${nf(n)} + 1 = ${nf(n+1)}`};}
+    if(k===2){const m=R(1,9),c=R(0,9),d=R(0,9),u=R(0,9),n=m*1000+c*100+d*10+u;return {p:'Écris le nombre',q:`<div class="mid">${pl(m,'millier')}, ${pl(c,'centaine')}, ${pl(d,'dizaine')} et ${pl(u,'unité')}</div>`,type:'num',answer:String(n),explain:`${nf(m*1000)} + ${c*100} + ${d*10} + ${u} = ${nf(n)}`};}
+    const n=R(1000,9999);return {p:'Écris ce nombre en chiffres',q:`<div class="mid">${frNum(n)}</div>`,type:'num',answer:String(n),explain:`${frNum(n)} = ${nf(n)}`};},
+  M15(){return tableQ(R(6,9),R(2,10));},
+  M16(){const h=R(1,12),m=R(1,11)*5,nx=h===12?1:h+1,k=m/5,c=hm(h,m);
+    const wr=[hm(h,k),hm(nx,m),hm(h,(m+15)%60),hm(h,(m+30)%60),hm(h,(m+5)%60),hm(h,(m+55)%60)];
+    return {p:'Quelle heure est-il ?',q:clock(h,m),say:'Regarde l’horloge. Quelle heure est-il ?',type:'choice',choices:uniqChoices(c,wr),answer:c,explain:`La grande aiguille orange montre le ${k} : ${k} × 5 = ${m} minutes.`};},
+  M17(){const k=R(2,5),e=R(2,6),t=k*e;
+    if(Math.random()<.5)return {p:'Partage en parts égales',q:`<div class="story">On partage <b>${t} bonbons</b> entre <b>${k} enfants</b>. Combien de bonbons chaque enfant reçoit-il ?</div>${dots(t)}`,type:'num',answer:String(e),explain:`${k} × ${e} = ${t}, donc chaque enfant en reçoit ${e}.`};
+    return {p:'Fais des paquets',q:`<div class="story">Avec <b>${t} œufs</b>, on remplit des boîtes de <b>${k} œufs</b>. Combien de boîtes peut-on remplir ?</div>${dots(t)}`,type:'num',answer:String(e),explain:`${e} × ${k} = ${t}, donc ${e} boîtes.`};},
+  M18(){const N={mm:'millimètres',cm:'centimètres',m:'mètres',km:'kilomètres',g:'grammes',kg:'kilos'};
+    if(Math.random()<.55){
+      if(Math.random()<.7){const [t,a]=pick([['La longueur d’un crayon','cm'],['La hauteur d’une porte','m'],['Le trajet de Paris à Lyon','km'],['La longueur d’une fourmi','mm'],['La longueur d’un terrain de foot','m'],['La largeur d’un cahier','cm'],['La longueur d’une piscine','m'],['Le trajet des vacances en voiture','km']]);
+        return {p:'Choisis la bonne unité',q:`<div class="mid">${t} se mesure en…</div>`,type:'choice',choices:['mm','cm','m','km'],keep:true,answer:a,explain:`On dit en ${N[a]}. Petit → mm ou cm, moyen → m, très long → km.`};}
+      const [t,a]=pick([['Le poids d’une pomme','g'],['Le poids d’un sac de pommes de terre','kg'],['Le poids d’un bonbon','g'],['Le poids d’un enfant','kg'],['Le poids d’une valise','kg'],['Le poids d’une gomme','g']]);
+      return {p:'Choisis la bonne unité',q:`<div class="mid">${t} se mesure en…</div>`,type:'choice',choices:['g','kg'],keep:true,answer:a,explain:`On dit en ${N[a]}. Léger → g, lourd → kg.`};}
+    const [n,u1,u2,ans]=pick([[1,'m','cm',100],[2,'m','cm',200],[1,'km','m',1000],[1,'kg','g',1000],[300,'cm','m',3],[5,'m','cm',500],[2,'kg','g',2000],[1,'cm','mm',10],[3,'km','m',3000]]);
+    return {p:'Convertis',q:`<div class="big">${n} ${u1} = ${SLOT} ${u2}</div>`,say:`${n} ${N[u1]}, ça fait combien de ${N[u2]} ?`,type:'num',answer:String(ans),explain:'Rappel : 1 m = 100 cm, 1 cm = 10 mm, 1 km = 1 000 m, 1 kg = 1 000 g.'};},
+  M19(){return storyQ([
+    ()=>{const a=R(15,30),b=R(3,8),c=R(2,6);return [`Willyam a ${a} €. Il achète un livre à ${b} € et un stylo à ${c} €. Combien d’euros lui reste-t-il ?`,a-b-c,`${b} + ${c} = ${b+c}, puis ${a} − ${b+c} = ${a-b-c}`];},
+    ()=>{const n=R(2,6),k=pick([2,5,10]),e=R(1,9);return [`Il y a ${n} boîtes de ${k} crayons et encore ${e} crayons tout seuls. Combien de crayons en tout ?`,n*k+e,`${n} × ${k} = ${n*k}, puis ${n*k} + ${e} = ${n*k+e}`];},
+    ()=>{const g=R(10,15),f=R(10,15),a=R(2,5);return [`Dans la classe, il y a ${g} garçons et ${f} filles. Aujourd’hui, ${a} élèves sont absents. Combien d’élèves sont présents ?`,g+f-a,`${g} + ${f} = ${g+f}, puis ${g+f} − ${a} = ${g+f-a}`];},
+    ()=>{const p=R(5,20);return [`Lundi, Willyam lit ${p} pages de son livre. Mardi, il en lit le double. Combien de pages a-t-il lues en tout ?`,3*p,`Mardi : ${p} + ${p} = ${2*p}. En tout : ${p} + ${2*p} = ${3*p}`];},
+    ()=>{const t=R(3,5),e=R(4,8),m=R(2,6);return [`À la fête, il y a ${t} tables de ${e} enfants. Puis ${m} enfants arrivent en retard. Combien d’enfants en tout ?`,t*e+m,`${t} × ${e} = ${t*e}, puis ${t*e} + ${m} = ${t*e+m}`];}
+  ]);}
+};
+
+/* ---------- Questions de français ---------- */
+const PRON=[['Je','je',0],['Tu','tu',1],['Il','il',2],['Elle','elle',2],['Nous','nous',3],['Vous','vous',4],['Ils','ils',5],['Elles','elles',5]];
+const ER=['chanter','jouer','danser','parler','regarder','sauter','dessiner','marcher','porter','chercher'];
+const END={pres:['e','es','e','ons','ez','ent'],fut:['ai','as','a','ons','ez','ont'],imp:['ais','ais','ait','ions','iez','aient']};
+const stem=v=>v.slice(0,-2);
+function conjQ(tense,marker){
+  const [P,p,i]=pick(PRON),v=pick(ER),s=stem(v);
+  const form=x=>tense==='fut'?v+END.fut[x]:s+END[tense][x];
+  const ans=form(i);const others=[0,1,2,3,4,5].map(form).filter(f=>f!==ans);
+  if(tense==='imp')others.push(s+END.pres[i]);
+  const subj=marker?`${marker}, ${p}`:P;
+  const names={pres:'présent',fut:'futur',imp:'imparfait'};
+  return {p:`Conjugue au ${names[tense]}`,q:`<div class="mid">${subj} ${SLOT}</div><div class="tag">verbe ${v}</div>`,say:`${subj}… verbe ${v}, au ${names[tense]}.`,type:'choice',choices:uniqChoices(ans,others),answer:ans,
+    explain:`${subj} ${ans}. Au ${names[tense]}, avec « ${p} », on écrit -${tense==='fut'?'er'+END.fut[i]:END[tense][i]}.`};
+}
+const SONS=[['🐑','un m__ton','ou'],['🐟','un p__sson','oi'],['🦁','un li__','on'],['🐘','un éléph__t','an'],['🍊','une or__ge','an'],['⭐','une ét__le','oi'],['🐻','un __rs','ou'],['🎈','un ball__','on'],['🐦','un __seau','oi'],['🐼','un p__da','an'],['🐭','une s__ris','ou'],['🐷','un coch__','on'],['👑','un r__','oi'],['🐺','un l__p','ou']];
+const NOMS=[['maison','f'],['chat','m'],['table','f'],['vélo','m'],['fleur','f'],['livre','m'],['voiture','f'],['ballon','m'],['pomme','f'],['lit','m'],['porte','f'],['soleil','m'],['lune','f'],['crayon','m'],['chaise','f'],['gâteau','m'],['robe','f'],['train','m'],['tortue','f'],['camion','m'],['banane','f'],['cheval','m'],['souris','f'],['bateau','m']];
+const PLUR=[['le','chat','chats'],['la','fleur','fleurs'],['le','gâteau','gâteaux'],['le','bateau','bateaux'],['la','pomme','pommes'],['le','ballon','ballons'],['la','maison','maisons'],['le','jeu','jeux'],['le','crayon','crayons'],['la','voiture','voitures'],['le','chapeau','chapeaux'],['la','table','tables'],['le','livre','livres'],['le','vélo','vélos'],['le','cheveu','cheveux']];
+const ALPHA=['arbre','ballon','chat','dragon','école','fusée','girafe','hibou','igloo','jardin','koala','lapin','maison','nuage','orange','pomme','quille','robot','soleil','tigre','usine','vélo','wagon','yaourt','zèbre'];
+const VERBES=[['Le chat mange une souris.','mange'],['Willyam joue au ballon.','joue'],['Les oiseaux chantent le matin.','chantent'],['Maman prépare un gâteau.','prépare'],['Le chien court dans le jardin.','court'],['Hailey dessine une fleur.','dessine'],['Nous regardons un film.','regardons'],['La maîtresse lit une histoire.','lit'],['Tu ranges ta chambre.','ranges'],['Le bébé dort dans son lit.','dort'],['Papa répare le vélo.','répare'],['Les enfants sautent dans la cour.','sautent'],['Je bois un verre de lait.','bois'],['Le vent souffle très fort.','souffle']];
+const ETRE=['suis','es','est','sommes','êtes','sont'],AVOIR=['ai','as','a','avons','avez','ont'];
+const LECT1=[
+  {t:'Léo a un petit chien. Il s’appelle Biscuit. Biscuit est tout blanc avec une tache noire sur l’oreille. Le matin, il aime courir dans le jardin.',qs:[
+    ['Comment s’appelle le chien ?','Biscuit',['Léo','Tache','Flocon']],['Où est la tache noire ?','sur l’oreille',['sur la queue','sur le nez','sur la patte']],['Que fait Biscuit le matin ?','Il court dans le jardin.',['Il dort.','Il mange.','Il nage.']]]},
+  {t:'Aujourd’hui, Lina va à la piscine avec son papa. Elle met son maillot rouge et ses lunettes. Dans l’eau, elle nage comme un poisson !',qs:[
+    ['Avec qui Lina va-t-elle à la piscine ?','avec son papa',['avec sa maman','avec sa sœur','avec son ami']],['De quelle couleur est son maillot ?','rouge',['bleu','vert','jaune']],['Lina nage comme…','un poisson',['un canard','une grenouille','un dauphin']]]},
+  {t:'Sur le volcan, il fait froid la nuit. Tom et Mamie montent avec des lampes. Ils veulent voir le soleil se lever. À six heures, le ciel devient tout orange.',qs:[
+    ['Pourquoi Tom et Mamie montent-ils ?','pour voir le soleil se lever',['pour dormir','pour pique-niquer','pour chercher un chat']],['De quelle couleur est le ciel à six heures ?','orange',['noir','bleu','vert']],['Qu’ont-ils pour voir dans la nuit ?','des lampes',['des bougies','des lunettes','rien du tout']]]},
+  {t:'Le lundi, Sami prend le bus pour aller à l’école. Il s’assoit toujours à côté de la fenêtre. Il compte les voitures rouges : aujourd’hui, il en a vu huit !',qs:[
+    ['Comment Sami va-t-il à l’école ?','en bus',['à pied','à vélo','en voiture']],['Combien de voitures rouges a-t-il vues ?','huit',['six','dix','trois']],['Où s’assoit-il ?','à côté de la fenêtre',['au fond du bus','à côté du chauffeur','il reste debout']]]}
+];
+const LECT2=[
+  {t:'Ce matin, Nina regarde par la fenêtre. Le jardin est tout blanc, et les toits aussi. Elle met vite son bonnet, ses gants et ses bottes. Avec son frère, elle fabrique un grand bonhomme avec une carotte pour le nez.',qs:[
+    ['En quelle saison se passe l’histoire ?','en hiver',['en été','au printemps','en automne']],['Qu’est-ce que Nina et son frère fabriquent ?','un bonhomme de neige',['un château de sable','une cabane','un gâteau']],['Pourquoi le jardin est-il blanc ?','Il a neigé.',['Il a plu.','Il fait nuit.','On l’a peint.']]]},
+  {t:'Malo a très mal au ventre. Hier soir, il a mangé tous les bonbons de la boîte, sans rien dire à personne. Maman trouve la boîte vide sous son lit. Malo baisse les yeux et devient tout rouge.',qs:[
+    ['Pourquoi Malo a-t-il mal au ventre ?','Il a mangé trop de bonbons.',['Il est tombé.','Il a trop couru.','Il a froid.']],['Où Maman trouve-t-elle la boîte ?','sous son lit',['dans la cuisine','dans son cartable','dans le jardin']],['Pourquoi Malo devient-il rouge ?','Il a honte.',['Il a chaud.','Il est content.','Il a couru.']]]},
+  {t:'Le facteur sonne à la porte. Il apporte un gros paquet pour Zoé. Dedans, il y a une boîte de peinture et une carte : « Joyeux anniversaire ! Bisous, Papi. »',qs:[
+    ['Qui a envoyé le paquet ?','Papi',['le facteur','Maman','Zoé']],['Pourquoi Zoé reçoit-elle un cadeau ?','C’est son anniversaire.',['C’est Noël.','Elle est malade.','Elle a gagné un concours.']],['Qu’y a-t-il dans le paquet ?','de la peinture',['un livre','un ballon','des bonbons']]]}
+];
+const A_A=[['Willyam ___ un vélo rouge.','a'],['Il va ___ l’école.','à'],['Hailey ___ quatre ans.','a'],['Nous allons ___ la piscine.','à'],['Le chat ___ faim.','a'],['Je pense ___ toi.','à'],['Elle ___ perdu son bonnet.','a'],['Papa est ___ la maison.','à'],['Tom ___ un petit chien.','a'],['Je vais ___ Paris.','à'],['Mamie ___ fait une tarte.','a'],['Une tarte ___ la fraise.','à'],['On joue ___ cache-cache.','à'],['Le bébé ___ sommeil.','a']];
+const ET_EST=[['Le ciel ___ bleu.','est'],['Willyam ___ Hailey jouent ensemble.','et'],['Il ___ très content.','est'],['J’aime les pommes ___ les poires.','et'],['La soupe ___ chaude.','est'],['Le chat ___ le chien dorment.','et'],['Maman ___ au travail.','est'],['J’ai un crayon ___ une gomme.','et'],['Le bébé ___ dans son lit.','est'],['Il pleut ___ il fait froid.','et'],['Ce gâteau ___ délicieux.','est'],['Papa ___ Mamie arrivent.','et']];
+const NATURE=[['Le petit chat dort.','petit','adjectif'],['Le petit chat dort.','chat','nom'],['Le petit chat dort.','dort','verbe'],['Ma sœur porte une robe bleue.','robe','nom'],['Ma sœur porte une robe bleue.','bleue','adjectif'],['Ma sœur porte une robe bleue.','porte','verbe'],['Ma sœur porte une robe bleue.','une','déterminant'],['Les grands arbres bougent.','Les','déterminant'],['Les grands arbres bougent.','grands','adjectif'],['Les grands arbres bougent.','arbres','nom'],['Willyam mange une pomme rouge.','mange','verbe'],['Willyam mange une pomme rouge.','rouge','adjectif'],['Un énorme camion passe.','énorme','adjectif'],['Un énorme camion passe.','camion','nom'],['Un énorme camion passe.','passe','verbe']];
+const SUJET=[[['Le chat de Léo','mange','une souris.'],0,'mange'],[['Dans la cour,','les enfants','jouent','au ballon.'],1,'jouent'],[['Hailey et Willyam','regardent','un dessin animé.'],0,'regardent'],[['Ce matin,','Papa','prépare','des crêpes.'],1,'prépare'],[['Les oiseaux','chantent','dans l’arbre.'],0,'chantent'],[['Ma maîtresse','lit','une histoire.'],0,'lit'],[['Sous le lit,','le chat','dort.'],1,'dort'],[['Nous','partons','en vacances.'],0,'partons'],[['Le gros chien noir','aboie','très fort.'],0,'aboie'],[['Demain,','mes cousins','viennent','à la maison.'],1,'viennent']];
+const ACCORD=[['des fleurs ___',['rouge','rouges'],'rouges'],['une ___ fille',['petit','petite','petits'],'petite'],['les chiens ___',['noir','noirs','noires'],'noirs'],['une robe ___',['vert','verte','verts'],'verte'],['des ballons ___',['bleu','bleus','bleues'],'bleus'],['un ___ château',['grand','grande','grands'],'grand'],['deux ___ souris',['petit','petits','petites'],'petites'],['la ___ maison',['joli','jolie','jolis'],'jolie'],['mes ___ amies',['meilleur','meilleurs','meilleures'],'meilleures'],['un chien ___',['content','contente','contents'],'content'],['des tartes ___',['sucré','sucrés','sucrées'],'sucrées'],['les ___ voitures',['rapide','rapides'],'rapides']];
+const noAcc=s=>s.normalize('NFD').replace(/[̀-ͯ]/g,'');
+function lectQ(bank){const T=pick(bank),[qq,a,w]=pick(T.qs);return {p:'Lis le texte, puis réponds',q:`<div class="text">${T.t}</div><div class="qq">${qq}</div>`,say:`${T.t} … ${qq}`,type:'choice',choices:shuffle([a,...w]),answer:a,explain:'Relis le texte : la réponse y est écrite, ou on peut la deviner.'};}
+function blankQ(bank,choices,p,explain){const [s,a]=pick(bank);return {p,q:`<div class="mid">${s.replace('___',SLOT)}</div>`,say:s.replace('___','…'),type:'choice',choices,keep:true,answer:a,explain};}
+
+const GF={
+  F1(){const [e,w,a]=pick(SONS),full=w.replace('__',a);return {p:'Quel son manque ?',q:`<div class="pic">${e}</div><div class="big">${w.replace('__',SLOT)}</div>`,say:`Quel son manque dans le mot : ${full} ?`,type:'choice',choices:['ou','on','an','oi'],keep:true,answer:a,explain:`On écrit « ${full} ».`};},
+  F2(){const [n,g]=pick(NOMS),ul=Math.random()<.5,ch=ul?['un','une']:['le','la'],a=g==='m'?ch[0]:ch[1];return {p:`${ch[0]} ou ${ch[1]} ?`,q:`<div class="big">${SLOT} ${n}</div>`,say:`${ch[0]} ou ${ch[1]} : ${n} ?`,type:'choice',choices:ch,keep:true,answer:a,explain:`On dit « ${a} ${n} ».`};},
+  F3(){const [d,sg,pl2]=pick(PLUR),plural=Math.random()<.55;
+    const det=plural?pick(['les','des','trois','mes']):(Math.random()<.5?d:(d==='le'?'un':'une'));
+    const ch=[sg,pl2];if(pl2.endsWith('x'))ch.push(sg+'s');const a=plural?pl2:sg;
+    return {p:'Choisis le mot bien écrit',q:`<div class="big">${det} ${SLOT}</div>`,say:`${det}… choisis le mot bien écrit.`,type:'choice',choices:shuffle(ch),answer:a,
+      explain:plural?`Après « ${det} », il y en a plusieurs : ${a.endsWith('x')?'ce mot prend un x':'on ajoute un s'}.`:`« ${det} », c’est un seul : pas de s.`};},
+  F4(){let w;do{w=shuffle(ALPHA).slice(0,R(3,4));}while(new Set(w.map(x=>noAcc(x)[0])).size<w.length);
+    const first=Math.random()<.7,sorted=w.slice().sort((a,b)=>noAcc(a).localeCompare(noAcc(b))),a=first?sorted[0]:sorted[sorted.length-1];
+    return {p:first?'Quel mot vient en premier dans l’alphabet ?':'Quel mot vient en dernier dans l’alphabet ?',q:`<div class="abc">a b c d e f g h i j k l m n o p q r s t u v w x y z</div>`,say:(first?'Quel mot vient en premier dans l’alphabet ? ':'Quel mot vient en dernier dans l’alphabet ? ')+w.join(', '),type:'choice',choices:w,answer:a,explain:`On regarde la première lettre : ${sorted.join(', ')}.`};},
+  F5(){const [s,v]=pick(VERBES),words=s.replace('.','').split(' ');return {p:'Touche le verbe',q:`<div class="mid">${s}</div>`,say:`${s} Touche le verbe.`,type:'choice',chips:true,keep:true,choices:words,answer:v,explain:`Le verbe, c’est ce qu’on fait : « ${v} ». Il change si on dit hier ou demain.`};},
+  F6(){const [P,,i]=pick(PRON),etre=Math.random()<.5,forms=etre?ETRE:AVOIR,a=forms[i];
+    const comp=etre?pick(['à l’école','dans le jardin','en vacances','à la maison','en retard']):pick(['un vélo','faim','un chat','soif','sept ans']);
+    const subj=(!etre&&i===0)?'J’':P+' ';
+    return {p:`Conjugue le verbe ${etre?'être':'avoir'}`,q:`<div class="mid">${subj}${SLOT} ${comp}.</div><div class="tag">verbe ${etre?'être':'avoir'}</div>`,say:`${subj}… ${comp}. Verbe ${etre?'être':'avoir'}.`,type:'choice',choices:uniqChoices(a,forms.filter(f=>f!==a)),answer:a,explain:`On dit : ${subj}${a} ${comp}.`};},
+  F7(){return lectQ(LECT1);},
+  F8(){return conjQ('pres');},
+  F9(){return blankQ(A_A,['a','à'],'a ou à ?','Astuce : si on peut dire « avait », on écrit « a » sans accent. Sinon, c’est « à ».');},
+  F10(){return blankQ(ET_EST,['et','est'],'et ou est ?','Astuce : si on peut dire « était », on écrit « est ». Si on peut dire « et puis », on écrit « et ».');},
+  F11(){return lectQ(LECT2);},
+  F12(){const [s,w,a]=pick(NATURE);let done=false;const m=s.split(' ').map(t=>{const c=t.replace('.','');if(!done&&c===w){done=true;return `<mark>${c}</mark>${t.endsWith('.')?'.':''}`;}return t;}).join(' ');
+    const tips={nom:'Un nom, c’est une personne, un animal ou une chose.',verbe:'Le verbe dit ce qu’on fait.',adjectif:'L’adjectif dit comment est le nom.',déterminant:'Le déterminant est le petit mot devant le nom.'};
+    return {p:'Quelle est la nature du mot en couleur ?',q:`<div class="mid">${m}</div>`,say:`${s} Quelle est la nature du mot ${w} ?`,type:'choice',choices:['nom','verbe','adjectif','déterminant'],keep:true,answer:a,explain:`« ${w} » est un ${a}. ${tips[a]}`};},
+  F13(){const [parts,si,v]=pick(SUJET);return {p:'Touche le sujet du verbe',q:`<div class="mid">${parts.join(' ')}</div><div class="tag">Astuce : qui est-ce qui… ?</div>`,say:`${parts.join(' ')} Touche le sujet.`,type:'choice',chips:true,keep:true,choices:parts.map(x=>x.replace(/[.,]$/,'')),answer:parts[si].replace(/[.,]$/,''),explain:`Qui est-ce qui ${v} ? → « ${parts[si].replace(/[.,]$/,'')} ». C’est le sujet.`};},
+  F14(){return conjQ('fut',pick(['Demain','Bientôt','L’été prochain','Plus tard']));},
+  F15(){return conjQ('imp',pick(['Autrefois','Avant','L’an dernier']));},
+  F16(){const [P,p,i]=pick(PRON),v=pick(ER),s=stem(v),aux=['ai','as','a','avons','avez','ont'][i];
+    const a=`${aux} ${s}é`,subj=i===0?'Hier, j’':`Hier, ${p} `;
+    return {p:'Conjugue au passé composé',q:`<div class="mid">${subj}${SLOT}</div><div class="tag">verbe ${v}</div>`,say:`${subj}… verbe ${v}, au passé composé.`,type:'choice',choices:uniqChoices(a,[`${aux} ${s}er`,`${aux} ${s}ez`,s+END.pres[i]]),answer:a,
+      explain:`Avec « avoir », le verbe finit par -é : ${subj}${a}.`};},
+  F17(){const [g,ch,a]=pick(ACCORD);return {p:'Choisis le mot bien accordé',q:`<div class="mid">${g.replace('___',SLOT)}</div>`,say:g.replace('___','…'),type:'choice',choices:ch,keep:true,answer:a,explain:`On écrit « ${g.replace('___',a)} ». L’adjectif suit le nom : féminin → e, pluriel → s.`};}
+};
+
+/* ---------- Niveaux ---------- */
+const STAGES=[{n:'CE1',d:'Les bases de l’année'},{n:'Vers le CE2',d:'On monte d’un cran'},{n:'CE2',d:'Comme les grands'}];
+const LEVELS={
+  maths:[
+    ['M1',0,'Comparer jusqu’à 100','Sur ta feuille, écris deux nombres et mets le bon signe entre eux : < ou >.'],
+    ['M2',0,'Dizaines et unités','Écris sur ta feuille le nombre qui a 7 dizaines et 3 unités.'],
+    ['M3',0,'Additions','Écris une addition dont le résultat est 50.'],
+    ['M4',0,'Soustractions','Écris une soustraction dont le résultat est 12.'],
+    ['M5',0,'Additions avec retenue','Pose 38 + 27 en colonnes sur ta feuille, puis calcule.'],
+    ['M6',0,'Tables de 2, 5 et 10','Écris la table de 5, de 5 × 1 jusqu’à 5 × 5.'],
+    ['M7',0,'Petits problèmes','Invente un petit problème avec des billes et écris la réponse.'],
+    ['M8',0,'L’heure pile et la demie','Dessine une horloge qui montre 4 h 30.'],
+    ['M9',0,'La monnaie','Dessine les pièces et les billets pour faire 17 €.'],
+    ['M10',1,'Les nombres jusqu’à 1 000','Écris en chiffres : trois cent quarante-deux.'],
+    ['M11',1,'Soustractions avec retenue','Pose 52 − 28 en colonnes, puis calcule.'],
+    ['M12',1,'Tables de 3 et 4','Écris la table de 3, de 3 × 1 jusqu’à 3 × 10.'],
+    ['M13',1,'Double et moitié','Écris le double de 25 et la moitié de 30.'],
+    ['M14',2,'Les nombres jusqu’à 10 000','Écris en chiffres : deux mille cinq cent six.'],
+    ['M15',2,'Tables de 6 à 9','Écris la table de 7, de 7 × 1 jusqu’à 7 × 5.'],
+    ['M16',2,'L’heure et les minutes','Dessine une horloge qui montre 8 h 15.'],
+    ['M17',2,'Partager','Dessine 15 ronds et entoure des groupes de 3. Combien de groupes ?'],
+    ['M18',2,'Les mesures','Écris 3 objets de la maison qu’on mesure en centimètres.'],
+    ['M19',2,'Problèmes en 2 étapes','Écris les deux calculs du dernier problème de la mission.']
+  ],
+  fr:[
+    ['F1',0,'Les sons ou, on, an, oi','Écris 3 mots avec le son « on ».'],
+    ['F2',0,'Le ou la ? Un ou une ?','Écris 2 mots avec « la » et 2 mots avec « le ».'],
+    ['F3',0,'Un ou plusieurs ?','Écris au pluriel : le chat, la fleur, le gâteau.'],
+    ['F4',0,'L’ordre alphabétique','Range dans l’ordre alphabétique : vélo, arbre, maison.'],
+    ['F5',0,'Trouve le verbe','Écris une phrase, puis souligne le verbe.'],
+    ['F6',0,'Être et avoir','Écris : je suis, tu es, il est, j’ai, tu as, il a.'],
+    ['F7',0,'Lire et comprendre','Écris une phrase pour raconter le texte que tu as préféré.'],
+    ['F8',1,'Les verbes en -er au présent','Écris : je chante, tu chantes, nous chantons.'],
+    ['F9',1,'a ou à ?','Écris une phrase avec « a » et une phrase avec « à ».'],
+    ['F10',1,'et ou est ?','Écris une phrase avec « et » et une phrase avec « est ».'],
+    ['F11',1,'Lire entre les lignes','Écris ce que tu ferais s’il neigeait demain.'],
+    ['F12',2,'Nom, verbe ou adjectif ?','Écris un nom, un verbe et un adjectif.'],
+    ['F13',2,'Le sujet du verbe','Écris une phrase et entoure le sujet.'],
+    ['F14',2,'Le futur','Écris ce que tu feras demain : « Demain, je… »'],
+    ['F15',2,'L’imparfait','Termine la phrase : « Quand j’étais bébé, je… »'],
+    ['F16',2,'Le passé composé','Écris ce que tu as fait hier : « Hier, j’ai… »'],
+    ['F17',2,'Les accords','Écris : une petite fille, des petites filles.']
+  ]
+};
+const GEN=Object.assign({},GM,GF);
+const MOVES=['Fais 10 sauts de grenouille.','Marche comme un ours jusqu’à la porte et reviens.','Fais 5 grands cercles avec tes bras.','Saute 10 fois sur un pied, puis sur l’autre.','Étire-toi comme un chat, le plus haut possible.','Fais 8 flexions comme un robot.','Tape 10 fois dans tes mains au-dessus de ta tête.'];
+const PRAISE=['Bravo !','Super !','Génial !','Exact !','Trop fort !','Bien joué !','Oui !'];
+
+/* ---------- État ---------- */
+const STORE='willyam-missions-v1';
+const DEFAULT_REWARDS=()=>[{id:'r1',icon:'🍬',name:'Un bonbon',cost:10},{id:'r2',icon:'📺',name:'15 minutes de dessin animé',cost:20},{id:'r3',icon:'🍦',name:'Choisir le dessert',cost:30}];
+const ICONS=['🍬','🍫','🍦','🍕','📺','🎮','🎨','⚽','🚲','📖','🧸','🎁','🏞️','🌙'];
+let S={stars:{},crayon:{},missions:0,unlockAll:false};
+try{const raw=localStorage.getItem(STORE);if(raw)S=Object.assign(S,JSON.parse(raw));}catch(e){}
+if(typeof S.wallet!=='number')S.wallet=Object.values(S.stars).reduce((a,b)=>a+b,0)+Object.values(S.crayon).filter(Boolean).length;
+if(!Array.isArray(S.rewards))S.rewards=DEFAULT_REWARDS();
+if(!Array.isArray(S.claimed))S.claimed=[];
+if(typeof S.pin!=='string')S.pin='';
+if(typeof S.lastExport!=='string')S.lastExport='';
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function save(){try{localStorage.setItem(STORE,JSON.stringify(S));}catch(e){}}
+
+/* ---------- Sauvegarde : export / import ---------- */
+// Code = "WILLYAM1-" + JSON en base64 (UTF-8). Le fichier .json contient le même JSON en clair.
+const CODE_PREFIX='WILLYAM1-';
+function exportPayload(){const d=JSON.parse(JSON.stringify(S));delete d.lastExport;return {app:'missions-willyam',v:1,date:new Date().toISOString(),data:d};}
+function toB64(str){const b=new TextEncoder().encode(str);let s='';for(let i=0;i<b.length;i++)s+=String.fromCharCode(b[i]);return btoa(s);}
+function fromB64(b64){const s=atob(b64);const b=new Uint8Array(s.length);for(let i=0;i<s.length;i++)b[i]=s.charCodeAt(i);return new TextDecoder().decode(b);}
+const exportCode=()=>CODE_PREFIX+toB64(JSON.stringify(exportPayload()));
+// Lit un code ou le contenu d'un fichier, et renvoie un état propre (ou lève une erreur).
+function parseBackup(text){
+  let t=String(text||'').trim(),obj;
+  if(t.startsWith('{'))obj=JSON.parse(t);
+  else{t=t.replace(/\s+/g,'').replace(/^WILLYAM\d+-/i,'');obj=JSON.parse(fromB64(t));}
+  if(obj&&obj.app==='missions-willyam'&&obj.data)obj=obj.data;
+  if(!obj||typeof obj!=='object'||typeof obj.stars!=='object'||obj.stars===null)throw new Error('format');
+  return cleanState(obj);
+}
+function cleanState(d){
+  const int=(v,a,b,def)=>Number.isFinite(+v)&&v!==null&&v!==''?clamp(Math.round(+v),a,b):def;
+  const str=(v,n,def)=>typeof v==='string'&&v.trim()?v.trim().slice(0,n):def;
+  const ids=new Set([...LEVELS.maths,...LEVELS.fr].map(l=>l[0]));
+  const o={stars:{},crayon:{},crayonN:0,missions:int(d.missions,0,1e6,0),unlockAll:d.unlockAll===true,wallet:int(d.wallet,0,99999,0),rewards:[],claimed:[],pin:''};
+  for(const k of Object.keys(d.stars))if(ids.has(k)){const s=int(d.stars[k],0,3,0);if(s)o.stars[k]=s;}
+  if(d.crayon&&typeof d.crayon==='object')for(const k of Object.keys(d.crayon))if(ids.has(k)&&d.crayon[k]===true)o.crayon[k]=true;
+  o.crayonN=int(d.crayonN,0,1e6,Object.keys(o.crayon).length);
+  o.rewards=Array.isArray(d.rewards)?d.rewards.filter(r=>r&&typeof r==='object').slice(0,30).map((r,k)=>({id:str(r.id,40,'r'+Date.now()+k),icon:str(r.icon,8,'🎁'),name:str(r.name,40,'Surprise'),cost:int(r.cost,1,999,15)})):S.rewards;
+  if(Array.isArray(d.claimed))o.claimed=d.claimed.filter(c=>c&&typeof c==='object').slice(0,50).map(c=>({icon:str(c.icon,8,'🎁'),name:str(c.name,40,'Surprise'),cost:int(c.cost,0,999,0),date:isNaN(Date.parse(c.date))?new Date().toISOString():c.date}));
+  // Le code parent voyage avec la sauvegarde ; s'il n'y en a pas, on garde celui de cet appareil.
+  o.pin=typeof d.pin==='string'&&/^\d{4}$/.test(d.pin)?d.pin:S.pin;
+  return o;
+}
+let track='maths',M=null,sessionCount=0,lastPause=0,resetArmed=false;
+const canSpeak=typeof window!=='undefined'&&'speechSynthesis' in window&&typeof SpeechSynthesisUtterance!=='undefined';
+const reduced=typeof window!=='undefined'&&window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ---------- Icônes ---------- */
+const starSvg=on=>`<svg viewBox="0 0 24 24" class="star ${on?'on':''}" aria-hidden="true"><path d="M12 2.6l2.8 5.9 6.5.9-4.7 4.5 1.2 6.4L12 17.2l-5.8 3.1 1.2-6.4-4.7-4.5 6.5-.9z"/></svg>`;
+const lockSvg='<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2" fill="currentColor"/><path d="M8 11V8a4 4 0 0 1 8 0v3" stroke="currentColor" stroke-width="2.5" fill="none"/></svg>';
+const speakSvg='<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/></svg>';
+const pencilSvg='<svg viewBox="0 0 24 24" width="28" height="28" aria-hidden="true"><path d="M4 20l1.2-4.6L15.6 5a2 2 0 0 1 2.8 0l.6.6a2 2 0 0 1 0 2.8L8.6 18.8z" fill="#ffc226" stroke="#1b2632" stroke-width="2" stroke-linejoin="round"/><path d="M4 20l4.6-1.2-3.4-3.4z" fill="#1b2632"/></svg>';
+
+/* ---------- Rendu ---------- */
+const $=s=>document.querySelector(s);
+const view=()=>document.getElementById('view');
+const lvls=t=>LEVELS[t].map(([id,stage,title,crayon],i)=>({id,stage,title,crayon,i,track:t}));
+const findLvl=id=>[...lvls('maths'),...lvls('fr')].find(l=>l.id===id);
+const unlocked=l=>S.unlockAll||l.i===0||(S.stars[lvls(l.track)[l.i-1].id]||0)>=1;
+const totalStars=()=>Object.values(S.stars).reduce((a,b)=>a+b,0)+Object.values(S.crayon).filter(Boolean).length;
+
+function renderHome(){
+  document.body.dataset.track=track;M=null;
+  const L=lvls(track);const nextId=(L.find(l=>unlocked(l)&&!(S.stars[l.id]>=1))||{}).id;
+  let html=`<header class="top"><h1>Les missions de Willyam<small>Du CE1 vers le CE2, une mission à la fois</small></h1><button class="tirelire sticker" id="rewBtn" aria-label="Mes récompenses : ${S.wallet} étoiles dans la tirelire">${starSvg(true)}<span>${S.wallet}<small>Récompenses</small></span></button></header>
+  <div class="tabs" role="tablist">
+    <button class="tab sticker maths" role="tab" aria-selected="${track==='maths'}" data-track="maths"><span class="ic">12</span>Maths</button>
+    <button class="tab sticker fr" role="tab" aria-selected="${track==='fr'}" data-track="fr"><span class="ic">Aa</span>Français</button>
+  </div>
+  <p class="intro">Choisis une mission : 5 questions, puis un défi crayon. Gagne au moins 1 étoile pour ouvrir la suivante. Tes étoiles vont dans ta tirelire pour gagner des récompenses.</p>`;
+  STAGES.forEach((st,si)=>{
+    html+=`<section><div class="stage-h"><span class="pill">${st.n}</span><p>${st.d}</p></div><div class="grid">`;
+    L.filter(l=>l.stage===si).forEach(l=>{
+      const u=unlocked(l),s=S.stars[l.id]||0,isNext=l.id===nextId;
+      html+=`<button class="tile sticker ${u?'':'locked'} ${isNext?'next':''}" data-lvl="${l.id}" ${u?'':'disabled aria-disabled="true"'}>
+        ${isNext?'<span class="badge">À toi !</span>':''}
+        <span class="n">${u?l.i+1:lockSvg}</span><span class="tt">${l.title}</span>
+        <span class="st" aria-label="${s} étoile${s>1?'s':''} sur 3">${starSvg(s>=1)}${starSvg(s>=2)}${starSvg(s>=3)}</span></button>`;
+    });
+    html+='</div></section>';
+  });
+  html+=`<div class="foot"><button class="linkbtn" id="parentBtn">Espace parent</button></div>`;
+  view().innerHTML=html;window.scrollTo(0,0);
+  view().querySelectorAll('.tab').forEach(b=>b.onclick=()=>{track=b.dataset.track;renderHome();});
+  view().querySelectorAll('.tile:not(.locked)').forEach(b=>b.onclick=()=>startLevel(b.dataset.lvl));
+  $('#parentBtn').onclick=()=>askPin(renderParent);
+  $('#rewBtn').onclick=renderRewards;
+}
+
+function makeMission(id){
+  const gen=GEN[id],qs=[],keys=new Set();let tries=0;
+  while(qs.length<5&&tries++<80){const q=gen();const k=q.p+q.q+q.answer;if(keys.has(k)&&tries<60)continue;keys.add(k);q._ch=q.type==='choice'?(q.keep?q.choices:shuffle(q.choices)):null;qs.push(q);}
+  return qs;
+}
+function startLevel(id){
+  if(sessionCount>0&&sessionCount%2===0&&lastPause!==sessionCount){lastPause=sessionCount;showPause(()=>startLevel(id));return;}
+  const l=findLvl(id);track=l.track;document.body.dataset.track=track;
+  M={lvl:l,qs:makeMission(id),i:0,attempt:1,points:0,results:[],entry:'',locked:false};
+  renderQuestion();
+}
+function speechText(q){if(q.say)return q.say;const d=document.createElement('div');d.innerHTML=q.p+'. '+q.q.replace(/<span class="slot">\?<\/span>/g,' … ');return d.textContent;}
+function speak(t){if(!canSpeak)return;try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.lang='fr-FR';u.rate=.9;speechSynthesis.speak(u);}catch(e){}}
+
+function renderQuestion(){
+  const q=M.qs[M.i];
+  let ans='';
+  if(q.type==='choice'){
+    const ch=q._ch;const long=ch.some(c=>c.length>9);
+    const cls=q.chips?'chips':long?'list':ch.length===2?'row2':ch.length===3?'row3':'grid2';
+    ans=`<div class="answers ${cls}" id="answers">${ch.map(c=>`<button class="btn choice" data-v="${c.replace(/"/g,'&quot;')}">${c}</button>`).join('')}</div>`;
+  }else{
+    ans=`<div class="entry empty" id="entry" aria-live="polite">?</div><div class="pad" id="pad">${[1,2,3,4,5,6,7,8,9].map(n=>`<button class="btn" data-k="${n}">${n}</button>`).join('')}<button class="btn" data-k="del" aria-label="Effacer">⌫</button><button class="btn" data-k="0">0</button><button class="btn ok" data-k="ok">OK</button></div>`;
+  }
+  view().innerHTML=`<div class="mtop"><button class="btn small" id="quit">✕ Quitter</button>
+    <div class="dots" aria-label="Question ${M.i+1} sur 5">${M.qs.map((_,k)=>`<span class="dot ${M.results[k]||''} ${k===M.i?'cur':''}"></span>`).join('')}</div>
+    ${canSpeak?`<button class="btn small" id="listen" aria-label="Écouter la question">${speakSvg}</button>`:'<span></span>'}</div>
+    <div class="level-name">Mission ${M.lvl.i+1} · ${M.lvl.title}</div>
+    <div class="qcard sticker" id="qcard"><div class="prompt">${q.p}</div><div class="qzone">${q.q}</div></div>
+    ${ans}<div class="fb" id="fb" aria-live="polite"></div>`;
+  window.scrollTo(0,0);
+  $('#quit').onclick=()=>{try{speechSynthesis.cancel();}catch(e){}renderHome();};
+  if(canSpeak)$('#listen').onclick=()=>speak(speechText(q));
+  if(q.type==='choice')view().querySelectorAll('.choice').forEach(b=>b.onclick=()=>answer(b.dataset.v,b));
+  else view().querySelectorAll('#pad .btn').forEach(b=>b.onclick=()=>key(b.dataset.k));
+}
+function key(k){
+  if(!M||M.locked)return;
+  if(k==='del')M.entry=M.entry.slice(0,-1);
+  else if(k==='ok'){if(M.entry!=='')answer(M.entry,null);return;}
+  else if(M.entry.length<5)M.entry+=k;
+  const e=$('#entry');if(e){e.textContent=M.entry===''?'?':nf(M.entry);e.classList.toggle('empty',M.entry==='');}
+}
+function feedback(html,kind,cont){
+  const f=$('#fb');f.className=`fb show ${kind}`;f.innerHTML=html+(cont?`<div><button class="btn go" id="cont">Continuer →</button></div>`:'');
+  if(cont){const c=$('#cont');c.onclick=next;c.focus();}
+  f.scrollIntoView({block:'nearest',behavior:reduced?'auto':'smooth'});
+}
+function answer(v,btn){
+  if(M.locked)return;const q=M.qs[M.i];const ok=String(v).trim()===String(q.answer);
+  if(ok){
+    M.locked=true;M.points+=M.attempt===1?2:1;M.results[M.i]=M.attempt===1?'ok':'half';
+    if(btn)btn.classList.add('right');else $('#entry').style.background='var(--ok-soft)';
+    feedback(`<b>${pick(PRAISE)}</b>`,'ok',false);setTimeout(next,1000);
+  }else if(M.attempt===1){
+    M.attempt=2;if(btn){btn.classList.add('wrong');btn.disabled=true;}
+    else{M.entry='';key('');}
+    const c=$('#qcard');c.classList.remove('shake');void c.offsetWidth;c.classList.add('shake');
+    feedback('<b>Presque !</b> Essaie encore une fois.','try',false);
+  }else{
+    M.locked=true;M.results[M.i]='ko';
+    if(btn){btn.classList.add('wrong');view().querySelectorAll('.choice').forEach(b=>{if(b.dataset.v===q.answer)b.classList.add('reveal');b.disabled=true;});}
+    const shown=q.type==='num'?nf(q.answer):q.answer;
+    feedback(`La bonne réponse : <b>${shown}</b>${q.explain?`<br>${q.explain}`:''}`,'ko',true);
+  }
+}
+function next(){M.i++;M.attempt=1;M.locked=false;M.entry='';if(M.i>=M.qs.length)finish();else renderQuestion();}
+
+function finish(){
+  const l=M.lvl,p=M.points,stars=p>=9?3:p>=7?2:p>=5?1:0;
+  const L=lvls(l.track),nx=L[l.i+1];const wasLocked=nx&&!unlocked(nx);
+  S.stars[l.id]=Math.max(S.stars[l.id]||0,stars);S.missions++;S.wallet+=stars;sessionCount++;save();
+  const newly=wasLocked&&nx&&unlocked(nx);
+  const msg=stars===3?'Mission parfaite !':stars===2?'Super travail !':stars===1?'Mission réussie !':'Tu y es presque !';
+  const sub=stars===0?'Encore un essai et tu vas y arriver.':`${M.results.filter(r=>r==='ok').length} bonnes réponses du premier coup.`;
+  view().innerHTML=`<div class="result sticker"><h2>${msg}</h2>
+    <div class="bigstars" aria-label="${stars} étoile${stars>1?'s':''} sur 3">${starSvg(stars>=1)}${starSvg(stars>=2)}${starSvg(stars>=3)}</div>
+    <p class="score">${sub}</p>${newly?`<span class="unlock">Mission ${nx.i+1} débloquée !</span>`:''}
+    <p class="tirinfo" id="tirinfo"></p>
+    <div class="crayon"><h3>${pencilSvg}Défi crayon</h3><p>${l.crayon}</p><div id="crayonZone"></div></div>
+    <div class="actions">${stars>=1&&nx?`<button class="btn go" id="nextL">Mission suivante →</button>`:''}<button class="btn" id="again">${stars===0?'Réessayer':'Rejouer'}</button><button class="btn" id="rew">Récompenses</button><button class="btn" id="home">Carte</button></div></div>`;
+  window.scrollTo(0,0);
+  const updTir=()=>{$('#tirinfo').innerHTML=(stars?`<b>+${stars} ★</b> dans ta tirelire. `:'')+rewardStatus();};
+  let crayonDone=false;
+  const cz=()=>{$('#crayonZone').innerHTML=crayonDone?'<span class="done">Défi validé ✓ +1 étoile</span>':'<button class="btn small" id="valid">Un adulte a vérifié ✓ (+1 étoile)</button>';const v=$('#valid');if(v)v.onclick=()=>askPin(()=>{crayonDone=true;S.crayon[l.id]=true;S.crayonN=(S.crayonN||0)+1;S.wallet++;save();cz();updTir();},'Un adulte valide le défi');};
+  cz();updTir();$('#rew').onclick=renderRewards;
+  if(nx&&stars>=1)$('#nextL').onclick=()=>startLevel(nx.id);
+  $('#again').onclick=()=>startLevel(l.id);$('#home').onclick=renderHome;
+  if(stars===3)confetti();
+}
+function confetti(){if(reduced)return;const cols=['#ffc226','#ff7a3d','#4c5ff5','#1c9e61','#d93b45'];for(let i=0;i<40;i++){const c=document.createElement('span');c.className='cf';c.style.left=Math.random()*100+'vw';c.style.background=pick(cols);c.style.animationDelay=Math.random()*.6+'s';document.body.appendChild(c);setTimeout(()=>c.remove(),3200);}}
+
+function showPause(done){
+  const layer=document.getElementById('layer');let n=20;
+  layer.innerHTML=`<div class="overlay" role="dialog" aria-modal="true" aria-labelledby="pt"><div class="pause sticker"><h2 id="pt">Pause bouge !</h2><p class="mv">${pick(MOVES)}</p><div class="count" id="cnt">${n}</div><button class="btn go" id="pdone">J’ai fini !</button></div></div>`;
+  const t=setInterval(()=>{n--;const c=document.getElementById('cnt');if(c)c.textContent=Math.max(n,0);if(n<=0)clearInterval(t);},1000);
+  const b=document.getElementById('pdone');b.focus();b.onclick=()=>{clearInterval(t);layer.innerHTML='';done();};
+}
+
+/* ---------- Récompenses ---------- */
+function rewardStatus(){
+  const r=S.rewards.slice().sort((a,b)=>a.cost-b.cost);if(!r.length)return '';
+  if(r.some(x=>S.wallet>=x.cost))return `Tu as ${S.wallet} ★ : tu peux prendre une récompense !`;
+  return `Encore ${r[0].cost-S.wallet} ★ pour : ${esc(r[0].icon)} ${esc(r[0].name)}.`;
+}
+function histList(n){return `<ul class="hist">${S.claimed.slice(0,n).map(c=>`<li><span>${esc(c.icon)}</span>${esc(c.name)}<time>${new Date(c.date).toLocaleDateString('fr-FR',{day:'numeric',month:'short'})}</time></li>`).join('')}</ul>`;}
+function renderRewards(){
+  M=null;const list=S.rewards.slice().sort((a,b)=>a.cost-b.cost);
+  view().innerHTML=`<div class="mtop"><button class="btn small" id="back">← Carte</button><span></span></div>
+  <div class="result sticker" style="margin-top:14px"><h2>Ma tirelire</h2>
+  <div class="wallet" aria-label="${S.wallet} étoiles">${starSvg(true)}${S.wallet}</div>
+  <p class="score">Gagne des étoiles avec les missions et les défis crayon, puis échange-les contre une récompense.</p>
+  <div class="rewards">${list.length?list.map(r=>{const ok=S.wallet>=r.cost,pct=Math.min(100,Math.round(S.wallet/r.cost*100));
+    return `<div class="reward sticker ${ok?'ready':''}"><span class="ri">${esc(r.icon)}</span><span class="rn">${esc(r.name)}</span><span class="rc">${r.cost} étoiles</span>
+    <div class="bar" role="progressbar" aria-label="Progression" aria-valuemin="0" aria-valuemax="${r.cost}" aria-valuenow="${Math.min(S.wallet,r.cost)}"><span style="width:${pct}%"></span></div>
+    ${ok?`<button class="btn go" data-claim="${esc(r.id)}">Je la prends !</button>`:`<button class="btn" disabled>Encore ${r.cost-S.wallet} ★</button>`}</div>`;}).join('')
+    :'<p class="score">Pas encore de récompense. Demande à un adulte d’en ajouter dans l’espace parent.</p>'}</div>
+  ${S.claimed.length?`<div style="text-align:left;margin-top:22px;display:grid;gap:8px"><h3>Déjà gagnées</h3>${histList(5)}</div>`:''}</div>`;
+  window.scrollTo(0,0);
+  $('#back').onclick=renderHome;
+  view().querySelectorAll('[data-claim]').forEach(b=>b.onclick=()=>{const r=S.rewards.find(x=>x.id===b.dataset.claim);if(r)claim(r);});
+}
+function claim(r){
+  const layer=document.getElementById('layer');
+  const go=()=>{
+    if(S.wallet<r.cost)return;S.wallet-=r.cost;S.claimed.unshift({icon:r.icon,name:r.name,cost:r.cost,date:new Date().toISOString()});S.claimed=S.claimed.slice(0,50);save();
+    layer.innerHTML=`<div class="overlay" role="dialog" aria-modal="true" aria-labelledby="wt"><div class="pause sticker"><div class="pic">${esc(r.icon)}</div><h2 id="wt">Bravo, Willyam !</h2><p class="mv">Tu as gagné : ${esc(r.name)}</p><p class="hint2">Il te reste ${S.wallet} ★ dans ta tirelire.</p><button class="btn go" id="rok">Super !</button></div></div>`;
+    confetti();const b=document.getElementById('rok');b.focus();b.onclick=()=>{layer.innerHTML='';renderRewards();};
+  };
+  if(S.pin){askPin(go,'Un adulte valide');return;}
+  layer.innerHTML=`<div class="overlay" role="dialog" aria-modal="true" aria-labelledby="ct"><div class="pause sticker"><div class="pic">${esc(r.icon)}</div><h2 id="ct">Montre l’écran à un adulte</h2><p class="mv">${esc(r.name)} pour ${r.cost} ★</p><button class="btn go" id="cok">Un adulte valide ✓</button><button class="btn" id="cno">Pas maintenant</button></div></div>`;
+  document.getElementById('cok').onclick=()=>{layer.innerHTML='';go();};
+  document.getElementById('cno').onclick=()=>{layer.innerHTML='';};
+}
+function askPin(fn,title){
+  if(!S.pin){fn();return;}
+  const layer=document.getElementById('layer');let v='';
+  layer.innerHTML=`<div class="overlay" role="dialog" aria-modal="true" aria-labelledby="pinT"><div class="pause sticker" id="pinBox"><h2 id="pinT">${title||'Code parent'}</h2><div class="pindots" id="pd">${'<span></span>'.repeat(4)}</div><p class="hint2" id="pinErr" aria-live="polite">Tape le code à 4 chiffres.</p>
+    <div class="pad" style="width:100%">${[1,2,3,4,5,6,7,8,9].map(n=>`<button class="btn" data-p="${n}">${n}</button>`).join('')}<button class="btn" data-p="x" aria-label="Annuler">✕</button><button class="btn" data-p="0">0</button><button class="btn" data-p="del" aria-label="Effacer">⌫</button></div></div></div>`;
+  const draw=()=>layer.querySelectorAll('#pd span').forEach((s,i)=>s.classList.toggle('f',i<v.length));
+  layer.querySelectorAll('[data-p]').forEach(b=>b.onclick=()=>{const k=b.dataset.p;
+    if(k==='x'){layer.innerHTML='';return;}
+    if(k==='del'){v=v.slice(0,-1);draw();return;}
+    if(v.length<4)v+=k;draw();
+    if(v.length===4){if(v===S.pin){layer.innerHTML='';fn();}
+      else{v='';draw();const bx=document.getElementById('pinBox');bx.classList.remove('shake');void bx.offsetWidth;bx.classList.add('shake');document.getElementById('pinErr').textContent='Code incorrect, réessaie.';}}
+  });
+}
+
+function renderParent(){
+  resetArmed=false;const count=t=>lvls(t).reduce((a,l)=>a+(S.stars[l.id]||0),0),max=t=>lvls(t).length*3;
+  const crayons=S.crayonN||Object.values(S.crayon).filter(Boolean).length;
+  const opts=sel=>ICONS.map(i=>`<option ${i===sel?'selected':''}>${i}</option>`).join('');
+  view().innerHTML=`<div class="parent sticker"><h2>Espace parent</h2>
+    <div class="stats"><div class="stat"><b>${S.missions}</b>missions jouées</div><div class="stat"><b>${count('maths')}/${max('maths')}</b>étoiles en maths</div><div class="stat"><b>${count('fr')}/${max('fr')}</b>étoiles en français</div><div class="stat"><b>${crayons}</b>défis crayon validés</div></div>
+    <h3>Récompenses</h3>
+    <p class="hint2">Choisis ce qu’il peut gagner et combien d’étoiles ça coûte. Une mission rapporte 0 à 3 étoiles, un défi crayon 1 étoile. Les changements sont enregistrés tout de suite.</p>
+    ${S.rewards.length?`<div class="rhead"><span>Image</span><span>Récompense</span><span>Étoiles</span><span></span></div>`:''}
+    <div style="display:grid;gap:8px">${S.rewards.map((r,k)=>`<div class="redit"><select id="ri${k}" aria-label="Image de la récompense">${opts(r.icon)}</select><input id="rn${k}" value="${esc(r.name)}" maxlength="40" aria-label="Nom de la récompense"><input id="rc${k}" type="number" inputmode="numeric" min="1" max="999" value="${r.cost}" aria-label="Nombre d’étoiles"><button class="btn small del" data-del="${k}" aria-label="Supprimer ${esc(r.name)}">✕</button></div>`).join('')}</div>
+    <div class="row"><button class="btn small" id="addR">+ Ajouter une récompense</button></div>
+    <h3>Tirelire</h3>
+    <div class="walletrow"><button class="btn small" id="wMinus" aria-label="Retirer une étoile">−1</button><b id="wVal">${S.wallet}</b><button class="btn small" id="wPlus" aria-label="Ajouter une étoile">+1</button><span class="hint2">étoiles à dépenser : pour donner un bonus ou corriger</span></div>
+    ${S.claimed.length?`<h3>Récompenses obtenues</h3>${histList(10)}`:''}
+    <h3>Code parent</h3>
+    <p class="hint2">${S.pin?'Le code protège cet espace, la validation des récompenses et celle des défis crayon.':'Optionnel : avec un code à 4 chiffres, il ne peut plus valider lui-même les récompenses et les défis crayon, ni ouvrir cet espace.'}</p>
+    <div class="pinrow"><input id="pinIn" type="password" inputmode="numeric" maxlength="4" placeholder="••••" aria-label="Nouveau code à 4 chiffres"><button class="btn small" id="pinSave">${S.pin?'Changer le code':'Enregistrer le code'}</button>${S.pin?'<button class="btn small" id="pinDel">Supprimer le code</button>':''}</div>
+    <p class="hint2" id="pinMsg" aria-live="polite"></p>
+    <h3>Sauvegarde</h3>
+    <p class="hint2">Pour garder la progression sur un autre appareil, ou si le navigateur est effacé : exporte ici, puis importe sur l’autre appareil. Les étoiles, la tirelire, les récompenses et le code parent sont transférés.</p>
+    <p class="hint2"><b>Dernière sauvegarde :</b> ${S.lastExport?new Date(S.lastExport).toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'}):'jamais'}</p>
+    <div class="row"><button class="btn small" id="expCopy">Copier le code</button><button class="btn small" id="expFile">Enregistrer un fichier</button></div>
+    <textarea class="savebox" id="expOut" rows="3" readonly hidden aria-label="Code de sauvegarde"></textarea>
+    <textarea class="savebox" id="impIn" rows="3" placeholder="Pour importer : colle le code ici" aria-label="Code à importer"></textarea>
+    <div class="row"><button class="btn small" id="impBtn">Importer le code</button><button class="btn small" id="impFile">Importer un fichier</button><input type="file" id="impPick" accept=".json,.txt,application/json,text/plain" hidden></div>
+    <div class="hint2" id="saveMsg" aria-live="polite"></div>
+    <h3>Comment s’en servir</h3>
+    <ul><li>Une mission dure 3 à 5 minutes. Deux ou trois missions par jour valent mieux qu’une longue séance.</li>
+    <li>Laisse-le choisir entre maths et français : choisir lui donne envie de commencer.</li>
+    <li>Le défi crayon est le moment d’écriture : court, concret, sur une feuille. Vérifie avec lui avant d’appuyer sur le bouton.</li>
+    <li>Une pause bouge apparaît toutes les deux missions. Ne la saute pas : elle aide à se reconcentrer.</li>
+    <li>Le bouton haut-parleur lit la question à voix haute s’il bloque sur la lecture.</li>
+    <li>Une bonne réponse au premier essai vaut 2 points, au deuxième essai 1 point. 9-10 points = 3 étoiles, 7-8 = 2, 5-6 = 1.</li>
+    <li>Chaque partie remplit la tirelire, même quand il rejoue une mission. S’il gagne trop vite, augmente simplement le prix des récompenses.</li>
+    <li>Sur iPhone : ouvre la page dans Safari, touche Partager, puis « Sur l’écran d’accueil ». L’icône marche ensuite sans Internet. Attention : elle a sa propre mémoire, séparée de Safari. Si des étoiles ont déjà été gagnées dans Safari, exporte-les puis importe-les dans l’icône.</li></ul>
+    <p class="score">La progression est gardée sur cet appareil, dans ce navigateur. « Remettre à zéro » efface les étoiles et la tirelire, mais garde tes récompenses et ton code.</p>
+    <div class="row"><button class="btn small" id="unl">${S.unlockAll?'Reverrouiller la progression':'Débloquer toutes les missions'}</button><button class="btn small" id="rst">Remettre à zéro</button></div>
+    <div class="row"><button class="btn go" id="back">← Retour à la carte</button></div></div>`;
+  window.scrollTo(0,0);
+  S.rewards.forEach((r,k)=>{
+    $('#ri'+k).onchange=e=>{r.icon=e.target.value;save();};
+    $('#rn'+k).onchange=e=>{r.name=e.target.value.trim().slice(0,40)||'Surprise';e.target.value=r.name;save();};
+    $('#rc'+k).onchange=e=>{r.cost=clamp(parseInt(e.target.value,10)||1,1,999);e.target.value=r.cost;save();};
+  });
+  view().querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>{S.rewards.splice(+b.dataset.del,1);save();renderParent();});
+  $('#addR').onclick=()=>{S.rewards.push({id:'r'+Date.now(),icon:'🎁',name:'Nouvelle récompense',cost:15});save();renderParent();const i=$('#rn'+(S.rewards.length-1));if(i){i.focus();i.select();}};
+  const wv=()=>{$('#wVal').textContent=S.wallet;};
+  $('#wMinus').onclick=()=>{S.wallet=Math.max(0,S.wallet-1);save();wv();};
+  $('#wPlus').onclick=()=>{S.wallet++;save();wv();};
+  $('#pinSave').onclick=()=>{const v=$('#pinIn').value.trim();if(!/^\d{4}$/.test(v)){$('#pinMsg').textContent='Le code doit faire exactement 4 chiffres.';return;}S.pin=v;save();renderParent();$('#pinMsg').textContent='Code enregistré. Retiens-le bien.';};
+  if(S.pin)$('#pinDel').onclick=()=>{S.pin='';save();renderParent();$('#pinMsg').textContent='Code supprimé.';};
+  $('#unl').onclick=()=>{S.unlockAll=!S.unlockAll;save();renderParent();};
+  $('#rst').onclick=e=>{if(!resetArmed){resetArmed=true;e.target.textContent='Sûr ? Touche encore pour tout effacer';e.target.style.background='var(--bad-soft)';return;}S={stars:{},crayon:{},crayonN:0,missions:0,unlockAll:false,wallet:0,rewards:S.rewards,claimed:[],pin:S.pin,lastExport:S.lastExport};save();renderParent();};
+  $('#back').onclick=renderHome;
+  bindBackup();
+}
+function bindBackup(){
+  const msg=html=>{$('#saveMsg').innerHTML=html;};
+  const stamp=()=>{S.lastExport=new Date().toISOString();save();};
+  $('#expCopy').onclick=async()=>{
+    const code=exportCode(),out=$('#expOut');out.value=code;out.hidden=false;
+    let ok=false;
+    try{if(navigator.clipboard&&window.isSecureContext){await navigator.clipboard.writeText(code);ok=true;}}catch(e){}
+    if(!ok){try{out.focus();out.select();ok=document.execCommand('copy');}catch(e){}}
+    stamp();
+    msg(ok?'Code copié ✓ Colle-le dans un message ou une note pour le garder.':'Sélectionne le code ci-dessus et copie-le.');
+  };
+  $('#expFile').onclick=async()=>{
+    const name=`missions-willyam-${new Date().toISOString().slice(0,10)}.json`;
+    const text=JSON.stringify(exportPayload(),null,1);
+    // Sur téléphone et tablette : feuille de partage (Fichiers, AirDrop, Messages…). Sinon : téléchargement.
+    try{
+      const file=new File([text],name,{type:'application/json'});
+      if(navigator.maxTouchPoints>1&&navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file],title:'Sauvegarde des missions'});stamp();msg('Fichier de sauvegarde partagé ✓');return;}
+    }catch(e){if(e&&e.name==='AbortError')return;}
+    const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([text],{type:'application/json'}));a.download=name;document.body.appendChild(a);a.click();
+    setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},1000);
+    stamp();msg(`Fichier « ${name} » enregistré ✓`);
+  };
+  const tryImport=text=>{
+    let d;try{d=parseBackup(text);}catch(e){msg('Ce code ou ce fichier n’est pas une sauvegarde valide.');return;}
+    const st=Object.values(d.stars).reduce((a,b)=>a+b,0);
+    msg(`<p style="margin:0 0 8px">Sauvegarde trouvée : <b>${d.missions}</b> missions jouées, <b>${st}</b> étoiles, <b>${d.wallet} ★</b> dans la tirelire.<br>Elle va <b>remplacer</b> la progression de cet appareil.</p><button class="btn small" id="impOk" style="background:var(--bad-soft)">Oui, remplacer</button> <button class="btn small" id="impNo">Annuler</button>`);
+    $('#impNo').onclick=()=>msg('');
+    $('#impOk').onclick=()=>{S=Object.assign(d,{lastExport:S.lastExport});save();renderParent();$('#saveMsg').textContent='Sauvegarde importée ✓';};
+  };
+  $('#impBtn').onclick=()=>{const v=$('#impIn').value;if(!v.trim()){msg('Colle d’abord un code dans la case.');return;}tryImport(v);};
+  $('#impFile').onclick=()=>$('#impPick').click();
+  $('#impPick').onchange=e=>{const f=e.target.files&&e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>tryImport(r.result);r.onerror=()=>msg('Impossible de lire ce fichier.');r.readAsText(f);e.target.value='';};
+}
+
+if(typeof document!=='undefined'&&document.getElementById('view')){
+  document.addEventListener('keydown',e=>{if(!M||!M.qs[M.i]||M.qs[M.i].type!=='num'||!$('#pad'))return;if(/^[0-9]$/.test(e.key))key(e.key);else if(e.key==='Backspace')key('del');else if(e.key==='Enter'){e.preventDefault();key('ok');}});
+  renderHome();
+  // Hors ligne (version en ligne seulement : pas de service worker en double-clic / file://).
+  if('serviceWorker' in navigator&&/^https?:$/.test(location.protocol))window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
+}
+</script>
+</body>
+</html>
