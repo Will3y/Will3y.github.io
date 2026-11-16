@@ -518,7 +518,8 @@ function cleanState(d){
 let track='maths',M=null,sessionCount=0,lastPause=0,resetArmed=false,curView='home';
 
 /* ---------- Temps de jeu par jour ---------- */
-// Compte le temps où l'appli est visible, hors espace parent. Remis à zéro chaque jour.
+// Ne compte que le temps passé dans les exercices (questions d'une mission), appli visible. Remis à zéro chaque jour.
+// La carte, les résultats, les récompenses, la pause bouge et l'espace parent ne comptent pas.
 // Quand le temps est fini : la mission en cours se termine, puis l'écran « À demain ».
 const dayKey=()=>{const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;};
 function usage(){const k=dayKey();if(S.usage.day!==k)S.usage={day:k,sec:0,bonus:0};return S.usage;}
@@ -527,11 +528,8 @@ const timeLeft=()=>Math.max(0,limitSec()-usage().sec);
 const timeUp=()=>timeLeft()<=0;
 const timeLabel=()=>S.limitMin?`⏱ Encore ${Math.ceil(timeLeft()/60)} min de jeu aujourd’hui`:'';
 function tick(){
-  if(document.visibilityState!=='visible'||curView==='parent')return;
-  const was=timeUp(),u=usage();u.sec++;if(u.sec%10===0)save();
-  const el=document.getElementById('timeLeft');if(el)el.textContent=timeLabel();
-  // Le temps vient de finir : on arrête tout de suite sur la carte ou les récompenses, jamais en pleine mission.
-  if(!was&&timeUp()&&(curView==='home'||curView==='rewards')&&!document.querySelector('#layer .overlay')){save();renderTimeUp();}
+  if(document.visibilityState!=='visible'||curView!=='mission'||document.querySelector('#layer .overlay'))return;
+  const u=usage();u.sec++;if(u.sec%10===0)save();
 }
 const canSpeak=typeof window!=='undefined'&&'speechSynthesis' in window&&typeof SpeechSynthesisUtterance!=='undefined';
 const reduced=typeof window!=='undefined'&&window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -768,7 +766,7 @@ function renderParent(){
     <div class="walletrow"><button class="btn small" id="wMinus" aria-label="Retirer une étoile">−1</button><b id="wVal">${S.wallet}</b><button class="btn small" id="wPlus" aria-label="Ajouter une étoile">+1</button><span class="hint2">étoiles à dépenser : pour donner un bonus ou corriger</span></div>
     ${S.claimed.length?`<h3>Récompenses obtenues</h3>${histList(10)}`:''}
     <h3>Temps de jeu</h3>
-    <p class="hint2">Limite par jour. Quand le temps est fini, il termine sa mission en cours, puis le jeu s’arrête jusqu’au lendemain. Le temps passé dans l’espace parent ne compte pas.</p>
+    <p class="hint2">Limite par jour. Quand le temps est fini, il termine sa mission en cours, puis le jeu s’arrête jusqu’au lendemain. Seul le temps passé dans les exercices compte : la carte, les récompenses, la pause bouge et l’espace parent ne comptent pas.</p>
     <div class="pinrow"><select id="limSel" aria-label="Temps de jeu par jour">${[...new Set([5,10,15,20,30,45,60,S.limitMin,0])].sort((a,b)=>(a||1e9)-(b||1e9)).map(m=>`<option value="${m}" ${m===S.limitMin?'selected':''}>${m?m+' min par jour':'Sans limite'}</option>`).join('')}</select>
     <span class="hint2">Aujourd’hui : ${Math.floor(usage().sec/60)} min jouées${S.limitMin?` sur ${S.limitMin+usage().bonus}`:''}</span></div>
     ${S.limitMin?'<div class="row"><button class="btn small" id="addT">+10 min aujourd’hui</button><button class="btn small" id="rstT">Remettre le temps du jour à zéro</button></div>':''}
