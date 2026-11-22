@@ -2,6 +2,8 @@
 // (pointer lock) pour tourner la caméra exactement comme dans un FPS.
 // Deux épreuves par sensi : « flick » (viser une cible et cliquer) et « suivi »
 // (garder le viseur sur une cible qui bouge). Sert aussi à mesurer les DPI réels.
+// Pour les jeux au curseur (League of Legends), le même test se joue « à plat » :
+// un curseur sur un écran 2D, et la sensi se compte en cm pour traverser l'écran.
 (function () {
   'use strict';
 
@@ -13,7 +15,8 @@
   const UNLOCK = { unlock: true }; // levé quand la souris est libérée en pleine manche (Échap)
 
   let el, canvas, ctx, hud, msg, box;
-  let yaw = 0, pitch = 0;          // direction du regard, en degrés
+  let yaw = 0, pitch = 0;          // direction du regard, en degrés (à plat : position du curseur)
+  let flat = false, hh = 28;       // à plat : unités = % de la largeur, centre en (0,0), hh = demi-hauteur
   let degPerCount = 0.05, countsPerCm = 315;
   let rawMode = false;             // true = mouvement brut, sans accélération du système
   let phase = null;                // épreuve en cours : { move, down, up, frame, abort }
@@ -54,7 +57,9 @@
       if (!isLocked() || !phase) return;
       if (phase.look) {
         yaw += e.movementX * degPerCount;
-        pitch = clamp(pitch - e.movementY * degPerCount, -89, 89);
+        pitch -= e.movementY * degPerCount;
+        if (flat) { yaw = clamp(yaw, -50, 50); pitch = clamp(pitch, -hh, hh); }
+        else pitch = clamp(pitch, -89, 89);
       }
       if (phase.move) phase.move(e.movementX, e.movementY);
     });
@@ -75,6 +80,7 @@
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
     canvas.width = Math.round(el.clientWidth * dpr);
     canvas.height = Math.round(el.clientHeight * dpr);
+    hh = 50 * el.clientHeight / Math.max(1, el.clientWidth);
   }
 
   function open(withScene) {
@@ -164,6 +170,7 @@
 
   // Angle (degrés) entre le regard et la cible.
   function angleTo(t) {
+    if (flat) return Math.hypot(t.yaw - yaw, t.pitch - pitch);
     const a = dir(yaw, pitch), b = dir(t.yaw, t.pitch);
     return Math.acos(clamp(a[0] * b[0] + a[1] * b[1] + a[2] * b[2], -1, 1)) / DEG;
   }
@@ -197,6 +204,7 @@
     ctx.fillStyle = '#0b0e13';
     ctx.fillRect(0, 0, W, H);
     if (!scene) return;
+    if (flat) return drawFlat(now, W, H, px);
 
     const f = cy / Math.tan(VFOV / 2);
     const sy = Math.sin(yaw * DEG), cyw = Math.cos(yaw * DEG), sp = Math.sin(pitch * DEG), cp = Math.cos(pitch * DEG);
@@ -257,6 +265,36 @@
     }
   }
 
+  // Vue à plat : un quadrillage fixe, la cible, et un curseur dessiné par nos soins
+  // (le vrai est capturé), pour maîtriser exactement sa vitesse.
+  function drawFlat(now, W, H, px) {
+    const u = W / 100, cx = W / 2, cy = H / 2;
+    ctx.beginPath();
+    for (let x = -50; x <= 50; x += 5) { ctx.moveTo(cx + x * u, 0); ctx.lineTo(cx + x * u, H); }
+    for (let y = 0; y <= hh; y += 5) { ctx.moveTo(0, cy + y * u); ctx.lineTo(W, cy + y * u); ctx.moveTo(0, cy - y * u); ctx.lineTo(W, cy - y * u); }
+    ctx.strokeStyle = 'rgba(108,128,160,.16)'; ctx.lineWidth = px; ctx.stroke();
+
+    if (target) {
+      const x = cx + target.yaw * u, y = cy - target.pitch * u, r = target.r * u;
+      const g = ctx.createRadialGradient(x - r * 0.3, y - r * 0.35, r * 0.1, x, y, r);
+      if (target.on) { g.addColorStop(0, '#c9ffd9'); g.addColorStop(1, '#2fbf6b'); }
+      else { g.addColorStop(0, '#ffe2a6'); g.addColorStop(1, '#f08a1c'); }
+      ctx.fillStyle = g;
+      ctx.beginPath(); ctx.arc(x, y, r, 0, 7); ctx.fill();
+    }
+
+    const x = cx + yaw * u, y = cy - pitch * u, k = 1.15 * px;
+    if (fx && now - fx.t < 140) {
+      ctx.strokeStyle = fx.color; ctx.lineWidth = 2 * px;
+      ctx.beginPath(); ctx.arc(x, y, (6 + Math.max(0, now - fx.t) / 9) * px, 0, 7); ctx.stroke();
+    }
+    ctx.beginPath(); // flèche classique, la pointe sur la position exacte
+    ctx.moveTo(x, y); ctx.lineTo(x, y + 17 * k); ctx.lineTo(x + 4.2 * k, y + 13 * k); ctx.lineTo(x + 7.2 * k, y + 19.5 * k);
+    ctx.lineTo(x + 9.8 * k, y + 18.3 * k); ctx.lineTo(x + 6.9 * k, y + 12 * k); ctx.lineTo(x + 12 * k, y + 12 * k); ctx.closePath();
+    ctx.fillStyle = '#ffffff'; ctx.fill();
+    ctx.strokeStyle = '#0b0e13'; ctx.lineWidth = 1.5 * px; ctx.lineJoin = 'round'; ctx.stroke();
+  }
+
   function tick(freq) {
     try {
       ac = ac || new (window.AudioContext || window.webkitAudioContext)();
@@ -269,7 +307,8 @@
     } catch (e) { /* pas de son : tant pis */ }
   }
 
-  function setSens(cm) { degPerCount = 360 / (cm * countsPerCm); }
+  // cm = distance de souris pour un tour complet (3D) ou pour traverser l'écran (à plat).
+  function setSens(cm) { degPerCount = (flat ? 100 : 360) / (cm * countsPerCm); }
 
   // ---------- Épreuve 1 : flick ----------
   // Une cible à la fois, placée par rapport au viseur. 1 sur 5 demande un grand
@@ -287,15 +326,26 @@
         return { x, y, s: x * cur.ux + y * cur.uy };
       };
       const spawn = (now) => {
-        const big = rng() < 0.2;
-        const D = big ? 70 + rng() * 60 : 6 + rng() * 34;
-        const phi = (rng() * 50 - 25) * DEG, side = rng() < 0.5 ? -1 : 1;
-        const r = rng() < 0.3 ? 1.1 : 1.7;
-        target = { yaw: yaw + side * D * Math.cos(phi), pitch: clamp(pitch + D * Math.sin(phi), -18, 18), r, on: false };
-        const cosp = Math.cos(target.pitch * DEG);
+        let r;
+        if (flat) { // n'importe où sur l'écran, à 8–48 % de largeur du curseur
+          let tx, ty, tries = 0;
+          do {
+            const D = 8 + rng() * 40, a = rng() * 2 * Math.PI;
+            tx = yaw + D * Math.cos(a); ty = pitch + D * Math.sin(a);
+          } while ((Math.abs(tx) > 46 || Math.abs(ty) > hh - 4) && ++tries < 40);
+          r = rng() < 0.3 ? 1.2 : 2;
+          target = { yaw: clamp(tx, -46, 46), pitch: clamp(ty, 4 - hh, hh - 4), r, on: false };
+        } else {
+          const big = rng() < 0.2;
+          const D = big ? 70 + rng() * 60 : 6 + rng() * 34;
+          const phi = (rng() * 50 - 25) * DEG, side = rng() < 0.5 ? -1 : 1;
+          r = rng() < 0.3 ? 1.1 : 1.7;
+          target = { yaw: yaw + side * D * Math.cos(phi), pitch: clamp(pitch + D * Math.sin(phi), -18, 18), r, on: false };
+        }
+        const cosp = flat ? 1 : Math.cos(target.pitch * DEG);
         const dx = (target.yaw - yaw) * cosp, dy = target.pitch - pitch, len = Math.hypot(dx, dy) || 1;
         cur = { t0: now, miss: 0, y0: yaw, p0: pitch, cosp, ux: dx / len, uy: dy / len, D: len, r, lx: 0, ly: 0, v: 0, peak: 0, maxS: 0, stop: null };
-        hud.textContent = o.label + ' · Flick ' + (idx < o.adapt ? '(adaptation)' : (idx - o.adapt + 1) + '/' + o.n);
+        hud.textContent = o.label + (flat ? ' · Clics ' : ' · Flick ') + (idx < o.adapt ? '(adaptation)' : (idx - o.adapt + 1) + '/' + o.n);
       };
       const end = (now, hit) => {
         const s = along().s;
@@ -352,24 +402,33 @@
       setSens(o.cm);
       const rng = rngFrom(o.seed);
       const y0 = yaw;
-      let vy = 0, vp = 0, gvy = (rng() < 0.5 ? -1 : 1) * (18 + rng() * 30), gvp = (rng() * 2 - 1) * 7;
+      let vy = 0, vp = 0, gvy = 0, gvp = 0;
+      // 3D : déplacement surtout latéral. À plat : dans toutes les directions, plus lentement.
+      const turn = () => {
+        if (flat) {
+          const v = 8 + rng() * 14, a = rng() * 2 * Math.PI;
+          gvy = v * Math.cos(a); gvp = v * Math.sin(a);
+        } else {
+          gvy = (rng() < 0.7 ? -1 : 1) * Math.sign(gvy || (rng() < 0.5 ? -1 : 1)) * (18 + rng() * 30);
+          gvp = (rng() * 2 - 1) * 7;
+        }
+      };
+      turn();
       let t = 0, next = 0.5 + rng() * 1.1, on = 0, tot = 0, err = 0;
-      target = { yaw, pitch: clamp(pitch, -8, 8), r: 2, on: false };
+      target = flat
+        ? { yaw: clamp(yaw, -40, 40), pitch: clamp(pitch, 8 - hh, hh - 8), r: 2.5, on: false }
+        : { yaw, pitch: clamp(pitch, -8, 8), r: 2, on: false };
+      const bx = flat ? 42 : 60, by = flat ? hh - 6 : 12, ox = flat ? 0 : y0;
 
       phase = {
         look: true,
         frame(now, dt) {
           t += dt;
-          if (t >= next) {
-            const sign = (rng() < 0.7 ? -1 : 1) * Math.sign(gvy || 1);
-            gvy = sign * (18 + rng() * 30);
-            gvp = (rng() * 2 - 1) * 7;
-            next = t + 0.5 + rng() * 1.1;
-          }
-          if (target.yaw - y0 > 60) gvy = -Math.abs(gvy);
-          if (target.yaw - y0 < -60) gvy = Math.abs(gvy);
-          if (target.pitch > 12) gvp = -Math.abs(gvp);
-          if (target.pitch < -12) gvp = Math.abs(gvp);
+          if (t >= next) { turn(); next = t + 0.5 + rng() * 1.1; }
+          if (target.yaw - ox > bx) gvy = -Math.abs(gvy);
+          if (target.yaw - ox < -bx) gvy = Math.abs(gvy);
+          if (target.pitch > by) gvp = -Math.abs(gvp);
+          if (target.pitch < -by) gvp = Math.abs(gvp);
           const k = Math.min(1, dt / 0.1);
           vy += (gvy - vy) * k; vp += (gvp - vp) * k;
           target.yaw += vy * dt; target.pitch += vp * dt;
@@ -390,10 +449,12 @@
   }
 
   // ---------- Session complète ----------
-  // cfg = { countsPerCm, list: [cm/360 à tester], warmup: cm/360 de l'échauffement }
+  // cfg = { countsPerCm, list: [sensis à tester], warmup: sensi de l'échauffement, flat }
+  // Les sensis sont en cm/360, ou en cm pour traverser l'écran si flat (jeux au curseur).
   // Les sensis passent dans un ordre tiré au sort et sont désignées par une lettre :
   // on ne sait pas laquelle on joue, pour ne pas s'influencer.
   async function runSession(cfg) {
+    flat = !!cfg.flat;
     open(true);
     countsPerCm = cfg.countsPerCm;
     yaw = 0; pitch = 0;
@@ -407,8 +468,12 @@
     const first = await menu(
       '<h2>Test de visée</h2>' +
       '<p>Pour chaque sensi, deux épreuves :</p>' +
-      '<ul><li><b>Flick</b> — vise la cible orange et clique dessus, vite et sans rater. Un chevron sur le bord indique une cible hors champ.</li>' +
-      '<li><b>Suivi</b> — garde le viseur sur la cible qui bouge (pas besoin de cliquer).</li></ul>' +
+      (flat
+        ? '<ul><li><b>Clics</b> — clique sur la cible orange, vite et sans rater.</li>' +
+          '<li><b>Suivi</b> — garde le curseur sur la cible qui bouge (pas besoin de cliquer).</li></ul>' +
+          '<p>Mets d\'abord le navigateur en plein écran (<kbd>F11</kbd>) : la vitesse du curseur se cale sur la largeur de la fenêtre.</p>'
+        : '<ul><li><b>Flick</b> — vise la cible orange et clique dessus, vite et sans rater. Un chevron sur le bord indique une cible hors champ.</li>' +
+          '<li><b>Suivi</b> — garde le viseur sur la cible qui bouge (pas besoin de cliquer).</li></ul>') +
       '<p>Joue comme en partie : même position, même tapis. <kbd>Échap</kbd> met en pause.</p>' +
       '<p class="tr-warn"></p>' +
       '<div class="tr-btns"><button data-act="go" data-lock class="primary">Commencer</button><button data-act="cancel">Annuler</button></div>');
@@ -424,7 +489,7 @@
           const where = s.label + ' — ' + i + '/' + order.length;
           await clickToGo('<h2>' + where + '</h2><p>La sensi vient de changer. Les trois premières cibles servent à t\'y habituer.</p><p class="tr-go">Clique pour lancer</p>');
           const flick = await flickRound({ cm: s.cm, n: 14, adapt: 3, seed, label: where });
-          await timed('<h2>Suivi</h2><p>Garde le viseur sur la cible.</p>', 2200);
+          await timed('<h2>Suivi</h2><p>Garde le ' + (flat ? 'curseur' : 'viseur') + ' sur la cible.</p>', 2200);
           const track = await trackRound({ cm: s.cm, adaptMs: 2500, ms: 12000, seed: seed + 3, label: where });
           rounds.push({
             cm: s.cm, flick: flick.score, track: track.score,
@@ -452,6 +517,7 @@
   // On fait glisser la souris sur une distance connue (règle, carte bancaire…) en gardant
   // le clic enfoncé ; le nombre de « counts » reçus donne les DPI effectifs. Trois mesures, médiane.
   async function calibrate() {
+    flat = false;
     open(false);
     const form =
       '<h2>Mesurer ma souris</h2>' +
@@ -495,6 +561,6 @@
   }
 
   // peek : état instantané, pour les essais automatisés.
-  const peek = () => ({ yaw, pitch, degPerCount, target, locked: !!el && isLocked(), msg: !!msg && !msg.hidden, hud: hud ? hud.textContent : '' });
+  const peek = () => ({ flat, yaw, pitch, degPerCount, target, locked: !!el && isLocked(), msg: !!msg && !msg.hidden, hud: hud ? hud.textContent : '' });
   window.SensiTrainer = { runSession, calibrate, peek };
 })();

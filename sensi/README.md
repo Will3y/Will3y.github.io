@@ -1,6 +1,6 @@
 # Sensi — trouver sa sensibilité souris
 
-Un outil pour trouver la sensibilité souris qui te convient, mesurée par un test de visée, puis convertie pour chaque jeu.
+Un outil pour trouver la sensibilité souris qui te convient, mesurée par un test de visée, puis convertie pour chaque jeu : 14 FPS et League of Legends.
 
 - En ligne : https://will3y.github.io/sensi/
 - À utiliser sur ordinateur, avec une souris, de préférence dans Chrome ou Edge (ils donnent au test le mouvement brut de la souris, sans l'accélération de Windows).
@@ -18,6 +18,15 @@ Un outil pour trouver la sensibilité souris qui te convient, mesurée par un te
 6. **Réglages par jeu** : la valeur à entrer dans chaque jeu, arrondie comme le jeu l'accepte, avec la distance réelle obtenue.
 
 Tout est exprimé en **cm/360** : la distance de souris nécessaire pour faire un tour complet sur soi-même. C'est la seule grandeur comparable d'un jeu à l'autre.
+
+## League of Legends
+
+LoL se joue au curseur : il n'y a pas de caméra à tourner, donc pas de cm/360. Quand LoL est le jeu principal :
+
+- la sensi se compte en **cm de souris pour traverser l'écran** ;
+- le test se joue à plat (un curseur, des cibles à cliquer, une cible à suivre), avec son propre historique ;
+- le résultat est donné en **DPI à régler**, pas en valeur du curseur « Vitesse de la souris » du jeu : ce curseur n'a pas de formule publiée. À réglages neutres (Windows 6/11, accélération coupée, vitesse du jeu au milieu), un « count » de souris déplace le curseur d'un pixel, d'où `cm/écran = largeur de l'écran × 2,54 / DPI` ;
+- une vérification à la règle est indiquée (curseur d'un bord à l'autre de l'écran). Si on saisit sa propre mesure, l'outil garde les réglages existants et ajuste les DPI en proportion.
 
 ## Fichiers
 
@@ -38,6 +47,7 @@ Dans `core.js`, ajouter une ligne à `GAMES` :
   Formule : `cm/360 = 914,4 / (yaw × sensi × DPI)`.
 - `dec` : nombre de décimales acceptées par le jeu.
 - `style` : `tactical`, `mixed` ou `tracking` (poids du flick et du suivi dans la note).
+- `kind: 'cursor'` (sans `yaw`) pour un jeu au curseur comme LoL.
 - `approx: true` si la valeur n'est pas sûre : elle s'affiche avec « ≈ ».
 
 Pour vérifier un `yaw` en jeu : régler la sensi indiquée, glisser la souris de la distance annoncée, et contrôler qu'on a fait exactement un tour.

@@ -22,6 +22,9 @@
     { id: 'destiny2', name: 'Destiny 2', yaw: 0.0066, dec: 0, style: 'mixed' },
     { id: 'finals', name: 'The Finals', yaw: 0.000789, dec: 0, style: 'mixed', approx: true },
     { id: 'rust', name: 'Rust', yaw: 0.1125, dec: 2, style: 'mixed', approx: true },
+    // Jeu au curseur : pas de caméra à tourner, donc pas de cm/360. La sensi se compte en
+    // cm de souris pour traverser l'écran, et se règle surtout par les DPI.
+    { id: 'lol', name: 'League of Legends', kind: 'cursor', style: 'moba' },
   ];
 
   // flick = part du « flick » (viser-cliquer) dans la note, le reste étant le suivi.
@@ -30,6 +33,7 @@
     tactical: { label: 'Tactique', flick: 0.8, mod: 1.15 },
     mixed: { label: 'Mixte', flick: 0.55, mod: 1 },
     tracking: { label: 'Suivi', flick: 0.3, mod: 0.9 },
+    moba: { label: 'Curseur', flick: 0.75, mod: 1 },
   };
 
   const AIM = {
@@ -44,6 +48,8 @@
   };
 
   const CM_MIN = 12, CM_MAX = 90;
+  // Bornes de la sensi selon le genre : cm/360 pour un FPS, cm pour traverser l'écran pour un jeu au curseur.
+  const LIMITS = { fps: { min: CM_MIN, max: CM_MAX }, cursor: { min: 1.5, max: 30 } };
   const K = 360 * 2.54; // 914,4
 
   const game = (id) => GAMES.find((g) => g.id === id) || GAMES[0];
@@ -62,6 +68,13 @@
 
   // Un demi-tour (180°) doit tenir dans ~70 % de la largeur du tapis.
   function padCap(padCm) { return padCm > 0 ? 1.4 * padCm : CM_MAX; }
+
+  // Jeux au curseur. Avec Windows sur 6/11, l'accélération coupée et la vitesse du jeu au
+  // milieu, un « count » de souris déplace le curseur d'un pixel : traverser l'écran demande
+  // largeur × 2,54 / DPI centimètres. Traverser l'écran doit tenir dans ~80 % du tapis.
+  function screenCm(dpi, screenW) { return screenW * 2.54 / dpi; }
+  function dpiFor(cm, screenW) { return screenW * 2.54 / cm; }
+  function cursorCap(padCm) { return padCm > 0 ? 0.8 * padCm : LIMITS.cursor.max; }
 
   // Point de départ « à la morphologie » : sert de centre au test quand on n'a pas déjà une sensi.
   function baseline(p) {
@@ -82,18 +95,19 @@
 
   // Sensis à tester autour d'un centre, écartées régulièrement en échelle logarithmique.
   // Si le haut de la plage dépasse ce que le tapis permet, on décale toute la plage vers le bas.
-  function testPlan(center, kind, cap) {
+  function testPlan(center, kind, cap, lim) {
+    lim = lim || LIMITS.fps;
     const mults = {
       quick: [0.65, 1, 1.55],
       standard: [0.6, 0.78, 1, 1.28, 1.65],
       refine: [0.8, 0.9, 1, 1.12, 1.25],
     }[kind] || [0.6, 0.78, 1, 1.28, 1.65];
-    const top = Math.min(cap || CM_MAX, CM_MAX);
-    let c = clamp(center, CM_MIN, top);
+    const top = Math.min(cap || lim.max, lim.max);
+    let c = clamp(center, lim.min, top);
     const hi = mults[mults.length - 1];
     if (c * hi > top) c = top / hi;
-    if (c * mults[0] < CM_MIN) c = CM_MIN / mults[0];
-    return mults.map((m) => Math.round(c * m * 10) / 10);
+    if (c * mults[0] < lim.min) c = lim.min / mults[0];
+    return mults.map((m) => (c * m >= 10 ? Math.round(c * m * 10) / 10 : Math.round(c * m * 100) / 100));
   }
 
   // Moindres carrés pour y = a + b·x + c·x² (x recentré pour la stabilité numérique).
@@ -176,7 +190,7 @@
   // « count » de souris tourne plus que ça, la visée saute des pixels : il faut monter les DPI.
   function pixelAngle(screenW) { return Math.atan(Math.tan(51.5 * Math.PI / 180) / (screenW / 2)) * 180 / Math.PI; }
 
-  const api = { GAMES, STYLES, AIM, GRIP, CM_MIN, CM_MAX, game, clamp, cm360, sensFor, gameSetting, padCap, baseline, testPlan, quadFit, analyse, pixelAngle };
+  const api = { GAMES, STYLES, AIM, GRIP, CM_MIN, CM_MAX, LIMITS, game, clamp, cm360, sensFor, gameSetting, padCap, screenCm, dpiFor, cursorCap, baseline, testPlan, quadFit, analyse, pixelAngle };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   root.SensiCore = api;
 })(typeof window !== 'undefined' ? window : globalThis);
