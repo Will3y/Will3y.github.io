@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sensi — trouve ta sensibilité souris</title>
+<meta name="description" content="Mesure ta sensibilité souris idéale avec un test de visée, puis convertis-la pour chaque jeu selon tes DPI.">
+<meta name="theme-color" content="#0e1116">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230e1116'/%3E%3Ccircle cx='16' cy='16' r='8' fill='none' stroke='%23ffb224' stroke-width='2.5'/%3E%3Ccircle cx='16' cy='16' r='2.5' fill='%23ffb224'/%3E%3C/svg%3E">
+<style>
+:root{
+  /* Sombre et sobre : un seul accent (ambre) pour les actions ; bleu et orange sont réservés aux deux séries du graphique. */
+  --bg:#0e1116; --panel:#151a22; --panel2:#1b212b; --line:#2a323e; --ink:#edf1f6; --ink2:#b9c2ce; --muted:#8793a3;
+  --accent:#ffb224; --accent-ink:#1a1204; --flick:#3987e5; --track:#d95926; --ok:#4be08a; --warn:#ffc65c;
+  --body:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; --mono:ui-monospace,"SF Mono","Cascadia Mono",Consolas,monospace;
+  --r:14px; color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.55}
+html.tr-open{overflow:hidden}
+button,input,select{font:inherit;color:inherit}
+h1,h2,h3,p{margin:0}
+h1,h2,h3{line-height:1.2;text-wrap:balance}
+a{color:var(--accent)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.wrap{max-width:860px;margin:0 auto;padding:36px 20px 80px}
+header{margin-bottom:28px}
+.logo{display:flex;align-items:center;gap:10px;font-weight:700;letter-spacing:.02em;color:var(--accent);font-size:15px;text-transform:uppercase}
+.logo svg{width:22px;height:22px}
+h1{font-size:clamp(28px,5vw,40px);margin-top:14px;font-weight:750;letter-spacing:-.02em}
+.lede{color:var(--ink2);margin-top:10px;max-width:62ch}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:22px;margin-top:16px}
+.card>h2{font-size:19px;display:flex;align-items:baseline;gap:10px}
+.card>h2 .n{font-family:var(--mono);font-size:13px;color:var(--accent);border:1px solid var(--line);border-radius:6px;padding:1px 7px}
+.sub{color:var(--muted);font-size:14px;margin-top:4px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:16px;margin-top:16px}
+.field label,.field .lab{display:block;font-size:13px;color:var(--ink2);margin-bottom:6px;font-weight:600}
+.field .hint{font-size:13px;color:var(--muted);margin-top:6px}
+input[type=number],input[type=text],select{width:100%;background:var(--bg);border:1px solid var(--line);border-radius:9px;padding:9px 11px;font-family:var(--mono);font-size:15px}
+select{font-family:var(--body)}
+.unit{position:relative}
+.unit input{padding-right:52px}
+.unit span{position:absolute;right:11px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:13px;pointer-events:none}
+.seg{display:flex;background:var(--bg);border:1px solid var(--line);border-radius:9px;padding:3px;gap:3px}
+.seg label{flex:1;margin:0;text-align:center;font-size:13.5px;font-weight:600;color:var(--ink2);padding:7px 6px;border-radius:6px;cursor:pointer;white-space:nowrap}
+.seg input{position:absolute;opacity:0;pointer-events:none}
+.seg label:has(input:checked){background:var(--panel2);color:var(--ink);box-shadow:inset 0 0 0 1px var(--line)}
+.seg label:has(input:focus-visible){outline:2px solid var(--accent)}
+button{cursor:pointer;border:1px solid var(--line);background:var(--panel2);border-radius:9px;padding:9px 15px;font-weight:600;font-size:14.5px}
+button:hover{border-color:#3d4858}
+button.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+button.primary:hover{filter:brightness(1.07)}
+button.link{border:0;background:none;padding:0;color:var(--muted);text-decoration:underline;font-weight:500;font-size:13px}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:16px}
+.hero{display:flex;flex-wrap:wrap;align-items:flex-end;gap:8px 22px;margin-top:16px}
+.big{font-family:var(--mono);font-size:clamp(34px,7vw,50px);font-weight:700;line-height:1;letter-spacing:-.02em}
+.big small{font-size:.38em;color:var(--muted);font-weight:500;letter-spacing:0;margin-left:6px}
+.facts{color:var(--ink2);font-size:14.5px}
+.facts b{color:var(--ink);font-family:var(--mono);font-weight:600}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+.chip{font-family:var(--mono);font-size:12.5px;border:1px solid var(--line);border-radius:999px;padding:2px 10px;color:var(--ink2)}
+.note{margin-top:14px;padding:10px 13px;border-radius:9px;background:var(--panel2);border:1px solid var(--line);font-size:14px;color:var(--ink2)}
+.note.warn{border-color:#5a4718;background:#211b0c;color:#f0dcae}
+.note b{color:var(--ink)}
+.choice{display:grid;gap:8px;margin-top:14px}
+.choice label{display:flex;gap:10px;align-items:center;padding:10px 12px;border:1px solid var(--line);border-radius:9px;cursor:pointer;font-size:14.5px}
+.choice label:has(input:checked){border-color:var(--accent);background:var(--panel2)}
+.choice input{accent-color:var(--accent)}
+.choice .v{margin-left:auto;font-family:var(--mono);color:var(--ink2);white-space:nowrap}
+table{width:100%;border-collapse:collapse;margin-top:14px;font-size:14.5px}
+th{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);font-weight:600;text-align:left;padding:7px 10px;border-bottom:1px solid var(--line)}
+td{padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+tr:last-child td{border-bottom:0}
+td.num,th.num{text-align:right;font-family:var(--mono);white-space:nowrap}
+td .sm{display:block;font-size:12.5px;color:var(--muted);font-family:var(--body);white-space:normal}
+tr.main td{background:var(--panel2)}
+tr.main td:first-child{box-shadow:inset 3px 0 0 var(--accent)}
+td.sens{font-weight:700;font-size:16px;color:var(--ink)}
+.scroll{overflow-x:auto}
+.tag{display:inline-block;font-size:11px;border:1px solid var(--line);border-radius:5px;padding:0 5px;color:var(--muted);margin-left:6px;vertical-align:1px}
+/* Graphique */
+.viz{margin-top:16px;position:relative}
+.viz svg{display:block;width:100%;height:auto}
+.legend{display:flex;flex-wrap:wrap;gap:6px 18px;font-size:13px;color:var(--ink2);margin-top:14px}
+.legend span{display:inline-flex;align-items:center;gap:7px}
+.legend i{display:inline-block}
+.tip{position:absolute;pointer-events:none;background:#0b0e13;border:1px solid var(--line);border-radius:8px;padding:6px 9px;font-size:12.5px;color:var(--ink2);white-space:nowrap;transform:translate(-50%,-115%);z-index:2}
+.tip b{color:var(--ink);font-family:var(--mono)}
+details{margin-top:10px;border-top:1px solid var(--line);padding-top:10px}
+details:first-of-type{margin-top:14px}
+summary{cursor:pointer;font-weight:600;font-size:15px}
+details p,details li{color:var(--ink2);font-size:14.5px}
+details p{margin-top:8px}
+details ul{margin:8px 0 0;padding-left:20px}
+footer{color:var(--muted);font-size:13px;margin-top:22px;text-align:center}
+[hidden]{display:none!important}
+/* Écran de test (plein écran) */
+.tr{position:fixed;inset:0;z-index:50;background:#0b0e13;cursor:default}
+.tr canvas{position:absolute;inset:0;width:100%;height:100%}
+.tr-hud{position:absolute;top:16px;left:50%;transform:translateX(-50%);font-family:var(--mono);font-size:14px;color:var(--ink2);background:rgba(11,14,19,.72);border:1px solid var(--line);border-radius:999px;padding:4px 14px;white-space:nowrap}
+.tr-hud:empty{display:none}
+.tr-msg{position:absolute;inset:0;display:grid;place-items:center;padding:20px;background:rgba(11,14,19,.6)}
+.tr-box{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:26px;max-width:520px;width:100%}
+.tr-box h2{font-size:22px;margin-bottom:10px}
+.tr-box p{color:var(--ink2);margin-top:8px}
+.tr-box ul{color:var(--ink2);padding-left:20px;margin:8px 0 0}
+.tr-box li{margin-top:5px}
+.tr-box b{color:var(--ink)}
+.tr-box kbd{font-family:var(--mono);font-size:12.5px;border:1px solid var(--line);border-radius:5px;padding:1px 6px;background:var(--bg)}
+.tr-go{color:var(--accent)!important;font-weight:700;margin-top:16px!important}
+.tr-dim{font-size:13.5px;color:var(--muted)!important}
+.tr-warn{color:var(--warn)!important;font-size:14px}
+.tr-warn:empty{display:none}
+.tr-big{font-family:var(--mono);font-size:44px;font-weight:700;color:var(--ink)!important;margin-top:14px!important}
+.tr-big small{font-size:15px;color:var(--muted);font-weight:500}
+.tr-btns{display:flex;gap:10px;margin-top:20px}
+.tr-field{display:flex;align-items:center;gap:10px;margin-top:16px;font-weight:600}
+.tr-field input{width:110px}
+@media (max-width:560px){.card{padding:18px 16px}td,th{padding:8px 6px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="logo">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="1.6" fill="currentColor"/><path d="M12 1v4M12 19v4M1 12h4M19 12h4"/></svg>
+      Sensi
+    </div>
+    <h1>Ta sensibilité souris, mesurée sur toi.</h1>
+    <p class="lede">Renseigne ton matériel, passe un test de visée de quelques minutes, et récupère le réglage à entrer dans chaque jeu. Rien à installer, rien n'est envoyé : tout reste dans ton navigateur.</p>
+  </header>
+
+  <section class="card">
+    <h2><span class="n">1</span> Ton matériel</h2>
+    <div class="grid">
+      <div class="field">
+        <label for="dpi">DPI de la souris</label>
+        <div class="unit"><input id="dpi" type="number" min="100" max="32000" step="50" inputmode="numeric"><span>DPI</span></div>
+        <p class="hint" id="dpiHint"></p>
+      </div>
+      <div class="field">
+        <label for="pad">Largeur utile du tapis</label>
+        <div class="unit"><input id="pad" type="number" min="10" max="150" step="1" inputmode="numeric"><span>cm</span></div>
+        <p class="hint">La place réellement libre pour bouger la souris.</p>
+      </div>
+      <div class="field">
+        <label for="screenW">Largeur de l'écran</label>
+        <div class="unit"><input id="screenW" type="number" min="800" max="8000" step="1" inputmode="numeric"><span>px</span></div>
+        <p class="hint">Détectée automatiquement, modifiable.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2><span class="n">2</span> Toi</h2>
+    <div class="grid">
+      <div class="field">
+        <span class="lab">Tu vises surtout avec</span>
+        <div class="seg" id="aim"></div>
+      </div>
+      <div class="field">
+        <span class="lab">Ta prise de souris</span>
+        <div class="seg" id="grip"></div>
+      </div>
+    </div>
+    <div class="grid">
+      <div class="field">
+        <label for="game">Ton jeu principal</label>
+        <select id="game"></select>
+      </div>
+      <div class="field">
+        <label for="curSens">Ta sensi actuelle dans ce jeu <span style="font-weight:400;color:var(--muted)">(facultatif)</span></label>
+        <input id="curSens" type="text" inputmode="decimal" placeholder="ex. 0.35" autocomplete="off">
+        <p class="hint" id="curHint"></p>
+      </div>
+    </div>
+  </section>
+
+  <section class="card" id="start"></section>
+  <section class="card" id="result" hidden></section>
+  <section class="card" id="games"></section>
+
+  <section class="card">
+    <h2>Bon à savoir</h2>
+    <details>
+      <summary>Est-ce que c'est vraiment « la » sensi parfaite ?</summary>
+      <p>Non, et aucun logiciel ne peut l'être. Il n'existe pas un chiffre magique mais une <b>zone</b> dans laquelle tu vises bien ; à l'intérieur, c'est surtout l'habitude qui compte. Le test mesure où se trouve cette zone pour toi, avec ton matériel et ta façon de bouger. Une fois la sensi choisie, garde-la au moins deux semaines avant de la juger.</p>
+      <p>Plus tu fais de sessions, plus le résultat est fiable : elles se cumulent, et une mauvaise journée pèse moins.</p>
+    </details>
+    <details>
+      <summary>Avant de tester : couper l'accélération de Windows</summary>
+      <p>Paramètres → Bluetooth et appareils → Souris → Paramètres de souris supplémentaires → Options du pointeur → décoche <b>« Améliorer la précision du pointeur »</b>. Dans les jeux, active l'option « entrée brute » (raw input) quand elle existe.</p>
+      <p>Utilise Chrome ou Edge sur PC : ils donnent au test le mouvement brut de la souris.</p>
+    </details>
+    <details>
+      <summary>Comment marche le test ?</summary>
+      <ul>
+        <li>Plusieurs sensis sont essayées, dans un ordre tiré au sort et sans te dire lesquelles.</li>
+        <li>Pour chacune : une épreuve de <b>flick</b> (cibles par minute, les tirs ratés coûtent du temps) et une épreuve de <b>suivi</b> (part du temps passé sur la cible).</li>
+        <li>Chaque sensi reçoit exactement les mêmes cibles. Les premières secondes servent à s'habituer et ne comptent pas.</li>
+        <li>Une courbe est ajustée sur tes scores ; son sommet est ton optimum. Le flick pèse plus pour les jeux tactiques, le suivi pour les jeux de mouvement.</li>
+      </ul>
+    </details>
+    <details>
+      <summary>Ce que l'outil ne fait pas</summary>
+      <ul>
+        <li>Les sensis de lunette et de visée épaule (ADS) : chaque jeu a ses propres multiplicateurs.</li>
+        <li>Le champ de vision (FOV) : la conversion garde la même distance de souris pour un tour complet, ce que font la plupart des joueurs.</li>
+        <li>Les jeux marqués « ≈ » utilisent un coefficient relevé par la communauté. Vérifie en jeu : la distance indiquée doit faire exactement un tour.</li>
+      </ul>
+    </details>
+  </section>
+  <footer>Tes réglages et tes tests sont enregistrés dans ce navigateur uniquement.</footer>
+</div>
+<script src="core.js"></script>
+<script src="trainer.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
