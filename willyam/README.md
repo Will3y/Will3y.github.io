@@ -1,6 +1,10 @@
 # Les missions de Willyam
 
-Petit jeu d'exercices CE1 → CE2 (maths et français), en un seul fichier : `index.html`.
+Petit jeu d'exercices CE1 → CE2 (maths, français et anglais), en un seul fichier : `index.html`.
+
+92 missions (36 en maths, 37 en français, 19 en anglais), plus une « mission surprise » qui mélange les missions déjà réussies.
+En anglais, les mots et les phrases sont prononcés par la voix de l'appareil (synthèse vocale du navigateur, `en-GB`).
+Dans l'espace parent : récompenses, temps de jeu par jour, longueur des missions (5, 8 ou 10 questions), code parent, sauvegarde.
 
 - En ligne : https://will3y.github.io/willyam/
 - Hors ligne : `index.html` s'ouvre aussi en double-clic, sans rien d'autre.

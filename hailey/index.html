@@ -246,6 +246,20 @@ mark{background:var(--accent-soft);color:inherit;border-bottom:4px solid var(--a
 .cf{position:fixed;top:-20px;width:10px;height:14px;z-index:20;animation:fall 2.3s linear forwards;pointer-events:none}
 @keyframes fall{to{transform:translateY(110vh) rotate(720deg)}}
 @media (max-width:420px){.answers.row3{grid-template-columns:1fr 1fr 1fr}.choice{font-size:26px}.top h1{font-size:26px}}
+.answers.bars{grid-template-columns:1fr}
+.answers.bars .choice{justify-content:flex-start;min-height:70px}
+.bar{display:block;flex:0 0 auto;height:26px;border:4px solid var(--ink);border-radius:13px}
+.sz{line-height:1}
+.gone{position:relative;display:inline-block;opacity:.45}
+.gone::after{content:"";position:absolute;left:-3px;right:-3px;top:50%;border-top:5px solid var(--bad);transform:rotate(-20deg)}
+.mix{display:flex;align-items:center;gap:14px;width:100%;margin-top:16px;padding:12px 16px;background:var(--star-soft);text-align:left}
+.mix .mixic{font-size:40px;line-height:1}
+.mix b{display:block;font-family:var(--display);font-weight:600;font-size:21px}
+.mix small{display:block;color:var(--muted);font-size:16px}
+.stage-h .cnt2{margin-left:auto;font-family:var(--display);font-weight:600;color:var(--muted);font-variant-numeric:tabular-nums}
+.dots{flex-wrap:wrap;justify-content:center}
+.dots.many{gap:5px}
+.dots.many .dot{width:13px;height:13px;border-width:2px}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
@@ -286,9 +300,13 @@ function numCh(ans,lo,hi,n=4){const w=[];for(let d=1;d<=hi-lo&&w.length<n+1;d++)
   return uniqChoices(String(ans),w.map(String),n).sort((a,b)=>a-b);}
 // Choix en images : renvoie {choices, answer, names} dans le même ordre (pour la phrase lue).
 function picCh(good,wrongs){const items=shuffle([good,...wrongs]);return {choices:items.map(([e,w])=>PE(e,w)),answer:PE(good[0],good[1]),names:items.map(x=>x[1])};}
+// Quand la voix marche, la consigne écrite ne montre pas la réponse (sinon il suffit de recopier la forme).
+// Sans voix, on l'écrit pour que l'adulte puisse la lire.
+const heard=(a,b)=>canSpeak?a:b;
+const NOMBRES=['zéro','un','deux','trois','quatre','cinq','six','sept','huit','neuf','dix','onze','douze','treize','quatorze','quinze','seize','dix-sept','dix-huit','dix-neuf','vingt'];
 
 /* ---------- Nombres ---------- */
-const OBJ=[['🍎','pommes','une pomme'],['⭐','étoiles','une étoile'],['🐟','poissons','un poisson'],['🎈','ballons','un ballon'],['🚗','voitures','une voiture'],['🐞','coccinelles','une coccinelle'],['🌸','fleurs','une fleur'],['🍓','fraises','une fraise'],['🐥','poussins','un poussin'],['🧁','gâteaux','un gâteau']];
+const OBJ=[['🍎','pommes','une pomme'],['⭐','étoiles','une étoile'],['🐟','poissons','un poisson'],['🎈','ballons','un ballon'],['🚗','voitures','une voiture'],['🐞','coccinelles','une coccinelle'],['🌸','fleurs','une fleur'],['🍓','fraises','une fraise'],['🐥','poussins','un poussin'],['🧁','gâteaux','un gâteau'],['🐱','chats','un chat'],['🍪','biscuits','un biscuit'],['🦋','papillons','un papillon'],['🐢','tortues','une tortue'],['🚲','vélos','un vélo']];
 const qty=(o,n)=>n===1?o[2]:`${n} ${o[1]}`;
 const SUITE=['🔴','🔵','🟡','🟢','⭐','🌙','🍎','🍌','🐱','🐶','❤️','🔺'];
 function suiteQ(units){
@@ -298,6 +316,12 @@ function suiteQ(units){
     choices:uniqChoices(ans,items.filter(x=>x!==ans),3),answer:ans,explain:`La suite se répète : ${u.map(i=>items[i]).join(' ')}, puis encore ${u.map(i=>items[i]).join(' ')}…`};
 }
 const POS=[['🐱','le chat','📦','la boîte'],['🐶','le chien','🪑','la chaise'],['🐦','l’oiseau','🚗','la voiture'],['🐭','la souris','🛏️','le lit'],['🧸','le nounours','🎁','le cadeau']];
+// Banques des missions ajoutées.
+const COULEURS=[['rouge','#e53935'],['bleu','#1e88e5'],['jaune','#fdd835'],['vert','#43a047'],['orange','#fb8c00'],['rose','#f48fb1'],['violet','#8e24aa'],['noir','#2b2b2b'],['marron','#8d5a3b']];
+const TAILLE=[['🎈','le plus grand ballon','le plus petit ballon'],['🍎','la plus grande pomme','la plus petite pomme'],['🐟','le plus grand poisson','le plus petit poisson'],['⭐','la plus grande étoile','la plus petite étoile'],['🚗','la plus grande voiture','la plus petite voiture'],['🌸','la plus grande fleur','la plus petite fleur'],['🐘','le plus grand éléphant','le plus petit éléphant'],['🧸','le plus grand nounours','le plus petit nounours'],['🏠','la plus grande maison','la plus petite maison']];
+const PAREIL=[['🐱','🐯','🦁','🐶'],['🍎','🍅','🍒','🍓'],['🌙','⭐','☀️','☁️'],['🚗','🚕','🚌','🚓'],['🐟','🐠','🐬','🐳'],['🌸','🌺','🌻','🌷'],['⚽','🏀','🎾','🏐'],['😀','😢','😠','😴'],['🍊','🍋','🍑','🍐'],['🐸','🐢','🦎','🐊'],['🎈','🎁','🎂','🎉'],['🐝','🐞','🦋','🐜']];
+const OBJF=[['🍕','la part de pizza','triangle'],['⚽','le ballon','rond'],['📺','la télé','rectangle'],['🚪','la porte','rectangle'],['🍪','le biscuit','rond'],['🕐','l’horloge','rond'],['🧀','le morceau de fromage','triangle'],['📱','le téléphone','rectangle'],['🍊','l’orange','rond'],['⛺','la tente','triangle'],['📕','le livre','rectangle'],['🎯','la cible','rond'],['📐','l’équerre','triangle']];
+const COURSE=[['🐶','le chien'],['🐱','le chat'],['🐰','le lapin'],['🐻','l’ours'],['🐷','le cochon'],['🐸','la grenouille'],['🐭','la souris'],['🦊','le renard'],['🐢','la tortue']];
 const aCote=b=>b.startsWith('le ')?'à côté du '+b.slice(3):'à côté de '+b;
 
 const GM={
@@ -320,7 +344,7 @@ const GM={
   N7(){if(Math.random()<.65){const n=R(1,6);return {p:'Combien de points sur le dé ?',q:`<div class="dice">${die(n)}</div>`,say:'Combien de points sur le dé ?',type:'choice',cls:'nums',keep:true,choices:numCh(n,1,6,4),answer:String(n),explain:`Il y a ${n} point${n>1?'s':''}.`};}
     const a=R(1,5),b=R(1,Math.min(6,10-a));
     return {p:'Combien de points en tout ?',q:`<div class="dice">${die(a)}${die(b)}</div>`,say:'Combien de points en tout, sur les deux dés ?',type:'choice',cls:'nums',keep:true,choices:numCh(a+b,2,10,4),answer:String(a+b),explain:`${a} et encore ${b}, ça fait ${a+b}.`};},
-  N8(){const n=R(0,9);return {p:`Montre le chiffre ${n}`,q:LISTEN,say:`Montre le chiffre ${n}.`,type:'choice',cls:'nums',keep:true,choices:numCh(n,0,9,4),answer:String(n),explain:`Le chiffre ${n} s’écrit comme ça : ${n}.`};},
+  N8(){const n=R(0,9);return {p:heard('Montre le chiffre que tu entends',`Montre le chiffre ${NOMBRES[n]}`),q:LISTEN,say:`Montre le chiffre ${n}.`,type:'choice',cls:'nums',keep:true,choices:numCh(n,0,9,4),answer:String(n),explain:`Le chiffre ${n} s’écrit comme ça : ${n}.`};},
   N9(){const o=pick(OBJ),plus=Math.random()<.6,n=plus?R(1,8):R(2,9),ans=plus?n+1:n-1;
     return {p:'Combien maintenant ?',q:`<div class="mid">${grp(o[0],n)}</div><div class="tag">${plus?'+ 1':'− 1'} ${o[0]}</div>`,
       say:`Il y a ${qty(o,n)}. ${plus?'On en ajoute':'On en enlève'} une. Combien y en a-t-il maintenant ?`.replace(' une.',o[2].startsWith('un ')?' un.':' une.'),
@@ -344,21 +368,51 @@ const GM={
       ()=>{const a=R(4,9),b=R(1,a-2);return [`Il y a ${a} oiseaux sur l’arbre. ${b===1?'1 oiseau s’envole':`${b} oiseaux s’envolent`}. Combien en reste-t-il ?`,a-b,'🐦',`${a} − ${b} = ${a-b}`];},
       ()=>{const a=R(2,5),b=R(2,5);return [`Willyam a ${a} petites voitures. Hailey en a ${b}. Combien de voitures en tout ?`,a+b,'🚗',`${a} + ${b} = ${a+b}`];},
       ()=>{const a=R(5,10),b=R(1,4);return [`Dans le panier, il y a ${a} pommes. Papa en mange ${b}. Combien en reste-t-il ?`,a-b,'🍎',`${a} − ${b} = ${a-b}`];},
-      ()=>{const a=R(1,4);return [`Hailey a ${a===1?'1 poupée':`${a} poupées`}. Pour son anniversaire, on lui en offre 2. Combien de poupées a-t-elle ?`,a+2,'🪆',`${a} + 2 = ${a+2}`];}
+      ()=>{const a=R(1,4);return [`Hailey a ${a===1?'1 poupée':`${a} poupées`}. Pour son anniversaire, on lui en offre 2. Combien de poupées a-t-elle ?`,a+2,'🪆',`${a} + 2 = ${a+2}`];},
+      ()=>{const a=R(2,6),b=R(1,3);return [`Il y a ${a} poissons dans l’aquarium. On en ajoute ${b}. Combien de poissons y a-t-il maintenant ?`,a+b,'🐟',`${a} + ${b} = ${a+b}`];},
+      ()=>{const a=R(3,8),b=R(1,a-2);return [`Hailey a ${a} ballons. ${b===1?'1 ballon éclate':`${b} ballons éclatent`}. Combien de ballons lui reste-t-il ?`,a-b,'🎈',`${a} − ${b} = ${a-b}`];},
+      ()=>{const a=R(1,5),b=R(1,4);return [`Sur la table, il y a ${a===1?'1 verre rouge':`${a} verres rouges`} et ${b===1?'1 verre bleu':`${b} verres bleus`}. Combien de verres en tout ?`,a+b,'🥤',`${a} + ${b} = ${a+b}`];},
+      ()=>{const a=R(3,7),b=R(1,3);return [`Dans le jardin, il y a ${a} fleurs. Hailey en cueille ${b}. Combien de fleurs reste-t-il dans le jardin ?`,a-b,'🌸',`${a} − ${b} = ${a-b}`];}
     ])();
     return {p:'Écoute le problème',q:`<div class="pic">${e}</div><div class="story">${t}</div>`,say:t,type:'choice',cls:'nums',keep:true,choices:numCh(ans,1,10,4),answer:String(ans),explain:ex};},
-  N16(){return suiteQ([[0,1,2],[0,0,1],[0,1,1]]);}
+  N16(){return suiteQ([[0,1,2],[0,0,1],[0,1,1]]);},
+
+  // ----- Missions ajoutées -----
+  N17(){const k=pick(['rond','carré','triangle']),cs=shuffle(COULEURS).slice(0,3),t=cs[0],sv=cs.map(c=>shape(k,c[1]));
+    return {p:`Montre le ${k} ${t[0]}`,q:LISTEN,say:`Montre le ${k} ${t[0]}.`,type:'choice',cls:'pics',keep:true,choices:shuffle(sv),answer:sv[0],explain:`C’est celui-ci, le ${k} ${t[0]}.`};},
+  N18(){const [e,g,pt]=pick(TAILLE),big=Math.random()<.5,w=big?g:pt,mk=z=>`<span class="sz" style="font-size:${z}px">${e}</span>`;
+    return {p:`Montre ${w}`,q:LISTEN,say:`Montre ${w}.`,type:'choice',cls:'pics',keep:true,choices:shuffle([30,50,78]).map(mk),answer:mk(big?78:30),explain:`Regarde bien les tailles : voici ${w}.`};},
+  N19(){const g=shuffle(pick(PAREIL)),t=pick(g);
+    return {p:'Trouve le même dessin',q:`<div class="pic">${t}</div>`,say:'Trouve le même dessin.',type:'choice',cls:'pics',keep:true,choices:g,answer:t,explain:'Regarde bien : c’est exactement le même dessin.'};},
+  N20(){const long=Math.random()<.5,ws=shuffle([34,62,96]),cs=shuffle(COLORS),ch=ws.map((x,i)=>`<span class="bar" style="width:${x}%;background:${cs[i]}"></span>`),w=long?'le plus long':'le plus court';
+    return {p:`Montre le trait ${w}`,q:LISTEN,say:`Montre le trait ${w}.`,type:'choice',cls:'bars',keep:true,choices:ch,answer:ch[ws.indexOf(long?96:34)],explain:long?'Le trait le plus long va le plus loin.':'Le trait le plus court s’arrête le plus tôt.'};},
+  N21(){const [e,n,f]=pick(OBJF),ks=shuffle(['rond','triangle','rectangle']),svg={};ks.forEach(k=>svg[k]=shape(k,pick(COLORS)));
+    return {p:'Ça ressemble à quelle forme ?',q:`<div class="pic">${e}</div>`,say:`À quelle forme ressemble ${n} ?`,type:'choice',cls:'pics',keep:true,choices:ks.map(k=>svg[k]),answer:svg[f],explain:`${cap(n)} ressemble à un ${f}.`};},
+  N22(){const af=Math.random()<.6,n=af?R(1,9):R(2,10),ans=af?n+1:n-1,w=af?'après':'avant';
+    return {p:`Quel nombre vient juste ${w} ?`,q:`<div class="big">${af?`${n} ${SLOT}`:`${SLOT} ${n}`}</div>`,say:`Quel nombre vient juste ${w} ${n} ?`,type:'choice',cls:'nums',keep:true,choices:numCh(ans,1,10,4),answer:String(ans),explain:`On compte : ${countTo(Math.max(n,ans))}. Juste ${w} ${n}, c’est ${ans}.`};},
+  N23(){const r=shuffle(COURSE).slice(0,3),k=pick([0,0,2,2,1]),w=['le premier','le deuxième','le dernier'][k],c=picCh(r[k],r.filter((_,i)=>i!==k));
+    return {p:`Qui est ${w} ?`,q:`<div class="seq"><span>🏁</span>${r.map(x=>`<span>${x[0]}</span>`).join('')}</div><div class="tag">La course va vers le drapeau</div>`,say:`Les animaux font la course vers le drapeau. Qui est ${w} ? ${cap(orList(c.names))} ?`,type:'choice',cls:'pics',keep:true,choices:c.choices,answer:c.answer,explain:`${cap(w)}, c’est ${r[k][1]}. Le premier est tout près du drapeau.`};},
+  N24(){const o=pick(OBJ),n=R(11,20);
+    return {p:`Combien de ${o[1]} ?`,q:grid(o[0],n),say:`Combien y a-t-il de ${o[1]} ? Compte bien.`,type:'choice',cls:'nums',keep:true,choices:numCh(n,10,20,4),answer:String(n),explain:`On compte en touchant chaque objet. Il y en a ${n}.`};},
+  N25(){const n=R(10,20);
+    return {p:heard('Montre le nombre que tu entends',`Montre le nombre ${NOMBRES[n]}`),q:LISTEN,say:`Montre le nombre ${n}.`,type:'choice',cls:'nums',keep:true,choices:numCh(n,10,20,4),answer:String(n),explain:`Le nombre ${n} s’écrit comme ça : ${n}.`};},
+  N26(){const n=R(1,6);
+    return {p:'Le double : combien en tout ?',q:`<div class="dice">${die(n)}${die(n)}</div><div class="big">${n} + ${n} = ${SLOT}</div>`,say:`${n} plus ${n}, ça fait combien ?`,type:'choice',cls:'nums',keep:true,choices:numCh(2*n,2,12,4),answer:String(2*n),explain:`${n} et encore ${n}, ça fait ${2*n}. C’est le double de ${n}.`};},
+  N27(){const o=pick(OBJ),a=R(2,8),b=R(1,a-1);
+    return {p:'Combien en reste-t-il ?',q:`<div class="mid">${Array.from({length:a},(_,i)=>`<span class="${i>=a-b?'gone':''}">${o[0]}</span>`).join(' ')}</div><div class="big">${a} − ${b} = ${SLOT}</div>`,say:`Il y a ${qty(o,a)}. On en enlève ${b}. Combien en reste-t-il ?`,type:'choice',cls:'nums',keep:true,choices:numCh(a-b,0,8,4),answer:String(a-b),explain:`${a} moins ${b} : il en reste ${a-b}.`};},
+  N28(){const k=R(1,9);
+    return {p:'Dix et encore… Combien en tout ?',q:`${frame('🔴',10,10)}<div class="mid">${grp('🔴',k)}</div><div class="big">10 + ${k} = ${SLOT}</div>`,say:`Dans la boîte, il y a 10 jetons. Et encore ${k} à côté. Combien de jetons en tout ?`,type:'choice',cls:'nums',keep:true,choices:numCh(10+k,11,19,4),answer:String(10+k),explain:`10 et encore ${k}, ça fait ${10+k}.`};}
 };
 
 /* ---------- Lettres et sons ---------- */
 const LOOK=[['E','F','L','H'],['O','Q','C','G'],['P','R','B','D'],['M','N','W','V'],['A','H','K','X'],['I','L','T','J'],['U','V','Y','J'],['S','Z','C','G']];
 const NAME='HAILEY',OTHER_NAMES=['WILLYAM','MAMAN','PAPA','LILA','HUGO','MAYA','LÉO','NOÉ'];
 const ABC='ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
-const CAT=[['des fruits',['🍎','🍌','🍓','🍐','🍇','🍒']],['des animaux',['🐶','🐱','🐰','🐻','🐮','🐷']],['des véhicules',['🚗','🚌','🚲','🚂','✈️','🚀']],['des vêtements',['👕','👖','🧦','🧢','👗','🧥']],['des instruments de musique',['🎸','🥁','🎺','🎻','🎹']]];
+const CAT=[['des fruits',['🍎','🍌','🍓','🍐','🍇','🍒'],'un fruit'],['des animaux',['🐶','🐱','🐰','🐻','🐮','🐷'],'un animal'],['des véhicules',['🚗','🚌','🚲','🚂','✈️','🚀'],'un véhicule'],['des vêtements',['👕','👖','🧦','🧢','👗','🧥'],'un vêtement'],['des instruments de musique',['🎸','🥁','🎺','🎻','🎹'],'un instrument de musique'],['des légumes',['🥕','🥦','🌽','🥒','🍆'],'un légume']];
 // Mots qui riment (même son à la fin). Deux mots de groupes différents ne riment jamais.
-const RIME=[[['🐱','chat'],['🐀','rat']],[['⛵','bateau'],['🎂','gâteau'],['🔪','couteau']],[['🐰','lapin'],['🎄','sapin']],[['🐟','poisson'],['🦔','hérisson'],['🦁','lion'],['✈️','avion']],[['🐭','souris'],['🍚','riz']],[['🍓','fraise'],['🪑','chaise']],[['☀️','soleil'],['🐝','abeille']],[['🍎','pomme'],['👨','homme']],[['🌙','lune'],['🪶','plume']]];
+const RIME=[[['🐱','chat'],['🐀','rat']],[['⛵','bateau'],['🎂','gâteau'],['🔪','couteau'],['🎩','chapeau'],['🐦','oiseau']],[['🐰','lapin'],['🎄','sapin']],[['🐟','poisson'],['🦔','hérisson'],['🦁','lion'],['✈️','avion']],[['🐭','souris'],['🍚','riz']],[['🍓','fraise'],['🪑','chaise']],[['☀️','soleil'],['🐝','abeille']],[['🍎','pomme'],['👨','homme']],[['🌙','lune'],['🪶','plume']],[['🦉','hibou'],['🐺','loup'],['🥬','chou']],[['🐘','éléphant'],['🧤','gant'],['🦷','dent']],[['🚗','voiture'],['👞','chaussure']],[['🐄','vache'],['🪓','hache']]];
 // Mots découpés en syllabes orales.
-const SYLL=[['🐱','chat'],['🍞','pain'],['🚂','train'],['🐶','chien'],['🐰','la-pin'],['🎈','bal-lon'],['🐟','pois-son'],['🚲','vé-lo'],['🎂','gâ-teau'],['🎁','ca-deau'],['🎄','sa-pin'],['🐘','é-lé-phant'],['🍍','a-na-nas'],['🦘','kan-gou-rou'],['🍫','cho-co-lat'],['☂️','pa-ra-pluie'],['🚁','hé-li-cop-tère'],['💻','or-di-na-teur'],['📺','té-lé-vi-sion']];
+const SYLL=[['🐱','chat'],['🍞','pain'],['🚂','train'],['🐶','chien'],['🐰','la-pin'],['🎈','bal-lon'],['🐟','pois-son'],['🚲','vé-lo'],['🎂','gâ-teau'],['🎁','ca-deau'],['🎄','sa-pin'],['🐘','é-lé-phant'],['🍍','a-na-nas'],['🦘','kan-gou-rou'],['🍫','cho-co-lat'],['☂️','pa-ra-pluie'],['🚁','hé-li-cop-tère'],['💻','or-di-na-teur'],['📺','té-lé-vi-sion'],['🐻','ours'],['🌸','fleur'],['🐭','sou-ris'],['🏍️','mo-to'],['🤖','ro-bot'],['🚀','fu-sée'],['🦒','gi-rafe'],['🍅','to-mate'],['🥕','ca-rotte'],['🦋','pa-pil-lon'],['🐊','cro-co-dile'],['🍌','ba-nane']];
 // Mots rangés par premier son (et première lettre).
 const INIT=[['M',[['🏠','maison'],['🏍️','moto'],['🐑','mouton'],['✋','main']]],['S',[['☀️','soleil'],['🐍','serpent'],['🎄','sapin'],['🐭','souris']]],['P',[['🍎','pomme'],['🐟','poisson'],['🦋','papillon'],['🍞','pain'],['🐔','poule']]],['B',[['🎈','ballon'],['⛵','bateau'],['🍌','banane'],['👶','bébé']]],['L',[['🐰','lapin'],['🌙','lune'],['🦁','lion'],['🛏️','lit']]],['R',[['🤖','robot'],['🐀','rat'],['🦊','renard'],['📻','radio']]],['F',[['🍓','fraise'],['🌸','fleur'],['🔥','feu'],['🚀','fusée']]],['V',[['🚲','vélo'],['🐄','vache'],['🚗','voiture']]],['T',[['🐢','tortue'],['🍅','tomate'],['🚂','train'],['🐯','tigre']]],['A',[['✈️','avion'],['🍍','ananas'],['🐝','abeille'],['🌳','arbre']]]];
 const LOWER_LOOK=[['b','d','p','q'],['n','m','u','h'],['a','o','e','c'],['l','i','t','f'],['g','q','p','y'],['r','n','m','v'],['s','z','c','x']];
@@ -370,7 +424,13 @@ const STORY1=[
   {t:'C’est l’anniversaire de Tom. Sur son gâteau, il y a 5 bougies. Ses amis lui offrent un camion.',qs:[
     ['Qu’est-ce que Tom reçoit en cadeau ?',['🚚','un camion'],[['🧸','un nounours'],['📚','un livre']]],['Qu’est-ce qu’il y a sur le gâteau ?',['🕯️','des bougies'],[['🍓','des fraises'],['🌸','des fleurs']]]]},
   {t:'Il pleut. Hailey met ses bottes et prend son parapluie. Dans la rue, elle saute dans les flaques.',qs:[
-    ['Quel temps fait-il ?',['🌧️','de la pluie'],[['☀️','du soleil'],['❄️','de la neige']]],['Que prend Hailey ?',['☂️','son parapluie'],[['🕶️','ses lunettes'],['🎒','son cartable']]]]}
+    ['Quel temps fait-il ?',['🌧️','de la pluie'],[['☀️','du soleil'],['❄️','de la neige']]],['Que prend Hailey ?',['☂️','son parapluie'],[['🕶️','ses lunettes'],['🎒','son cartable']]]]},
+  {t:'Le matin, Zoé se lève. Elle boit un verre de lait et mange une tartine. Puis elle met ses chaussures pour aller à l’école.',qs:[
+    ['Que boit Zoé ?',['🥛','du lait'],[['🧃','du jus'],['💧','de l’eau']]],['Où va Zoé ?',['🏫','à l’école'],[['🏖️','à la plage'],['🛒','au magasin']]],['Que met-elle avant de partir ?',['👟','ses chaussures'],[['🧤','ses gants'],['🧢','sa casquette']]]]},
+  {t:'Mamie prépare une soupe. Elle met des carottes et des pommes de terre dans la marmite. Le chat regarde, assis sur la chaise.',qs:[
+    ['Que prépare Mamie ?',['🍲','une soupe'],[['🎂','un gâteau'],['🍕','une pizza']]],['Où est assis le chat ?',['🪑','sur la chaise'],[['🛏️','sur le lit'],['🌳','dans l’arbre']]],['Que met-elle dans la soupe ?',['🥕','des carottes'],[['🍅','des tomates'],['🌽','du maïs']]]]},
+  {t:'Au parc, Léo fait du vélo. Sa petite sœur joue au ballon. Papa les regarde et mange une glace.',qs:[
+    ['Que fait Léo ?',['🚲','du vélo'],[['🛴','de la trottinette'],['🏊','de la natation']]],['Avec quoi joue sa petite sœur ?',['⚽','un ballon'],[['🧸','un nounours'],['🚗','une petite voiture']]],['Que mange Papa ?',['🍦','une glace'],[['🍎','une pomme'],['🥪','un sandwich']]]]}
 ];
 const STORY2=[
   {t:'Ce matin, Max met son bonnet, ses gants et son écharpe. Dehors, tout est blanc. Il fabrique un bonhomme avec son papa.',qs:[
@@ -378,8 +438,23 @@ const STORY2=[
   {t:'Nina a très faim. Elle ouvre le frigo, mais il est vide ! Alors Maman l’emmène au magasin.',qs:[
     ['Pourquoi Nina ouvre-t-elle le frigo ?',['😋','elle a faim'],[['😴','elle a sommeil'],['🥶','elle a froid']]],['Où vont Nina et Maman ?',['🛒','au magasin'],[['🏫','à l’école'],['🏖️','à la plage']]]]},
   {t:'Le petit chat est monté tout en haut de l’arbre. Il miaule très fort : il a peur de descendre. Les pompiers arrivent avec une grande échelle.',qs:[
-    ['Où est le chat ?',['🌳','dans l’arbre'],[['🏠','dans la maison'],['🛏️','sur le lit']]],['Pourquoi miaule-t-il ?',['😨','il a peur'],[['😋','il a faim'],['😴','il veut dormir']]],['Qui vient l’aider ?',['🚒','les pompiers'],[['👮','la police'],['👩‍⚕️','la docteure']]]]}
+    ['Où est le chat ?',['🌳','dans l’arbre'],[['🏠','dans la maison'],['🛏️','sur le lit']]],['Pourquoi miaule-t-il ?',['😨','il a peur'],[['😋','il a faim'],['😴','il veut dormir']]],['Qui vient l’aider ?',['🚒','les pompiers'],[['👮','la police'],['👩‍⚕️','la docteure']]]]},
+  {t:'Lola souffle ses bougies et tout le monde chante. Elle ouvre un gros paquet avec un joli ruban. Dedans, il y a un vélo rouge !',qs:[
+    ['Quelle fête est-ce ?',['🎂','son anniversaire'],[['🎄','Noël'],['🎃','Halloween']]],['Qu’y a-t-il dans le paquet ?',['🚲','un vélo'],[['🧸','un nounours'],['📚','des livres']]]]},
+  {t:'Papa met de la crème sur le dos de Sam. Sam prend son seau, sa pelle et son chapeau. Il a hâte de faire un château !',qs:[
+    ['Où va Sam ?',['🏖️','à la plage'],[['🏫','à l’école'],['⛷️','au ski']]],['Quel temps fait-il ?',['☀️','du soleil'],[['🌧️','de la pluie'],['❄️','de la neige']]]]},
+  {t:'Mila bâille et se frotte les yeux. Elle met son pyjama et prend son doudou. Maman lui lit une histoire, puis éteint la lumière.',qs:[
+    ['Quel moment de la journée est-ce ?',['🌙','le soir'],[['☀️','le matin'],['🍽️','midi']]],['Comment se sent Mila ?',['😴','elle a sommeil'],[['😋','elle a faim'],['😠','elle est en colère']]],['Que va faire Mila ?',['🛏️','dormir'],[['🛁','prendre son bain'],['⚽','jouer au ballon']]]]}
 ];
+// Banques des missions ajoutées.
+const CRIS=[['🐱','le chat','miaou'],['🐶','le chien','ouaf ouaf'],['🐮','la vache','meuh'],['🐓','le coq','cocorico'],['🦆','le canard','coin coin'],['🐸','la grenouille','croa croa'],['🐦','l’oiseau','cui cui'],['🦉','le hibou','hou hou'],['🐷','le cochon','groin groin']];
+const EMO=[['😀','qui est content'],['😢','qui est triste'],['😠','qui est en colère'],['😨','qui a peur'],['😴','qui dort'],['😲','qui est surpris'],['🤒','qui est malade']];
+const MOTS_PAREILS=[['LAPIN','SAPIN','LUPIN','LAPIS'],['MOTO','MOTS','TOMO','MOTA'],['PAPA','PAPI','PIPA','BABA'],['MAMAN','MAMIE','NAMAN','MANAM'],['CHAT','CHAR','CHUT','CAHT'],['LUNE','LUGE','LUNA','NULE'],['VÉLO','VOLÉ','VÉLA','VOLE'],['ROBE','ROSE','BORE','ROBA'],['POULE','BOULE','POULS','LOUPE'],['MAISON','RAISON','MASION','MAISNO'],['HAILEY','HALLEY','HAIELY','HAYLEI']];
+// Mots où l'on entend une seule de ces quatre voyelles : deux mots de sons différents ne se confondent pas.
+const VOY={a:[['🐱','chat'],['🐄','vache'],['🍌','banane'],['🦆','canard']],i:[['🛏️','lit'],['🍚','riz'],['📕','livre'],['👧','fille']],o:[['🏍️','moto'],['🚲','vélo'],['🤖','robot'],['🍎','pomme']],u:[['🌙','lune'],['🚀','fusée'],['🚌','bus'],['🧱','mur']]};
+const SYL1=[['🏍️','moto','mo'],['🐰','lapin','la'],['🍅','tomate','to'],['🥗','salade','sa'],['🤖','robot','ro'],['🚲','vélo','vé'],['🚀','fusée','fu'],['🍌','banane','ba'],['🦆','canard','ca'],['🐭','souris','sou'],['🍋','citron','ci'],['🦒','girafe','gi'],['👶','bébé','bé'],['🥔','patate','pa'],['🐑','mouton','mou'],['🎈','ballon','ba'],['🐨','koala','ko'],['🧸','nounours','nou'],['🦁','lion','li'],['🐔','poulet','pou']];
+const PETITS=[['le','la','les','il'],['un','une','mon','ma'],['papa','maman','papi','mamie'],['il','elle','un','et'],['sur','sous','dans','avec'],['je','tu','il','le'],['des','les','mes','tes']];
+const LIRE=[['moto','🏍️'],['vélo','🚲'],['lune','🌙'],['lit','🛏️'],['rat','🐀'],['robot','🤖'],['tomate','🍅'],['banane','🍌'],['salade','🥗'],['lama','🦙'],['bébé','👶'],['bus','🚌'],['café','☕'],['fusée','🚀'],['ananas','🍍'],['tortue','🐢'],['carotte','🥕'],['pomme','🍎'],['radio','📻'],['vache','🐄']];
 function storyQ(bank){const T=pick(bank),[qq,good,wr]=pick(T.qs),c=picCh(good,wr);
   return {p:'Écoute l’histoire, puis réponds',q:`<div class="text">${T.t}</div><div class="qq">${qq}</div>`,say:`${T.t} … ${qq} ${cap(orList(c.names))} ?`,type:'choice',cls:'pics',keep:true,choices:c.choices,answer:c.answer,explain:`La réponse : ${good[1]}. Écoute encore l’histoire, elle le dit.`};}
 
@@ -399,7 +474,7 @@ const GF={
     return {p:'Combien de syllabes ? Tape dans tes mains 👏',q:`<div class="pic">${e}</div><div class="mid">${w}</div>`,say:`${cap(w)}. Combien de syllabes dans ${w} ? Tape dans tes mains.`,type:'choice',cls:'nums',keep:true,choices:['1','2','3','4'],answer:String(n),
       explain:`${seg} : ${n} syllabe${n>1?'s':''}.`,explainSay:`${seg.split('-').join(', ')}. ${n} syllabe${n>1?'s':''}.`};},
   L7(){const L=pick(ABC),look=LOOK.find(g=>g.includes(L)),pool=look&&Math.random()<.5?look.filter(c=>c!==L):ABC.filter(c=>c!==L);
-    return {p:`Montre la lettre ${L}`,q:LISTEN,say:`Montre la lettre ${L}.`,type:'choice',cls:'letters',keep:true,choices:uniqChoices(L,pool,4),answer:L,explain:`Voici la lettre ${L}.`};},
+    return {p:heard('Montre la lettre que tu entends',`Montre la lettre ${L}`),q:LISTEN,say:`Montre la lettre ${L}.`,type:'choice',cls:'letters',keep:true,choices:uniqChoices(L,pool,4),answer:L,explain:`Voici la lettre ${L}.`};},
   L8(){const [gi,g]=pick(INIT),[t,good]=shuffle(g),others=shuffle(INIT.filter(x=>x[0]!==gi)).slice(0,2).map(x=>pick(x[1])),c=picCh(good,others);
     return {p:`Qu’est-ce qui commence comme « ${t[1]} » ?`,q:`<div class="pic">${t[0]}</div><div class="mid">${t[1]}</div>`,say:`Qu’est-ce qui commence par le même son que ${t[1]} ? ${cap(orList(c.names))} ?`,type:'choice',cls:'pics',keep:true,choices:c.choices,answer:c.answer,
       explain:`${cap(t[1])} et ${good[1]} commencent par le même son.`};},
@@ -410,8 +485,28 @@ const GF={
     return {p:'Trouve la même lettre en minuscule',q:`<div class="big">${U}</div>`,say:`Voici la lettre ${U} en capitale. Trouve la même lettre en minuscule.`,type:'choice',cls:'letters',keep:true,choices:shuffle(g),answer:u,explain:`${U} en capitale, ${u} en minuscule.`};},
   L11(){const C=pick(['m','l','p','r','s','f','v','t']),V=pick(['a','i','o','u']),ans=C+V;
     const wr=[...['a','i','o','u'].filter(v=>v!==V).map(v=>C+v),...['m','l','p','r','s','f','v','t'].filter(c=>c!==C).map(c=>c+V)];
-    return {p:`Montre la syllabe « ${ans} »`,q:LISTEN,say:`Montre la syllabe ${ans}.`,type:'choice',cls:'letters',keep:true,choices:uniqChoices(ans,wr,4),answer:ans,explain:`${C.toUpperCase()} et ${V.toUpperCase()}, ça fait « ${ans} ».`,explainSay:`${C} et ${V}, ça fait ${ans}.`};},
-  L12(){return storyQ(STORY2);}
+    return {p:heard('Montre la syllabe que tu entends',`Montre la syllabe « ${ans} »`),q:LISTEN,say:`Montre la syllabe ${ans}.`,type:'choice',cls:'letters',keep:true,choices:uniqChoices(ans,wr,4),answer:ans,explain:`${C.toUpperCase()} et ${V.toUpperCase()}, ça fait « ${ans} ».`,explainSay:`${C} et ${V}, ça fait ${ans}.`};},
+  L12(){return storyQ(STORY2);},
+
+  // ----- Missions ajoutées -----
+  L13(){const r=shuffle(CRIS),t=r[0],c=picCh([t[0],t[1]],r.slice(1,3).map(x=>[x[0],x[1]]));
+    return {p:`Qui fait « ${t[2]} » ?`,q:LISTEN,say:`Quel animal fait ${t[2]} ? ${cap(orList(c.names))} ?`,type:'choice',cls:'pics',keep:true,choices:c.choices,answer:c.answer,explain:`C’est ${t[1]} qui fait « ${t[2]} ».`};},
+  L14(){const [A,...B]=shuffle(CAT),good=pick(A[1]);
+    return {p:`Montre ${A[2]}`,q:LISTEN,say:`Montre ${A[2]}.`,type:'choice',cls:'pics',keep:true,choices:shuffle([good,...B.slice(0,2).map(x=>pick(x[1]))]),answer:good,explain:`Voici ${A[2]}.`};},
+  L15(){const r=shuffle(EMO).slice(0,3),t=r[0];
+    return {p:`Montre le visage ${t[1]}`,q:LISTEN,say:`Montre le visage ${t[1]}.`,type:'choice',cls:'pics',keep:true,choices:shuffle(r.map(x=>x[0])),answer:t[0],explain:`Voici le visage ${t[1]}.`};},
+  L16(){const g=pick(MOTS_PAREILS),t=pick(g);
+    return {p:'Trouve le même mot',q:`<div class="big">${t}</div>`,say:'Trouve le même mot. Regarde bien toutes les lettres.',type:'choice',cls:'words',keep:true,choices:shuffle(g),answer:t,explain:'Il faut les mêmes lettres, dans le même ordre.'};},
+  L17(){const v=pick(Object.keys(VOY)),good=pick(VOY[v]),others=shuffle(Object.keys(VOY).filter(x=>x!==v)).slice(0,2).map(x=>pick(VOY[x])),c=picCh(good,others);
+    return {p:`Où entends-tu le son « ${v} » ?`,q:`<div class="big">${v}</div>`,say:`Dans quel mot entends-tu le son ${v} ? ${cap(orList(c.names))} ?`,type:'choice',cls:'pics',keep:true,choices:c.choices,answer:c.answer,explain:`On entend « ${v} » dans ${good[1]}.`};},
+  L18(){const i=R(0,22),seq=ABC.slice(i,i+3),ans=ABC[i+3];
+    return {p:'Quelle lettre vient après ?',q:`<div class="big">${seq.join(' ')} ${SLOT}</div>`,say:`Quelle lettre vient après ? ${seq.join(', ')}…`,type:'choice',cls:'letters',keep:true,choices:uniqChoices(ans,ABC.filter(c=>c!==ans&&!seq.includes(c)),4),answer:ans,explain:`Dans l’alphabet : ${seq.join(', ')}, ${ans}.`};},
+  L19(){const [e,w,sy]=pick(SYL1),all=[...new Set(SYL1.map(x=>x[2]))].filter(x=>x!==sy);
+    return {p:'Par quelle syllabe commence le mot ?',q:`<div class="pic">${e}</div>`,say:`Par quelle syllabe commence le mot ${w} ?`,type:'choice',cls:'letters',keep:true,choices:uniqChoices(sy,all,3),answer:sy,explain:`${cap(w)} commence par « ${sy} ».`,explainSay:`${cap(w)} commence par ${sy}.`};},
+  L20(){const g=pick(PETITS),t=pick(g);
+    return {p:heard('Montre le mot que tu entends',`Montre le mot « ${t} »`),q:LISTEN,say:`Montre le mot : ${t}.`,type:'choice',cls:'words',keep:true,choices:shuffle(g),answer:t,explain:`Voici le mot « ${t} ».`,explainSay:`Voici le mot ${t}.`};},
+  L21(){const r=shuffle(LIRE).slice(0,3),t=r[0],im=x=>`<span class="pe">${x[1]}</span>`;
+    return {p:'Lis le mot, puis montre la bonne image',q:`<div class="big">${t[0]}</div>`,say:'Lis le mot, puis montre la bonne image.',type:'choice',cls:'pics',keep:true,choices:shuffle(r.map(im)),answer:im(t),explain:`Ce mot, c’est « ${t[0]} ».`};}
 };
 
 /* ---------- Niveaux ---------- */
@@ -420,39 +515,60 @@ const STAGES=[{n:'Moyenne section',d:'Pour bien commencer'},{n:'Grande section',
 const LEVELS={
   maths:[
     ['N1',0,'Compter jusqu’à 5','Dessine 3 ronds sur ta feuille.','🖐️'],
+    ['N17',0,'Les couleurs','Dessine un rond rouge et un carré bleu.','🎨'],
     ['N2',0,'Plus ou moins','Dessine 2 fleurs d’un côté et 4 fleurs de l’autre. Montre où il y en a le plus.','⚖️'],
+    ['N18',0,'Grand ou petit','Dessine un petit ballon et un grand ballon.','🐘'],
     ['N3',0,'Les formes','Dessine un rond, un carré et un triangle.','🔺'],
+    ['N19',0,'Le même dessin','Dessine deux fleurs exactement pareilles.','🔍'],
     ['N4',0,'Les suites','Dessine une suite : rond, croix, rond, croix…','🔁'],
+    ['N20',0,'Long ou court','Trace un trait long et un trait court.','📏'],
     ['N5',0,'Les chiffres de 1 à 5','Écris le chiffre 3, avec l’aide d’un adulte.','🔢'],
     ['N6',1,'Compter jusqu’à 10','Dessine 7 points, puis compte-les avec ton doigt.','🔟'],
     ['N7',1,'Le dé','Dessine un dé qui montre 5 points.','🎲'],
+    ['N21',1,'Les formes autour de nous','Trouve dans la maison un objet rond et un objet rectangle, puis dessine-les.','🍕'],
     ['N8',1,'Les chiffres de 0 à 9','Écris les chiffres 1, 2, 3, 4 et 5.','✏️'],
+    ['N22',1,'Juste avant, juste après','Écris le nombre qui vient juste après 4, avec l’aide d’un adulte.','↔️'],
     ['N9',1,'Un de plus, un de moins','Dessine 4 ballons, puis ajoute-en 1. Combien maintenant ?','➕'],
     ['N10',1,'Combien il manque ?','Dessine une boîte de 5 œufs avec 3 œufs dedans.','🥚'],
+    ['N23',1,'Premier, dernier','Dessine trois animaux qui font la course. Entoure le premier.','🏁'],
     ['N11',1,'Sur, sous, à côté','Dessine un chat sur une table.','📦'],
     ['N12',2,'Les nombres jusqu’à 20','Écris les nombres de 1 à 10.','💯'],
+    ['N24',2,'Compter jusqu’à 20','Dessine 12 petits ronds, puis compte-les.','🧮'],
+    ['N25',2,'Les nombres de 10 à 20','Écris les nombres 10, 11 et 12.','🎯'],
     ['N13',2,'Petites additions','Dessine 2 pommes et 3 pommes. Combien en tout ?','🍎'],
+    ['N26',2,'Les doubles','Dessine deux dés qui montrent le même nombre.','✌️'],
+    ['N27',2,'Petites soustractions','Dessine 5 ballons, puis barre-en 2. Combien en reste-t-il ?','➖'],
     ['N14',2,'Le plus grand nombre','Écris un grand nombre et un petit nombre.','🦒'],
+    ['N28',2,'Dix et encore','Dessine une boîte de 10 œufs et 2 œufs à côté. Combien en tout ?','🧺'],
     ['N15',2,'Petits problèmes','Invente une petite histoire avec des bonbons et raconte-la à un adulte.','🍬'],
     ['N16',2,'Les suites difficiles','Dessine une suite : rond, rond, carré, rond, rond, carré…','🧩']
   ],
   fr:[
     ['L1',0,'La même lettre','Écris la lettre O, puis la lettre E.','🔤'],
     ['L2',0,'Mon prénom','Écris ton prénom en lettres capitales : HAILEY.','👧'],
+    ['L13',0,'Les cris des animaux','Imite 3 animaux et fais-les deviner à un adulte.','🐮'],
     ['L3',0,'L’intrus','Dessine 3 fruits et 1 animal.','🧐'],
+    ['L14',0,'Les familles','Dessine un fruit, un animal et un vêtement.','🥕'],
+    ['L15',0,'Les émotions','Dessine un visage content et un visage triste.','😀'],
     ['L4',0,'Écoute l’histoire','Dessine ce que tu as préféré dans l’histoire.','📖'],
     ['L5',1,'Les rimes','Trouve un mot qui rime avec « chat » et dis-le à un adulte.','🎵'],
     ['L6',1,'Les syllabes','Tape dans tes mains pour ton prénom : Hai-ley. Combien de syllabes ?','👏'],
+    ['L16',1,'Le même mot','Recopie le mot PAPA, lettre après lettre.','🔎'],
     ['L7',1,'Les lettres capitales','Écris les lettres A, B et C.','🅰️'],
+    ['L17',1,'J’entends le son…','Dessine quelque chose où on entend « a », comme dans « chat ».','🎧'],
     ['L8',1,'Le son du début','Dessine 2 choses qui commencent comme « maman ».','👂'],
     ['L9',2,'Les lettres et les sons','Écris la première lettre de « moto ».','🔊'],
     ['L10',2,'Capitales et minuscules','Écris ton prénom en minuscules : hailey.','🔡'],
+    ['L18',2,'L’alphabet','Écris le début de l’alphabet : A, B, C, D, E.','🔠'],
     ['L11',2,'Lire des syllabes','Écris les syllabes ma, mi, mo.','📚'],
+    ['L19',2,'La première syllabe','Tape dans tes mains les syllabes de « banane », puis écris « ba ».','🗣️'],
+    ['L20',2,'Les petits mots','Recopie les mots : le, la, un.','📝'],
+    ['L21',2,'Je lis un mot','Recopie le mot « moto », puis dessine-le.','🤓'],
     ['L12',2,'Écoute et réfléchis','Raconte l’histoire à un adulte avec tes mots.','💭']
   ]
 };
 const GEN=Object.assign({},GM,GF);
-const MOVES=['Saute comme une grenouille, 5 fois.','Marche comme un gros éléphant.','Vole comme un oiseau : bats des ailes !','Fais la statue : ne bouge plus du tout !','Marche sur la pointe des pieds, comme une petite souris.','Étire-toi comme un chat, tout en haut.','Tape 5 fois dans tes mains.','Tourne doucement sur toi-même, une fois.','Saute sur place comme un kangourou.','Touche ta tête, tes épaules, tes genoux et tes pieds.'];
+const MOVES=['Saute comme une grenouille, 5 fois.','Marche comme un gros éléphant.','Vole comme un oiseau : bats des ailes !','Fais la statue : ne bouge plus du tout !','Marche sur la pointe des pieds, comme une petite souris.','Étire-toi comme un chat, tout en haut.','Tape 5 fois dans tes mains.','Tourne doucement sur toi-même, une fois.','Saute sur place comme un kangourou.','Touche ta tête, tes épaules, tes genoux et tes pieds.','Rampe comme un serpent sur le tapis.','Fais le flamant rose : tiens sur une jambe.','Galope comme un petit cheval.','Fais-toi toute petite comme une graine, puis grandis comme une fleur.'];
 const PRAISE=['Bravo !','Super !','Génial !','Oui, c’est ça !','Trop forte !','Bien joué !','Youpi !'];
 
 /* ---------- État ---------- */
@@ -473,6 +589,7 @@ function ensureFields(){
   S.usage={day:typeof u.day==='string'?u.day:'',sec:Math.max(0,+u.sec||0),bonus:Math.max(0,+u.bonus||0)};
   if(!Array.isArray(S.moveBag))S.moveBag=[];                              // mouvements pas encore tirés
   if(typeof S.lastMove!=='number')S.lastMove=-1;
+  if(![5,8,10].includes(S.qCount))S.qCount=5;                              // questions par mission
   if(typeof S.autoRead!=='boolean')S.autoRead=true;                        // lire les questions toute seule
 }
 ensureFields();
@@ -508,6 +625,7 @@ function cleanState(d){
   // Le code parent voyage avec la sauvegarde ; s'il n'y en a pas, on garde celui de cet appareil.
   o.pin=typeof d.pin==='string'&&/^\d{4}$/.test(d.pin)?d.pin:S.pin;
   o.limitMin=int(d.limitMin,0,240,S.limitMin);
+  o.qCount=[5,8,10].includes(+d.qCount)?+d.qCount:S.qCount;
   o.autoRead=d.autoRead!==false;
   return o;
 }
@@ -541,7 +659,14 @@ const $=s=>document.querySelector(s);
 const view=()=>document.getElementById('view');
 const lvls=t=>LEVELS[t].map(([id,stage,title,crayon,emo],i)=>({id,stage,title,crayon,emo,i,track:t}));
 const findLvl=id=>[...lvls('maths'),...lvls('fr')].find(l=>l.id===id);
-const unlocked=l=>S.unlockAll||l.i===0||(S.stars[lvls(l.track)[l.i-1].id]||0)>=1;
+// Une mission s'ouvre quand la précédente a au moins 1 étoile. Tout ce qui se trouve avant la mission réussie
+// la plus avancée reste ouvert : ajouter de nouvelles missions au milieu ne reverrouille donc rien.
+const lastDone=t=>{let m=-1;lvls(t).forEach(l=>{if((S.stars[l.id]||0)>=1)m=l.i;});return m;};
+const unlocked=l=>S.unlockAll||l.i===0||l.i<=lastDone(l.track)||(S.stars[lvls(l.track)[l.i-1].id]||0)>=1;
+const QN=()=>S.qCount||5;
+// Mission surprise : un mélange de questions tirées des missions déjà réussies de la matière.
+const MIX_MIN=3;
+const mixPool=t=>lvls(t).filter(l=>(S.stars[l.id]||0)>=1);
 const totalStars=()=>Object.values(S.stars).reduce((a,b)=>a+b,0)+Object.values(S.crayon).filter(Boolean).length;
 
 function renderHome(){
@@ -554,10 +679,12 @@ function renderHome(){
     <button class="tab sticker maths" role="tab" aria-selected="${track==='maths'}" data-track="maths"><span class="ic">123</span>Nombres</button>
     <button class="tab sticker fr" role="tab" aria-selected="${track==='fr'}" data-track="fr"><span class="ic">Aa</span>Lettres</button>
   </div>
-  <p class="intro">Choisis une mission : 5 questions écoutées, puis un défi dessin. Gagne au moins 1 étoile pour ouvrir la suivante.</p>`;
+  <p class="intro">Choisis une mission : ${QN()} questions écoutées, puis un défi dessin. Gagne au moins 1 étoile pour ouvrir la suivante.</p>`;
+  if(mixPool(track).length>=MIX_MIN)html+=`<button class="mix sticker" id="mixBtn"><span class="mixic" aria-hidden="true">🎲</span><span><b>Mission surprise</b><small>Un mélange de ce que tu sais déjà faire</small></span></button>`;
   STAGES.forEach((st,si)=>{
-    html+=`<section><div class="stage-h"><span class="pill">${st.n}</span><p>${st.d}</p></div><div class="grid">`;
-    L.filter(l=>l.stage===si).forEach(l=>{
+    const SL=L.filter(l=>l.stage===si),ok=SL.filter(l=>S.stars[l.id]>=1).length;
+    html+=`<section><div class="stage-h"><span class="pill">${st.n}</span><p>${st.d}</p><span class="cnt2" aria-label="${ok} missions réussies sur ${SL.length}">${ok}/${SL.length}</span></div><div class="grid">`;
+    SL.forEach(l=>{
       const u=unlocked(l),s=S.stars[l.id]||0,isNext=l.id===nextId;
       html+=`<button class="tile sticker ${u?'':'locked'} ${isNext?'next':''}" data-lvl="${l.id}" ${u?'':'disabled aria-disabled="true"'}>
         ${isNext?'<span class="badge">À toi !</span>':''}
@@ -572,18 +699,28 @@ function renderHome(){
   view().querySelectorAll('.tile:not(.locked)').forEach(b=>b.onclick=()=>startLevel(b.dataset.lvl));
   $('#parentBtn').onclick=()=>askPin(renderParent);
   $('#rewBtn').onclick=renderRewards;
+  const mb=$('#mixBtn');if(mb)mb.onclick=()=>startLevel('MIX');
 }
 
-function makeMission(id){
-  const gen=GEN[id],qs=[],keys=new Set();let tries=0;
-  while(qs.length<5&&tries++<80){const q=gen();const k=q.p+q.q+q.answer;if(keys.has(k)&&tries<60)continue;keys.add(k);q._ch=q.type==='choice'?(q.keep?q.choices:shuffle(q.choices)):null;qs.push(q);}
-  return qs;
+// Tire les questions d'une mission, sans doublon. On évite aussi de reposer celles de la mission
+// précédente du même niveau, tant que le générateur a autre chose à proposer.
+const recent={};
+function makeMission(genAt,memo,n){
+  const qs=[],keys=new Set(),old=recent[memo]||new Set();let tries=0;
+  while(qs.length<n&&tries++<400){const q=genAt(qs.length)();const k=q.p+q.q+q.answer;if((keys.has(k)&&tries<140)||(old.has(k)&&tries<50))continue;keys.add(k);q._ch=q.type==='choice'?(q.keep?q.choices:shuffle(q.choices)):null;qs.push(q);}
+  recent[memo]=keys;return qs;
 }
 function startLevel(id){
   if(timeUp()){renderTimeUp();return;}
   if(sessionCount>0&&sessionCount%2===0&&lastPause!==sessionCount){lastPause=sessionCount;showPause(()=>startLevel(id));return;}
-  const l=findLvl(id);track=l.track;document.body.dataset.track=track;
-  M={lvl:l,qs:makeMission(id),i:0,attempt:1,points:0,results:[],entry:'',locked:false};
+  let l,qs;
+  if(id==='MIX'){
+    const pool=shuffle(mixPool(track));if(pool.length<MIX_MIN){renderHome();return;}
+    l={id:'MIX',mix:true,track,title:'Mission surprise'};
+    qs=makeMission(i=>()=>{const src=pool[i%pool.length],q=GEN[src.id]();q._from=src.title;return q;},'MIX-'+track,QN());
+  }else{l=findLvl(id);track=l.track;qs=makeMission(()=>GEN[id],id,QN());}
+  document.body.dataset.track=track;
+  M={lvl:l,qs,i:0,attempt:1,points:0,results:[],entry:'',locked:false};
   renderQuestion();
 }
 function speechText(q){if(q.say)return q.say;const d=document.createElement('div');d.innerHTML=q.p+'. '+q.q.replace(/<span class="slot">\?<\/span>/g,' … ');return d.textContent;}
@@ -602,9 +739,9 @@ function renderQuestion(){
     ans=`<div class="entry empty" id="entry" aria-live="polite">?</div><div class="pad" id="pad">${[1,2,3,4,5,6,7,8,9].map(n=>`<button class="btn" data-k="${n}">${n}</button>`).join('')}<button class="btn" data-k="del" aria-label="Effacer">⌫</button><button class="btn" data-k="0">0</button><button class="btn ok" data-k="ok">OK</button></div>`;
   }
   view().innerHTML=`<div class="mtop"><button class="btn small" id="quit">✕ Quitter</button>
-    <div class="dots" aria-label="Question ${M.i+1} sur 5">${M.qs.map((_,k)=>`<span class="dot ${M.results[k]||''} ${k===M.i?'cur':''}"></span>`).join('')}</div>
+    <div class="dots ${M.qs.length>6?'many':''}" aria-label="Question ${M.i+1} sur ${M.qs.length}">${M.qs.map((_,k)=>`<span class="dot ${M.results[k]||''} ${k===M.i?'cur':''}"></span>`).join('')}</div>
     ${canSpeak?`<button class="btn small" id="listen" aria-label="Écouter la question">${speakSvg}</button>`:'<span></span>'}</div>
-    <div class="level-name">Mission ${M.lvl.i+1} · ${M.lvl.title}</div>
+    <div class="level-name">${M.lvl.mix?`🎲 Mission surprise · ${q._from}`:`Mission ${M.lvl.i+1} · ${M.lvl.title}`}</div>
     <div class="qcard sticker" id="qcard"><div class="prompt">${q.p}</div><div class="qzone">${q.q}</div></div>
     ${ans}<div class="fb" id="fb" aria-live="polite"></div>`;
   window.scrollTo(0,0);
@@ -648,9 +785,9 @@ function next(){M.i++;M.attempt=1;M.locked=false;M.entry='';if(M.i>=M.qs.length)
 
 function finish(){
   curView='result';
-  const l=M.lvl,p=M.points,stars=p>=9?3:p>=7?2:p>=5?1:0;
-  const L=lvls(l.track),nx=L[l.i+1];const wasLocked=nx&&!unlocked(nx);
-  S.stars[l.id]=Math.max(S.stars[l.id]||0,stars);S.missions++;S.wallet+=stars;sessionCount++;save();
+  const l=M.lvl,p=M.points,mx=M.qs.length*2,stars=10*p>=9*mx?3:10*p>=7*mx?2:2*p>=mx?1:0;   // 90 %, 70 %, 50 % des points
+  const L=lvls(l.track),nx=l.mix?null:L[l.i+1];const wasLocked=nx&&!unlocked(nx);
+  if(!l.mix)S.stars[l.id]=Math.max(S.stars[l.id]||0,stars);S.missions++;S.wallet+=stars;sessionCount++;save();
   const newly=wasLocked&&nx&&unlocked(nx),over=timeUp();
   const msg=stars===3?'Mission parfaite !':stars===2?'Super travail !':stars===1?'Mission réussie !':'Tu y es presque !';
   const sub=stars===0?'Encore un essai et tu vas y arriver.':`${M.results.filter(r=>r==='ok').length} bonnes réponses du premier coup.`;
@@ -658,17 +795,17 @@ function finish(){
     <div class="bigstars" aria-label="${stars} étoile${stars>1?'s':''} sur 3">${starSvg(stars>=1)}${starSvg(stars>=2)}${starSvg(stars>=3)}</div>
     <p class="score">${sub}</p>${newly?`<span class="unlock">Mission ${nx.i+1} débloquée !</span>`:''}
     <p class="tirinfo" id="tirinfo"></p>
-    <div class="crayon"><h3>${pencilSvg}Défi dessin</h3><p>${l.crayon}</p><div id="crayonZone"></div></div>
+    ${l.mix?'':`<div class="crayon"><h3>${pencilSvg}Défi dessin</h3><p>${l.crayon}</p><div id="crayonZone"></div></div>`}
     ${over?'<p class="unlock">⏱ Le temps de jeu est fini pour aujourd’hui.</p>':''}
-    <div class="actions">${over?'<button class="btn go" id="endT">Terminer</button>':`${stars>=1&&nx?`<button class="btn go" id="nextL">Mission suivante →</button>`:''}<button class="btn" id="again">${stars===0?'Réessayer':'Rejouer'}</button>`}<button class="btn" id="rew">Récompenses</button>${over?'':'<button class="btn" id="home">Carte</button>'}</div></div>`;
+    <div class="actions">${over?'<button class="btn go" id="endT">Terminer</button>':`${stars>=1&&nx?`<button class="btn go" id="nextL">Mission suivante →</button>`:''}<button class="btn" id="again">${l.mix?'Encore une surprise':stars===0?'Réessayer':'Rejouer'}</button>`}<button class="btn" id="rew">Récompenses</button>${over?'':'<button class="btn" id="home">Carte</button>'}</div></div>`;
   window.scrollTo(0,0);
   const updTir=()=>{$('#tirinfo').innerHTML=(stars?`<b>+${stars} ★</b> dans ta tirelire. `:'')+rewardStatus();};
   let crayonDone=false;
   const cz=()=>{$('#crayonZone').innerHTML=crayonDone?'<span class="done">Défi validé ✓ +1 étoile</span>':'<button class="btn small" id="valid">Un adulte a vérifié ✓ (+1 étoile)</button>';const v=$('#valid');if(v)v.onclick=()=>askPin(()=>{crayonDone=true;S.crayon[l.id]=true;S.crayonN=(S.crayonN||0)+1;S.wallet++;save();cz();updTir();},'Un adulte valide le défi');};
-  cz();updTir();$('#rew').onclick=renderRewards;
+  if(!l.mix)cz();updTir();$('#rew').onclick=renderRewards;
   if(over)$('#endT').onclick=renderTimeUp;
   else{if(nx&&stars>=1)$('#nextL').onclick=()=>startLevel(nx.id);$('#again').onclick=()=>startLevel(l.id);$('#home').onclick=renderHome;}
-  say(`${msg} ${stars?`Tu gagnes ${stars} étoile${stars>1?'s':''}.`:''} Défi dessin : ${l.crayon}`);
+  say(`${msg} ${stars?`Tu gagnes ${stars} étoile${stars>1?'s':''}.`:''} ${l.mix?'':`Défi dessin : ${l.crayon}`}`);
   if(stars===3)confetti();
 }
 function confetti(){if(reduced)return;const cols=['#ffc226','#ff7a3d','#4c5ff5','#1c9e61','#d93b45'];for(let i=0;i<40;i++){const c=document.createElement('span');c.className='cf';c.style.left=Math.random()*100+'vw';c.style.background=pick(cols);c.style.animationDelay=Math.random()*.6+'s';document.body.appendChild(c);setTimeout(()=>c.remove(),3200);}}
@@ -773,6 +910,9 @@ function renderParent(){
     <h3>Lecture à voix haute</h3>
     <p class="hint2">Les questions, les encouragements et les défis sont lus tout seuls. Si on n’entend rien, monte le son et vérifie le bouton silencieux de l’iPhone.</p>
     <div class="row"><button class="btn small" id="readT">${S.autoRead?'Lecture automatique : activée ✓':'Lecture automatique : désactivée'}</button></div>
+    <h3>Longueur des missions</h3>
+    <p class="hint2">Nombre de questions par mission. Si elle finit trop vite, passe à 8 ou 10 questions. Les étoiles se gagnent pareil : il faut la moitié des points pour 1 étoile, 70 % pour 2 et 90 % pour 3.</p>
+    <div class="pinrow"><select id="qSel" aria-label="Questions par mission">${[5,8,10].map(n=>`<option value="${n}" ${n===S.qCount?'selected':''}>${n} questions par mission</option>`).join('')}</select></div>
     <h3>Code parent</h3>
     <p class="hint2">${S.pin?'Le code protège cet espace, la validation des récompenses et celle des défis dessin.':'Optionnel : avec un code à 4 chiffres, elle ne peut plus valider elle-même les récompenses et les défis dessin, ni ouvrir cet espace.'}</p>
     <div class="pinrow"><input id="pinIn" type="password" inputmode="numeric" maxlength="4" placeholder="••••" aria-label="Nouveau code à 4 chiffres"><button class="btn small" id="pinSave">${S.pin?'Changer le code':'Enregistrer le code'}</button>${S.pin?'<button class="btn small" id="pinDel">Supprimer le code</button>':''}</div>
@@ -793,7 +933,8 @@ function renderParent(){
     <li>Le programme suit la maternelle : moyenne section, grande section, puis les premiers pas vers le CP (lettres, sons, syllabes, nombres jusqu’à 20).</li>
     <li>Une pause bouge apparaît toutes les deux missions. Le bouton « J’ai fini ! » ne s’active qu’à la fin des 20 secondes.</li>
     <li>Le bouton haut-parleur relit la question.</li>
-    <li>Une bonne réponse au premier essai vaut 2 points, au deuxième essai 1 point. 9-10 points = 3 étoiles, 7-8 = 2, 5-6 = 1.</li>
+    <li>Une bonne réponse au premier essai vaut 2 points, au deuxième essai 1 point. Avec 5 questions : 9-10 points = 3 étoiles, 7-8 = 2, 5-6 = 1.</li>
+    <li>La mission surprise 🎲 apparaît dès que 3 missions sont réussies dans une matière. Elle mélange des questions déjà vues : c’est la révision.</li>
     <li>Chaque partie remplit la tirelire, même quand elle rejoue une mission. Si elle gagne trop vite, augmente simplement le prix des récompenses.</li>
     <li>Sur iPhone : ouvre la page dans Safari, touche Partager, puis « Sur l’écran d’accueil ». L’icône marche ensuite sans Internet. Attention : elle a sa propre mémoire, séparée de Safari. Si des étoiles ont déjà été gagnées dans Safari, exporte-les puis importe-les dans l’icône.</li></ul>
     <p class="score">La progression est gardée sur cet appareil, dans ce navigateur. « Remettre à zéro » efface les étoiles et la tirelire, mais garde tes récompenses et ton code.</p>
@@ -813,10 +954,11 @@ function renderParent(){
   $('#pinSave').onclick=()=>{const v=$('#pinIn').value.trim();if(!/^\d{4}$/.test(v)){$('#pinMsg').textContent='Le code doit faire exactement 4 chiffres.';return;}S.pin=v;save();renderParent();$('#pinMsg').textContent='Code enregistré. Retiens-le bien.';};
   if(S.pin)$('#pinDel').onclick=()=>{S.pin='';save();renderParent();$('#pinMsg').textContent='Code supprimé.';};
   $('#readT').onclick=()=>{S.autoRead=!S.autoRead;save();renderParent();};
+  $('#qSel').onchange=e=>{S.qCount=parseInt(e.target.value,10)||5;save();};
   $('#limSel').onchange=e=>{S.limitMin=parseInt(e.target.value,10)||0;save();renderParent();};
   if(S.limitMin){$('#addT').onclick=()=>{usage().bonus+=10;save();renderParent();};$('#rstT').onclick=()=>{const u=usage();u.sec=0;u.bonus=0;save();renderParent();};}
   $('#unl').onclick=()=>{S.unlockAll=!S.unlockAll;save();renderParent();};
-  $('#rst').onclick=e=>{if(!resetArmed){resetArmed=true;e.target.textContent='Sûr ? Touche encore pour tout effacer';e.target.style.background='var(--bad-soft)';return;}S={stars:{},crayon:{},crayonN:0,missions:0,unlockAll:false,wallet:0,rewards:S.rewards,claimed:[],pin:S.pin,lastExport:S.lastExport,limitMin:S.limitMin,autoRead:S.autoRead,usage:S.usage,moveBag:S.moveBag,lastMove:S.lastMove};save();renderParent();};
+  $('#rst').onclick=e=>{if(!resetArmed){resetArmed=true;e.target.textContent='Sûr ? Touche encore pour tout effacer';e.target.style.background='var(--bad-soft)';return;}S={stars:{},crayon:{},crayonN:0,missions:0,unlockAll:false,wallet:0,rewards:S.rewards,claimed:[],pin:S.pin,lastExport:S.lastExport,limitMin:S.limitMin,qCount:S.qCount,autoRead:S.autoRead,usage:S.usage,moveBag:S.moveBag,lastMove:S.lastMove};save();renderParent();};
   $('#back').onclick=renderHome;
   bindBackup();
 }
