@@ -216,6 +216,20 @@ mark{background:var(--accent-soft);color:inherit;border-bottom:4px solid var(--a
 .cf{position:fixed;top:-20px;width:10px;height:14px;z-index:20;animation:fall 2.3s linear forwards;pointer-events:none}
 @keyframes fall{to{transform:translateY(110vh) rotate(720deg)}}
 @media (max-width:420px){.answers.row3{grid-template-columns:1fr 1fr 1fr}.choice{font-size:26px}.top h1{font-size:26px}}
+.seqn{font-family:var(--display);font-weight:600;font-size:clamp(26px,7.4vw,44px);text-align:center;line-height:1.3;font-variant-numeric:tabular-nums}
+.figure{width:min(190px,52vw);height:auto;display:block}
+.figure.wide{width:min(310px,86vw)}
+.figure text{font-family:var(--display);font-size:14px;font-weight:600;fill:var(--ink)}
+.bill.b50{background:#ffd3a1}
+.answers.sm .choice{font-size:22px}
+.mix{display:flex;align-items:center;gap:14px;width:100%;margin-top:16px;padding:12px 16px;background:var(--star-soft);text-align:left}
+.mix .mixic{font-size:40px;line-height:1}
+.mix b{display:block;font-family:var(--display);font-weight:600;font-size:21px}
+.mix small{display:block;color:var(--muted);font-size:16px}
+.stage-h .cnt2{margin-left:auto;font-family:var(--display);font-weight:600;color:var(--muted);font-variant-numeric:tabular-nums}
+.dots{flex-wrap:wrap;justify-content:center}
+.dots.many{gap:5px}
+.dots.many .dot{width:13px;height:13px;border-width:2px}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
@@ -261,11 +275,23 @@ function clock(h,m){
   return `<div class="clock"><svg viewBox="0 0 200 200" role="img" aria-label="Horloge"><circle cx="100" cy="100" r="95" class="face"/><g class="ticks">${ticks}</g><g class="nums">${nums}</g><line x1="100" y1="100" x2="100" y2="54" class="hh" transform="rotate(${ha} 100 100)"/><line x1="100" y1="100" x2="100" y2="22" class="mh" transform="rotate(${ma} 100 100)"/><circle cx="100" cy="100" r="7" class="pin"/></svg></div>`;
 }
 
+// Figures de géométrie (missions « Les figures » et « Le périmètre »).
+function poly(n,c){const pts=Array.from({length:n},(_,i)=>{const a=(i*360/n-90+(n===4?45:0))*Math.PI/180;return `${(50+42*Math.cos(a)).toFixed(1)},${(50+42*Math.sin(a)).toFixed(1)}`;}).join(' ');
+  return `<polygon points="${pts}" fill="${c}" stroke="#1b2632" stroke-width="4" stroke-linejoin="round"/>`;}
+const FORMES={carré:c=>poly(4,c),rectangle:c=>`<rect x="6" y="26" width="88" height="48" fill="${c}" stroke="#1b2632" stroke-width="4" stroke-linejoin="round"/>`,triangle:c=>poly(3,c),cercle:c=>`<circle cx="50" cy="50" r="42" fill="${c}" stroke="#1b2632" stroke-width="4"/>`};
+const figure=inner=>`<svg viewBox="0 0 100 100" class="figure" role="img" aria-label="Figure">${inner}</svg>`;
+function rectFig(w,h){const k=Math.min(130/w,80/h),W=w*k,H=h*k,x=(180-W)/2,y=24+(80-H)/2;
+  return `<svg viewBox="0 0 220 116" class="figure wide" role="img" aria-label="Figure avec ses mesures"><rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${W.toFixed(1)}" height="${H.toFixed(1)}" fill="#fff1c7" stroke="#1b2632" stroke-width="3.5" stroke-linejoin="round"/><text x="${(x+W/2).toFixed(1)}" y="${(y-7).toFixed(1)}" text-anchor="middle">${w} cm</text><text x="${(x+W+7).toFixed(1)}" y="${(y+H/2+5).toFixed(1)}">${h} cm</text></svg>`;}
+
 /* ---------- Questions de maths ---------- */
 function cmpQ(a,b){const ans=a<b?'<':a>b?'>':'=';return {p:'Choisis le bon signe',q:`<div class="big">${nf(a)} ${SLOT} ${nf(b)}</div>`,say:`Compare ${a} et ${b}.`,type:'choice',choices:['<','=','>'],keep:true,answer:ans,
   explain:ans==='='?'Les deux nombres sont égaux.':`${nf(Math.min(a,b))} est plus petit que ${nf(Math.max(a,b))}. La pointe du signe montre le plus petit.`};}
 function opQ(a,op,b,ans,explain){const w={'+':'plus','−':'moins','×':'fois'}[op];return {p:'Calcule',q:`<div class="big">${a} ${op} ${b} = ${SLOT}</div>`,say:`${a} ${w} ${b}, ça fait combien ?`,type:'num',answer:String(ans),explain};}
 function tableQ(t,n){const [a,b]=Math.random()<.5?[n,t]:[t,n];const ex=n<=6?`${n} fois ${t}, c’est ${Array(n).fill(t).join(' + ')} = ${n*t}`:`${a} × ${b} = ${n*t}`;return opQ(a,'×',b,n*t,ex);}
+function seqQ(start,step,len){const nums=Array.from({length:len},(_,i)=>start+i*step),ans=start+len*step,d=Math.abs(step);
+  return {p:'Continue la suite',q:`<div class="seqn">${nums.map(nf).join(' · ')} · ${SLOT}</div>`,say:`Continue la suite : ${nums.join(', ')}…`,type:'num',answer:String(ans),explain:`On ${step>0?'ajoute':'enlève'} ${d} à chaque fois : ${nf(nums[len-1])} ${step>0?'+':'−'} ${d} = ${nf(ans)}.`};}
+const JOURS=['lundi','mardi','mercredi','jeudi','vendredi','samedi','dimanche'];
+const MOIS=['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
 function storyQ(T){const [t,ans,ex]=pick(T)();return {p:'Lis le problème et trouve la réponse',q:`<div class="story">${t}</div>`,say:t,type:'num',answer:String(ans),explain:ex};}
 
 const GM={
@@ -284,7 +310,13 @@ const GM={
     ()=>{const a=R(10,40),b=R(3,15);return [`Hailey a ${a} autocollants. Willyam en a ${b} de plus qu’elle. Combien Willyam a-t-il d’autocollants ?`,a+b,`${a} + ${b} = ${a+b}`];},
     ()=>{const a=R(15,40),b=R(3,12);return [`Un paquet contient ${a} gâteaux. On en mange ${b}. Combien en reste-t-il ?`,a-b,`${a} − ${b} = ${a-b}`];},
     ()=>{const a=R(10,35),b=R(10,35);return [`Le chat dort ${a} minutes le matin et ${b} minutes l’après-midi. Combien de minutes dort-il en tout ?`,a+b,`${a} + ${b} = ${a+b}`];},
-    ()=>{const a=R(25,60),b=R(5,20);return [`Papa a ${a} € dans son porte-monnaie. Il achète un livre à ${b} €. Combien lui reste-t-il ?`,a-b,`${a} − ${b} = ${a-b}`];}
+    ()=>{const a=R(25,60),b=R(5,20);return [`Papa a ${a} € dans son porte-monnaie. Il achète un livre à ${b} €. Combien lui reste-t-il ?`,a-b,`${a} − ${b} = ${a-b}`];},
+    ()=>{const a=R(15,40),b=R(5,20);return [`Willyam a lu ${a} pages hier et ${b} pages aujourd’hui. Combien de pages a-t-il lues en tout ?`,a+b,`${a} + ${b} = ${a+b}`];},
+    ()=>{const a=R(20,45),b=R(4,15);return [`Dans la cour, il y a ${a} enfants. ${b} enfants rentrent en classe. Combien d’enfants restent dans la cour ?`,a-b,`${a} − ${b} = ${a-b}`];},
+    ()=>{const a=R(20,50),b=R(5,18);return [`Mamie a cueilli ${a} cerises. Elle en donne ${b} à Hailey. Combien de cerises lui reste-t-il ?`,a-b,`${a} − ${b} = ${a-b}`];},
+    ()=>{const a=R(8,30),b=R(8,30);return [`Sur le parking, il y a ${a} voitures rouges et ${b} voitures bleues. Combien de voitures en tout ?`,a+b,`${a} + ${b} = ${a+b}`];},
+    ()=>{const a=R(7,9),b=R(22,30);return [`Willyam a ${a} ans. Son papa a ${b} ans de plus que lui. Quel âge a son papa ?`,a+b,`${a} + ${b} = ${a+b}`];},
+    ()=>{const a=R(20,40),b=R(5,a-5);return [`Il y avait ${a} bonbons dans le bocal. Il en reste ${b}. Combien de bonbons ont été mangés ?`,a-b,`${a} − ${b} = ${a-b}`];}
   ]);},
   M8(){const h=R(1,12),m=pick([0,30]),nx=h===12?1:h+1,pv=h===1?12:h-1;
     const wr=m===0?[hm(h,30),hm(nx,0),hm(pv,0),hm(nx,30)]:[hm(h,0),hm(nx,30),hm(pv,30),hm(nx,0)];
@@ -327,13 +359,83 @@ const GM={
     ()=>{const n=R(2,6),k=pick([2,5,10]),e=R(1,9);return [`Il y a ${n} boîtes de ${k} crayons et encore ${e} crayons tout seuls. Combien de crayons en tout ?`,n*k+e,`${n} × ${k} = ${n*k}, puis ${n*k} + ${e} = ${n*k+e}`];},
     ()=>{const g=R(10,15),f=R(10,15),a=R(2,5);return [`Dans la classe, il y a ${g} garçons et ${f} filles. Aujourd’hui, ${a} élèves sont absents. Combien d’élèves sont présents ?`,g+f-a,`${g} + ${f} = ${g+f}, puis ${g+f} − ${a} = ${g+f-a}`];},
     ()=>{const p=R(5,20);return [`Lundi, Willyam lit ${p} pages de son livre. Mardi, il en lit le double. Combien de pages a-t-il lues en tout ?`,3*p,`Mardi : ${p} + ${p} = ${2*p}. En tout : ${p} + ${2*p} = ${3*p}`];},
-    ()=>{const t=R(3,5),e=R(4,8),m=R(2,6);return [`À la fête, il y a ${t} tables de ${e} enfants. Puis ${m} enfants arrivent en retard. Combien d’enfants en tout ?`,t*e+m,`${t} × ${e} = ${t*e}, puis ${t*e} + ${m} = ${t*e+m}`];}
-  ]);}
+    ()=>{const t=R(3,5),e=R(4,8),m=R(2,6);return [`À la fête, il y a ${t} tables de ${e} enfants. Puis ${m} enfants arrivent en retard. Combien d’enfants en tout ?`,t*e+m,`${t} × ${e} = ${t*e}, puis ${t*e} + ${m} = ${t*e+m}`];},
+    ()=>{const n=R(2,6);return [`À la boulangerie, Maman achète ${n} croissants à 2 € et une baguette à 1 €. Combien paie-t-elle ?`,2*n+1,`${n} × 2 = ${2*n}, puis ${2*n} + 1 = ${2*n+1} €`];},
+    ()=>{const a=R(15,30),b=R(4,10),c=R(2,8);return [`Willyam avait ${a} billes. Il en gagne ${b} le matin, puis il en perd ${c} l’après-midi. Combien de billes a-t-il le soir ?`,a+b-c,`${a} + ${b} = ${a+b}, puis ${a+b} − ${c} = ${a+b-c}`];},
+    ()=>{const n=R(2,5),k=pick([5,10]),m=R(2,8);return [`Hailey a ${n} sachets de ${k} bonbons. Elle mange ${m} bonbons. Combien de bonbons lui reste-t-il ?`,n*k-m,`${n} × ${k} = ${n*k}, puis ${n*k} − ${m} = ${n*k-m}`];},
+    ()=>{const a=R(15,30),b=R(3,10),c=R(2,9);return [`Dans le car, il y a ${a} élèves. Au premier arrêt, ${b} élèves montent. Au deuxième arrêt, ${c} élèves descendent. Combien d’élèves reste-t-il dans le car ?`,a+b-c,`${a} + ${b} = ${a+b}, puis ${a+b} − ${c} = ${a+b-c}`];}
+  ]);},
+
+  // ----- Missions ajoutées -----
+  M20(){const t=Math.random()<.6?10:20,a=R(1,t-1);return {p:`Complète pour faire ${t}`,q:`<div class="big">${a} + ${SLOT} = ${t}</div>`,say:`${a} plus combien, ça fait ${t} ?`,type:'num',answer:String(t-a),explain:`${a} + ${t-a} = ${t}.`};},
+  M21(){const st=pick([2,5,10]);
+    if(Math.random()<.25)return seqQ(st===2?R(10,30):st===5?R(6,12)*5:R(6,9)*10+R(0,9),-st,4);
+    return seqQ(st===2?R(0,40):st===5?R(0,10)*5:R(1,49),st,4);},
+  M22(){const n=Math.random()<.7?R(60,99):R(11,59);
+    if(Math.random()<.5)return {p:'Écris ce nombre en chiffres',q:`<div class="mid">${frNum(n)}</div>`,type:'num',answer:String(n),explain:`${frNum(n)} = ${n}`};
+    const d=Math.floor(n/10),u=n%10,w=[n+10,n-10,u*10+d,n+1,n-1,n+20].filter(x=>x>=10&&x<=99&&x!==n).map(frNum);
+    return {p:'Comment s’écrit ce nombre ?',q:`<div class="big">${n}</div>`,say:`Comment s’écrit le nombre ${n} ?`,type:'choice',cls:'list',choices:uniqChoices(frNum(n),w),answer:frNum(n),explain:`${n} s’écrit « ${frNum(n)} ».`};},
+  M23(){const n=Math.random()<.5?R(1,99):R(100,999),e=n%2===0;return {p:'Pair ou impair ?',q:`<div class="big">${n}</div>`,say:`${n} : pair ou impair ?`,type:'choice',choices:['pair','impair'],keep:true,answer:e?'pair':'impair',explain:`On regarde le chiffre des unités : ${n%10}. Les nombres pairs finissent par 0, 2, 4, 6 ou 8.`};},
+  M24(){const k=R(0,4);
+    if(k===0){const [t,a,ex]=pick([['Combien de jours y a-t-il dans une semaine ?',7,`Une semaine a 7 jours : ${JOURS.join(', ')}.`],['Combien de mois y a-t-il dans une année ?',12,'Une année a 12 mois, de janvier à décembre.'],['Combien de saisons y a-t-il dans une année ?',4,'Les 4 saisons : le printemps, l’été, l’automne et l’hiver.'],['Combien de jours dure un week-end ?',2,'Le week-end, c’est le samedi et le dimanche : 2 jours.']]);
+      return {p:'Le calendrier',q:`<div class="mid">${t}</div>`,say:t,type:'num',answer:String(a),explain:ex};}
+    if(k===3){const i=R(0,11),af=Math.random()<.6,a=MOIS[(i+(af?1:11))%12],t=`Quel mois vient juste ${af?'après':'avant'} ${MOIS[i]} ?`;
+      return {p:'Les mois de l’année',q:`<div class="mid">${t}</div>`,say:t,type:'choice',cls:'list',choices:uniqChoices(a,MOIS.filter(x=>x!==a&&x!==MOIS[i])),answer:a,explain:`Les mois dans l’ordre : ${MOIS.join(', ')}.`};}
+    const i=R(0,6);let a,t;
+    if(k===4){const [d,w]=pick([[1,'Quel jour serons-nous demain ?'],[2,'Quel jour serons-nous après-demain ?'],[6,'Quel jour étions-nous hier ?']]);a=JOURS[(i+d)%7];t=`Aujourd’hui, nous sommes ${JOURS[i]}. ${w}`;}
+    else{const af=Math.random()<.6;a=JOURS[(i+(af?1:6))%7];t=`Quel jour vient juste ${af?'après':'avant'} ${JOURS[i]} ?`;}
+    return {p:'Les jours de la semaine',q:`<div class="mid">${t}</div>`,say:t,type:'choice',cls:'list',choices:uniqChoices(a,JOURS.filter(x=>x!==a&&x!==JOURS[i])),answer:a,explain:`Les jours dans l’ordre : ${JOURS.join(', ')}.`};},
+  M25(){const c=pick(['#ffd9c7','#d6dcff','#fff1c7','#d5f2e3']);
+    if(Math.random()<.45){const n=pick(['carré','rectangle','triangle','cercle']);
+      const tips={carré:'Le carré a 4 côtés de la même longueur.',rectangle:'Le rectangle a 4 côtés : 2 longs et 2 courts.',triangle:'Le triangle a 3 côtés.',cercle:'Le cercle est tout rond : il n’a pas de côté.'};
+      return {p:'Comment s’appelle cette figure ?',q:figure(FORMES[n](c)),say:'Comment s’appelle cette figure ?',type:'choice',choices:['carré','rectangle','triangle','cercle'],keep:true,answer:n,explain:`C’est un ${n}. ${tips[n]}`};}
+    const n=pick([3,4,4,5,6]),som=Math.random()<.4,inner=n===4&&Math.random()<.5?FORMES.rectangle(c):poly(n,c);
+    return {p:som?'Combien de sommets (les pointes) ?':'Combien de côtés ?',q:figure(inner),say:som?'Combien de sommets a cette figure ? Les sommets, ce sont les pointes.':'Combien de côtés a cette figure ?',type:'num',answer:String(n),explain:`Cette figure a ${n} côtés et ${n} sommets. Compte-les avec ton doigt.`};},
+  M26(){const a=R(101,799),b=R(101,999-a);return opQ(a,'+',b,a+b,'Pose en colonnes : d’abord les unités, puis les dizaines, puis les centaines. N’oublie pas les retenues.');},
+  M27(){if(Math.random()<.65){const n=R(2,99);return opQ(n,'×',10,n*10,`Pour multiplier par 10, on écrit un zéro à droite : ${n} → ${n*10}.`);}
+    const n=R(2,30);return opQ(n,'×',100,n*100,`Pour multiplier par 100, on écrit deux zéros à droite : ${n} → ${nf(n*100)}.`);},
+  M28(){const a=R(13,80),k=R(0,3);
+    if(k===0)return opQ(a,'+',9,a+9,`Ajouter 9, c’est ajouter 10 puis enlever 1 : ${a} + 10 = ${a+10}, et ${a+10} − 1 = ${a+9}.`);
+    if(k===1)return opQ(a,'+',11,a+11,`Ajouter 11, c’est ajouter 10 puis encore 1 : ${a} + 10 = ${a+10}, et ${a+10} + 1 = ${a+11}.`);
+    if(k===2)return opQ(a,'−',9,a-9,`Enlever 9, c’est enlever 10 puis rajouter 1 : ${a} − 10 = ${a-10}, et ${a-10} + 1 = ${a-9}.`);
+    return opQ(a,'−',11,a-11,`Enlever 11, c’est enlever 10 puis encore 1 : ${a} − 10 = ${a-10}, et ${a-10} − 1 = ${a-11}.`);},
+  M29(){const st=pick([10,100,50,25]);
+    if(Math.random()<.7)return seqQ(st===10?R(100,940):st===100?R(1,5)*100+R(0,99):st===50?R(0,12)*50:R(0,8)*25,st,3);
+    return seqQ(st===10?R(140,990):st===100?R(5,9)*100+R(0,99):st===50?R(6,19)*50:R(8,20)*25,-st,3);},
+  M30(){return storyQ([
+    ()=>{const n=R(2,6),k=pick([2,3,4,5,10]);return [`Il y a ${n} paquets de ${k} gâteaux. Combien de gâteaux y a-t-il en tout ?`,n*k,`${n} × ${k} = ${n*k}`];},
+    ()=>{const n=R(2,5),k=pick([2,3,4,5]);return [`Willyam range ses petites voitures : ${n} rangées de ${k} voitures. Combien de voitures a-t-il ?`,n*k,`${n} × ${k} = ${n*k}`];},
+    ()=>{const n=R(2,9);return [`Un vélo a 2 roues. Combien de roues ont ${n} vélos ?`,2*n,`${n} × 2 = ${2*n}`];},
+    ()=>{const n=R(2,8);return [`Une main a 5 doigts. Combien de doigts y a-t-il sur ${n} mains ?`,5*n,`${n} × 5 = ${5*n}`];},
+    ()=>{const n=R(2,6),k=R(2,5);return [`Hailey colle ${k} gommettes sur chaque page. Elle remplit ${n} pages. Combien de gommettes a-t-elle collées ?`,n*k,`${n} × ${k} = ${n*k}`];},
+    ()=>{const n=R(2,7);return [`Une voiture a 4 roues. Combien de roues ont ${n} voitures ?`,4*n,`${n} × 4 = ${4*n}`];},
+    ()=>{const n=R(2,6),p=pick([2,5,10]);return [`Un ticket de manège coûte ${p} €. Combien coûtent ${n} tickets ?`,n*p,`${n} × ${p} = ${n*p} €`];}
+  ]);},
+  M31(){const a=R(250,999),b=R(101,a-20);return opQ(a,'−',b,a-b,'Pose en colonnes : d’abord les unités, puis les dizaines, puis les centaines. Si le chiffre du haut est trop petit, on casse une dizaine ou une centaine.');},
+  M32(){const t=R(2,9),n=R(2,10);return {p:'Trouve le nombre qui manque',q:`<div class="big">${Math.random()<.5?`${SLOT} × ${t}`:`${t} × ${SLOT}`} = ${t*n}</div>`,say:`${t} fois combien, ça fait ${t*n} ?`,type:'num',answer:String(n),explain:`${t} × ${n} = ${t*n}.`};},
+  M33(){const d=R(1,4),u=R(1,9),c=R(2,5),n=d*10+u;return opQ(n,'×',c,n*c,`On décompose : ${d*10} × ${c} = ${d*10*c}, et ${u} × ${c} = ${u*c}. Puis ${d*10*c} + ${u*c} = ${n*c}.`);},
+  M34(){const k=R(0,5);let t,a,ex,p='Les durées';
+    if(k<=1)[t,a,ex]=pick([['Combien de minutes y a-t-il dans 1 heure ?',60,'1 heure = 60 minutes.'],['Combien de minutes y a-t-il dans une demi-heure ?',30,'Une demi-heure, c’est la moitié de 60 minutes : 30 minutes.'],['Combien de minutes y a-t-il dans un quart d’heure ?',15,'Un quart d’heure = 15 minutes. Il en faut 4 pour faire 1 heure.'],['Combien de minutes y a-t-il dans 2 heures ?',120,'60 + 60 = 120 minutes.'],['Combien de secondes y a-t-il dans 1 minute ?',60,'1 minute = 60 secondes.'],['Combien d’heures y a-t-il dans une journée entière, le jour et la nuit ?',24,'1 jour = 24 heures.'],['Combien de jours y a-t-il dans 2 semaines ?',14,'7 + 7 = 14 jours.']]);
+    else if(k===2){const h=R(8,17),d=R(1,4);p='Écris seulement l’heure';t=`Le film commence à ${h} h et dure ${pl(d,'heure')}. À quelle heure finit-il ?`;a=h+d;ex=`${h} + ${d} = ${h+d} : le film finit à ${h+d} h.`;}
+    else if(k===3){const h=R(7,14),d=R(2,6);p='Réponds en heures';t=`Willyam part à ${h} h et arrive à ${h+d} h. Combien d’heures a duré le voyage ?`;a=d;ex=`De ${h} h à ${h+d} h : ${h+d} − ${h} = ${d} heures.`;}
+    else if(k===4){const x=pick([10,15,20,30,45]),y=pick([10,15,20,30]);p='Réponds en minutes';t=`Willyam lit pendant ${x} minutes, puis il dessine pendant ${y} minutes. Combien de minutes en tout ?`;a=x+y;ex=`${x} + ${y} = ${x+y} minutes${x+y===60?' : c’est 1 heure':''}.`;}
+    else{const h=R(8,18),m1=pick([0,5,10,15,20,25]),d=pick([10,15,20,25,30]);p='Réponds en minutes';t=`Le cours de judo commence à ${hm(h,m1)} et finit à ${hm(h,m1+d)}. Combien de minutes dure-t-il ?`;a=d;ex=`De ${hm(h,m1)} à ${hm(h,m1+d)} : ${m1+d} − ${m1} = ${d} minutes.`;}
+    return {p,q:`<div class="story">${t}</div>`,say:t,type:'num',answer:String(a),explain:ex};},
+  M35(){const k=R(0,2),tag='<div class="tag">Le périmètre, c’est le tour de la figure.</div>';
+    if(k===0){const c=R(2,12);return {p:'Calcule le périmètre du carré',q:rectFig(c,c)+tag,say:`Calcule le périmètre d’un carré de ${c} centimètres de côté. Le périmètre, c’est le tour de la figure.`,type:'num',answer:String(4*c),explain:`Le carré a 4 côtés égaux : ${c} + ${c} + ${c} + ${c} = ${4*c} cm.`};}
+    if(k===1){const h=R(2,8),w=R(h+1,14);return {p:'Calcule le périmètre du rectangle',q:rectFig(w,h)+tag,say:`Calcule le périmètre d’un rectangle de ${w} centimètres de long et ${h} centimètres de large. Le périmètre, c’est le tour de la figure.`,type:'num',answer:String(2*(w+h)),explain:`On fait le tour : ${w} + ${h} + ${w} + ${h} = ${2*(w+h)} cm.`};}
+    const a=R(3,9),b=R(3,9),c=R(Math.abs(a-b)+1,Math.min(a+b-1,12)),t=`Un triangle a des côtés de ${a} cm, ${b} cm et ${c} cm. Quel est son périmètre ?`;
+    return {p:'Calcule le périmètre du triangle',q:`<div class="story">${t}</div>${tag}`,say:t,type:'num',answer:String(a+b+c),explain:`On ajoute les trois côtés : ${a} + ${b} + ${c} = ${a+b+c} cm.`};},
+  M36(){const k=R(0,2);
+    if(k===0){const b=pick([20,50]),p=R(3,b-2),t=`Un jeu coûte ${p} €. Tu paies avec un billet de ${b} €. Combien d’euros te rend-on ?`;return {p:'Combien te rend-on ?',q:`<div class="story">${t}</div>${money([b])}`,say:t,type:'num',answer:String(b-p),explain:`${b} − ${p} = ${b-p} €`};}
+    if(k===1){const a=R(3,9),c=R(2,8),t=`Tu achètes un livre à ${a} € et un stylo à ${c} €. Tu paies avec un billet de 20 €. Combien d’euros te rend-on ?`;return {p:'Combien te rend-on ?',q:`<div class="story">${t}</div>${money([20])}`,say:t,type:'num',answer:String(20-a-c),explain:`${a} + ${c} = ${a+c}, puis 20 − ${a+c} = ${20-a-c} €`};}
+    let items,sum;do{items=[];const n=R(3,5);for(let i=0;i<n;i++)items.push(pick([1,2,5,10,20,50]));sum=items.reduce((x,y)=>x+y,0);}while(sum>100);
+    items.sort((x,y)=>y-x);return {p:'Combien d’euros en tout ?',q:money(items),say:'Combien d’euros en tout ?',type:'num',answer:String(sum),explain:`${items.join(' + ')} = ${sum} €`};}
 };
 
 /* ---------- Questions de français ---------- */
 const PRON=[['Je','je',0],['Tu','tu',1],['Il','il',2],['Elle','elle',2],['Nous','nous',3],['Vous','vous',4],['Ils','ils',5],['Elles','elles',5]];
-const ER=['chanter','jouer','danser','parler','regarder','sauter','dessiner','marcher','porter','chercher'];
+const ER=['chanter','jouer','danser','parler','regarder','sauter','dessiner','marcher','porter','chercher','laver','tomber','rêver','montrer','fermer','trouver','rester','cacher','pousser','ranger'];
 const END={pres:['e','es','e','ons','ez','ent'],fut:['ai','as','a','ons','ez','ont'],imp:['ais','ais','ait','ions','iez','aient']};
 const stem=v=>v.slice(0,-2);
 function conjQ(tense,marker){
@@ -346,11 +448,11 @@ function conjQ(tense,marker){
   return {p:`Conjugue au ${names[tense]}`,q:`<div class="mid">${subj} ${SLOT}</div><div class="tag">verbe ${v}</div>`,say:`${subj}… verbe ${v}, au ${names[tense]}.`,type:'choice',choices:uniqChoices(ans,others),answer:ans,
     explain:`${subj} ${ans}. Au ${names[tense]}, avec « ${p} », on écrit -${tense==='fut'?'er'+END.fut[i]:END[tense][i]}.`};
 }
-const SONS=[['🐑','un m__ton','ou'],['🐟','un p__sson','oi'],['🦁','un li__','on'],['🐘','un éléph__t','an'],['🍊','une or__ge','an'],['⭐','une ét__le','oi'],['🐻','un __rs','ou'],['🎈','un ball__','on'],['🐦','un __seau','oi'],['🐼','un p__da','an'],['🐭','une s__ris','ou'],['🐷','un coch__','on'],['👑','un r__','oi'],['🐺','un l__p','ou']];
+const SONS=[['🐑','un m__ton','ou'],['🐟','un p__sson','oi'],['🦁','un li__','on'],['🐘','un éléph__t','an'],['🍊','une or__ge','an'],['⭐','une ét__le','oi'],['🐻','un __rs','ou'],['🎈','un ball__','on'],['🐦','un __seau','oi'],['🐼','un p__da','an'],['🐭','une s__ris','ou'],['🐷','un coch__','on'],['👑','un r__','oi'],['🐺','un l__p','ou'],['🦉','un hib__','ou'],['🍐','une p__re','oi'],['🚚','un cami__','on'],['🧤','un g__t','an'],['🐔','une p__le','ou'],['🥶','le fr__d','oi'],['🍋','un citr__','on'],['🌳','une br__che','an'],['🎀','un rub__','an'],['🐜','une f__rmi','ou'],['🪵','du b__s','oi'],['🧸','un n__nours','ou']];
 const NOMS=[['maison','f'],['chat','m'],['table','f'],['vélo','m'],['fleur','f'],['livre','m'],['voiture','f'],['ballon','m'],['pomme','f'],['lit','m'],['porte','f'],['soleil','m'],['lune','f'],['crayon','m'],['chaise','f'],['gâteau','m'],['robe','f'],['train','m'],['tortue','f'],['camion','m'],['banane','f'],['cheval','m'],['souris','f'],['bateau','m']];
 const PLUR=[['le','chat','chats'],['la','fleur','fleurs'],['le','gâteau','gâteaux'],['le','bateau','bateaux'],['la','pomme','pommes'],['le','ballon','ballons'],['la','maison','maisons'],['le','jeu','jeux'],['le','crayon','crayons'],['la','voiture','voitures'],['le','chapeau','chapeaux'],['la','table','tables'],['le','livre','livres'],['le','vélo','vélos'],['le','cheveu','cheveux']];
 const ALPHA=['arbre','ballon','chat','dragon','école','fusée','girafe','hibou','igloo','jardin','koala','lapin','maison','nuage','orange','pomme','quille','robot','soleil','tigre','usine','vélo','wagon','yaourt','zèbre'];
-const VERBES=[['Le chat mange une souris.','mange'],['Willyam joue au ballon.','joue'],['Les oiseaux chantent le matin.','chantent'],['Maman prépare un gâteau.','prépare'],['Le chien court dans le jardin.','court'],['Hailey dessine une fleur.','dessine'],['Nous regardons un film.','regardons'],['La maîtresse lit une histoire.','lit'],['Tu ranges ta chambre.','ranges'],['Le bébé dort dans son lit.','dort'],['Papa répare le vélo.','répare'],['Les enfants sautent dans la cour.','sautent'],['Je bois un verre de lait.','bois'],['Le vent souffle très fort.','souffle']];
+const VERBES=[['Le chat mange une souris.','mange'],['Willyam joue au ballon.','joue'],['Les oiseaux chantent le matin.','chantent'],['Maman prépare un gâteau.','prépare'],['Le chien court dans le jardin.','court'],['Hailey dessine une fleur.','dessine'],['Nous regardons un film.','regardons'],['La maîtresse lit une histoire.','lit'],['Tu ranges ta chambre.','ranges'],['Le bébé dort dans son lit.','dort'],['Papa répare le vélo.','répare'],['Les enfants sautent dans la cour.','sautent'],['Je bois un verre de lait.','bois'],['Le vent souffle très fort.','souffle'],['Le lapin grignote une carotte.','grignote'],['Mamie tricote une écharpe.','tricote'],['Nous écoutons la musique.','écoutons'],['Les poissons nagent dans la mer.','nagent'],['Tu dessines un dragon.','dessines'],['La pluie tombe sur le toit.','tombe'],['Mon frère cherche ses lunettes.','cherche'],['Vous fermez la porte.','fermez']];
 const ETRE=['suis','es','est','sommes','êtes','sont'],AVOIR=['ai','as','a','avons','avez','ont'];
 const LECT1=[
   {t:'Léo a un petit chien. Il s’appelle Biscuit. Biscuit est tout blanc avec une tache noire sur l’oreille. Le matin, il aime courir dans le jardin.',qs:[
@@ -360,7 +462,15 @@ const LECT1=[
   {t:'Sur le volcan, il fait froid la nuit. Tom et Mamie montent avec des lampes. Ils veulent voir le soleil se lever. À six heures, le ciel devient tout orange.',qs:[
     ['Pourquoi Tom et Mamie montent-ils ?','pour voir le soleil se lever',['pour dormir','pour pique-niquer','pour chercher un chat']],['De quelle couleur est le ciel à six heures ?','orange',['noir','bleu','vert']],['Qu’ont-ils pour voir dans la nuit ?','des lampes',['des bougies','des lunettes','rien du tout']]]},
   {t:'Le lundi, Sami prend le bus pour aller à l’école. Il s’assoit toujours à côté de la fenêtre. Il compte les voitures rouges : aujourd’hui, il en a vu huit !',qs:[
-    ['Comment Sami va-t-il à l’école ?','en bus',['à pied','à vélo','en voiture']],['Combien de voitures rouges a-t-il vues ?','huit',['six','dix','trois']],['Où s’assoit-il ?','à côté de la fenêtre',['au fond du bus','à côté du chauffeur','il reste debout']]]}
+    ['Comment Sami va-t-il à l’école ?','en bus',['à pied','à vélo','en voiture']],['Combien de voitures rouges a-t-il vues ?','huit',['six','dix','trois']],['Où s’assoit-il ?','à côté de la fenêtre',['au fond du bus','à côté du chauffeur','il reste debout']]]},
+  {t:'Mamie a un grand jardin. Elle y fait pousser des tomates, des carottes et des fraises. Chaque mercredi, Jules vient l’aider à arroser. Ce qu’il préfère, c’est goûter les fraises !',qs:[
+    ['Quel jour Jules vient-il chez Mamie ?','le mercredi',['le lundi','le samedi','le dimanche']],['Que fait Jules pour aider Mamie ?','Il arrose.',['Il tond l’herbe.','Il cueille des fleurs.','Il range la cabane.']],['Qu’est-ce que Jules préfère ?','goûter les fraises',['manger les carottes','arroser les tomates','jouer au ballon']]]},
+  {t:'Dans la forêt, un écureuil cherche des noisettes. Il les cache dans un trou, au pied d’un vieux chêne. Quand l’hiver arrive, il a de quoi manger.',qs:[
+    ['Que cherche l’écureuil ?','des noisettes',['des champignons','des pommes','des fraises']],['Où cache-t-il sa nourriture ?','dans un trou',['dans un nid','sous une pierre','dans une grotte']],['Quand mange-t-il ses noisettes ?','en hiver',['en été','au printemps','tout de suite']]]},
+  {t:'Emma a perdu sa première dent ce matin. Elle la pose sous son oreiller avant de dormir. Au réveil, elle trouve une pièce de deux euros à la place !',qs:[
+    ['Qu’est-ce qu’Emma a perdu ?','une dent',['une pièce','son oreiller','sa poupée']],['Où pose-t-elle sa dent ?','sous son oreiller',['dans une boîte','sur la table','dans sa poche']],['Que trouve-t-elle au réveil ?','une pièce',['un bonbon','un livre','une autre dent']]]},
+  {t:'Le samedi, Noé joue au foot avec son équipe. Aujourd’hui, il pleut très fort et le terrain est plein de boue. Noé marque deux buts, mais il rentre tout sale à la maison.',qs:[
+    ['Quel sport fait Noé ?','du foot',['du judo','du tennis','de la natation']],['Combien de buts marque-t-il ?','deux',['un','trois','aucun']],['Pourquoi Noé est-il sale ?','Le terrain est plein de boue.',['Il a renversé son goûter.','Il a fait de la peinture.','Il est tombé dans l’eau.']]]}
 ];
 const LECT2=[
   {t:'Ce matin, Nina regarde par la fenêtre. Le jardin est tout blanc, et les toits aussi. Elle met vite son bonnet, ses gants et ses bottes. Avec son frère, elle fabrique un grand bonhomme avec une carotte pour le nez.',qs:[
@@ -368,15 +478,63 @@ const LECT2=[
   {t:'Malo a très mal au ventre. Hier soir, il a mangé tous les bonbons de la boîte, sans rien dire à personne. Maman trouve la boîte vide sous son lit. Malo baisse les yeux et devient tout rouge.',qs:[
     ['Pourquoi Malo a-t-il mal au ventre ?','Il a mangé trop de bonbons.',['Il est tombé.','Il a trop couru.','Il a froid.']],['Où Maman trouve-t-elle la boîte ?','sous son lit',['dans la cuisine','dans son cartable','dans le jardin']],['Pourquoi Malo devient-il rouge ?','Il a honte.',['Il a chaud.','Il est content.','Il a couru.']]]},
   {t:'Le facteur sonne à la porte. Il apporte un gros paquet pour Zoé. Dedans, il y a une boîte de peinture et une carte : « Joyeux anniversaire ! Bisous, Papi. »',qs:[
-    ['Qui a envoyé le paquet ?','Papi',['le facteur','Maman','Zoé']],['Pourquoi Zoé reçoit-elle un cadeau ?','C’est son anniversaire.',['C’est Noël.','Elle est malade.','Elle a gagné un concours.']],['Qu’y a-t-il dans le paquet ?','de la peinture',['un livre','un ballon','des bonbons']]]}
+    ['Qui a envoyé le paquet ?','Papi',['le facteur','Maman','Zoé']],['Pourquoi Zoé reçoit-elle un cadeau ?','C’est son anniversaire.',['C’est Noël.','Elle est malade.','Elle a gagné un concours.']],['Qu’y a-t-il dans le paquet ?','de la peinture',['un livre','un ballon','des bonbons']]]},
+  {t:'Papa regarde le ciel et fronce les sourcils. « Prends ton parapluie, Lou ! » dit-il. De gros nuages gris arrivent, et le vent se lève.',qs:[
+    ['Pourquoi Lou doit-elle prendre son parapluie ?','Il va pleuvoir.',['Il fait trop chaud.','Il va neiger.','Elle va à la plage.']],['De quelle couleur sont les nuages ?','gris',['blancs','roses','bleus']],['Qui parle à Lou ?','son papa',['sa maman','son frère','le voisin']]]},
+  {t:'Théo ouvre sa boîte à goûter : elle est vide. Il regarde son chien Filou, qui se lèche les babines sous la table. « Oh, toi ! » dit Théo.',qs:[
+    ['Qui a mangé le goûter ?','le chien Filou',['Théo','Maman','un oiseau']],['Où est Filou ?','sous la table',['dans le jardin','sur le lit','derrière la porte']],['Comment est la boîte à goûter ?','vide',['pleine','cassée','fermée']]]},
+  {t:'Ce soir, Inès ne trouve pas le sommeil. Demain, c’est la rentrée dans sa nouvelle école. Elle a préparé son cartable trois fois et elle serre fort son doudou.',qs:[
+    ['Pourquoi Inès ne dort-elle pas ?','Elle est inquiète pour la rentrée.',['Elle a trop mangé.','Il y a trop de bruit.','Elle n’est pas fatiguée.']],['Qu’a-t-elle préparé trois fois ?','son cartable',['son lit','son goûter','ses habits']],['Que serre-t-elle dans ses bras ?','son doudou',['son chat','son oreiller','son livre']]]},
+  {t:'Sur la plage, Hugo construit un grand château. Il part chercher de l’eau avec son seau. Quand il revient, une grosse vague a tout emporté. Hugo soupire, puis il recommence.',qs:[
+    ['Avec quoi Hugo construit-il son château ?','avec du sable',['avec des briques','avec de la neige','avec du carton']],['Qu’est-ce qui a détruit le château ?','une vague',['un chien','le vent','un enfant']],['Que fait Hugo à la fin ?','Il recommence.',['Il pleure.','Il rentre chez lui.','Il se baigne.']]]}
 ];
-const A_A=[['Willyam ___ un vélo rouge.','a'],['Il va ___ l’école.','à'],['Hailey ___ quatre ans.','a'],['Nous allons ___ la piscine.','à'],['Le chat ___ faim.','a'],['Je pense ___ toi.','à'],['Elle ___ perdu son bonnet.','a'],['Papa est ___ la maison.','à'],['Tom ___ un petit chien.','a'],['Je vais ___ Paris.','à'],['Mamie ___ fait une tarte.','a'],['Une tarte ___ la fraise.','à'],['On joue ___ cache-cache.','à'],['Le bébé ___ sommeil.','a']];
-const ET_EST=[['Le ciel ___ bleu.','est'],['Willyam ___ Hailey jouent ensemble.','et'],['Il ___ très content.','est'],['J’aime les pommes ___ les poires.','et'],['La soupe ___ chaude.','est'],['Le chat ___ le chien dorment.','et'],['Maman ___ au travail.','est'],['J’ai un crayon ___ une gomme.','et'],['Le bébé ___ dans son lit.','est'],['Il pleut ___ il fait froid.','et'],['Ce gâteau ___ délicieux.','est'],['Papa ___ Mamie arrivent.','et']];
-const NATURE=[['Le petit chat dort.','petit','adjectif'],['Le petit chat dort.','chat','nom'],['Le petit chat dort.','dort','verbe'],['Ma sœur porte une robe bleue.','robe','nom'],['Ma sœur porte une robe bleue.','bleue','adjectif'],['Ma sœur porte une robe bleue.','porte','verbe'],['Ma sœur porte une robe bleue.','une','déterminant'],['Les grands arbres bougent.','Les','déterminant'],['Les grands arbres bougent.','grands','adjectif'],['Les grands arbres bougent.','arbres','nom'],['Willyam mange une pomme rouge.','mange','verbe'],['Willyam mange une pomme rouge.','rouge','adjectif'],['Un énorme camion passe.','énorme','adjectif'],['Un énorme camion passe.','camion','nom'],['Un énorme camion passe.','passe','verbe']];
-const SUJET=[[['Le chat de Léo','mange','une souris.'],0,'mange'],[['Dans la cour,','les enfants','jouent','au ballon.'],1,'jouent'],[['Hailey et Willyam','regardent','un dessin animé.'],0,'regardent'],[['Ce matin,','Papa','prépare','des crêpes.'],1,'prépare'],[['Les oiseaux','chantent','dans l’arbre.'],0,'chantent'],[['Ma maîtresse','lit','une histoire.'],0,'lit'],[['Sous le lit,','le chat','dort.'],1,'dort'],[['Nous','partons','en vacances.'],0,'partons'],[['Le gros chien noir','aboie','très fort.'],0,'aboie'],[['Demain,','mes cousins','viennent','à la maison.'],1,'viennent']];
-const ACCORD=[['des fleurs ___',['rouge','rouges'],'rouges'],['une ___ fille',['petit','petite','petits'],'petite'],['les chiens ___',['noir','noirs','noires'],'noirs'],['une robe ___',['vert','verte','verts'],'verte'],['des ballons ___',['bleu','bleus','bleues'],'bleus'],['un ___ château',['grand','grande','grands'],'grand'],['deux ___ souris',['petit','petits','petites'],'petites'],['la ___ maison',['joli','jolie','jolis'],'jolie'],['mes ___ amies',['meilleur','meilleurs','meilleures'],'meilleures'],['un chien ___',['content','contente','contents'],'content'],['des tartes ___',['sucré','sucrés','sucrées'],'sucrées'],['les ___ voitures',['rapide','rapides'],'rapides']];
+const LECT3=[
+  {t:'Depuis une semaine, Clara observe une chenille dans un bocal. Chaque jour, elle lui donne des feuilles fraîches. Un matin, la chenille ne bouge plus : elle s’est enfermée dans un cocon. Clara est triste, mais sa maîtresse lui dit d’être patiente. Dix jours plus tard, un papillon orange sort du cocon.',qs:[
+    ['Que mange la chenille ?','des feuilles',['des miettes','des graines','des fleurs']],['Pourquoi Clara est-elle triste ?','Elle croit que la chenille est morte.',['Elle a cassé le bocal.','Elle a perdu la chenille.','Sa maîtresse l’a grondée.']],['Qu’est devenue la chenille ?','un papillon',['une abeille','une coccinelle','une araignée']],['Combien de temps le cocon reste-t-il fermé ?','dix jours',['une semaine','deux jours','un mois']]]},
+  {t:'Le bateau de pêche rentre au port à l’aube. Le capitaine Marcel est fatigué, mais il sourit : ses filets sont pleins. Sur le quai, les mouettes crient et tournent au-dessus du bateau. Elles espèrent bien attraper un poisson ou deux.',qs:[
+    ['Quand le bateau rentre-t-il ?','très tôt le matin',['à midi','le soir','en pleine nuit']],['Pourquoi Marcel sourit-il ?','Il a pêché beaucoup de poissons.',['Il part en vacances.','Il a vu des mouettes.','Il a réparé son bateau.']],['Que veulent les mouettes ?','manger du poisson',['se reposer sur le quai','suivre le capitaine','faire leur nid']],['Quel est le métier de Marcel ?','pêcheur',['boulanger','pompier','facteur']]]},
+  {t:'Samedi, toute la classe est partie visiter un château fort. Le guide a montré les hautes tours, le pont-levis et les cuisines. Yanis a préféré la salle des armures. En rentrant, il a dessiné un chevalier sur son cahier et a décidé de fabriquer un déguisement en carton.',qs:[
+    ['Qu’est-ce que la classe a visité ?','un château fort',['un musée de peinture','une ferme','un zoo']],['Quelle salle Yanis a-t-il préférée ?','la salle des armures',['les cuisines','la tour','le pont-levis']],['Que veut fabriquer Yanis ?','un déguisement de chevalier',['un château en carton','un cahier','une épée en bois']],['Qui explique la visite aux élèves ?','le guide',['le maître','un chevalier','Yanis']]]},
+  {t:'Il fait encore nuit quand le boulanger allume son four. Pendant que la ville dort, il pétrit la pâte et prépare les croissants. À sept heures, la bonne odeur du pain chaud flotte dans la rue. Les premiers clients poussent déjà la porte.',qs:[
+    ['Quand le boulanger commence-t-il à travailler ?','avant le lever du jour',['à midi','l’après-midi','à sept heures']],['Que prépare-t-il ?','du pain et des croissants',['des gâteaux au chocolat','des pizzas','des crêpes']],['Que sent-on dans la rue à sept heures ?','le pain chaud',['le café','les fleurs','la pluie']],['Pourquoi le boulanger se lève-t-il si tôt ?','pour que le pain soit prêt le matin',['parce qu’il n’aime pas dormir','pour éviter les clients','parce que son four est cassé']]]},
+  {t:'Léna a trouvé un oisillon tombé du nid, au pied du cerisier. Il tremblait et ouvrait grand son bec. Avec Papa, elle l’a posé dans une boîte garnie de coton. Ils ont téléphoné à un centre de soins pour les oiseaux. Le lendemain, une dame est venue le chercher pour le soigner.',qs:[
+    ['Où Léna a-t-elle trouvé l’oisillon ?','au pied du cerisier',['dans la rue','sur le toit','dans la boîte']],['Pourquoi l’oisillon ouvrait-il son bec ?','Il avait faim.',['Il chantait.','Il avait trop chaud.','Il voulait mordre.']],['Qui est venu chercher l’oisillon ?','une dame du centre de soins',['sa maman oiseau','le voisin','le facteur']],['Qu’ont-ils mis dans la boîte ?','du coton',['de l’eau','des feuilles','du sable']]]}
+];
+// Banques des missions ajoutées.
+const SONS2=[['🐱','un __at','ch'],['🐶','un __ien','ch'],['🏔️','une monta__e','gn'],['🐘','un élé__ant','ph'],['📱','un télé__one','ph'],['🕷️','une arai__ée','gn'],['🍫','du __ocolat','ch'],['🐴','un __eval','ch'],['📷','une __oto','ph'],['🐬','un dau__in','ph'],['🚿','une dou__e','ch'],['✍️','une si__ature','gn'],['📦','un pa__et','qu'],['🍄','un champi__on','gn'],['❓','une __estion','qu'],['🐄','une va__e','ch'],['🎵','la musi__e','qu'],['🦈','un re__in','qu'],['🍴','une four__ette','ch'],['🧺','un pi__e-ni__e','qu'],['🌰','une châtai__e','gn'],['🔤','l’al__abet','ph']];
+const MBP=[['une cha__bre','m'],['une ja__be','m'],['un ta__bour','m'],['une la__pe','m'],['un po__pier','m'],['une tro__pette','m'],['un cha__pignon','m'],['un no__bre','m'],['septe__bre','m'],['une po__pe','m'],['du ja__bon','m'],['un ti__bre','m'],['la te__pête','m'],['e__mener','m'],['co__pter','m'],['une pla__te','n'],['une ta__te','n'],['un po__t','n'],['une da__se','n'],['le mo__de','n'],['gra__d','n'],['une ora__ge','n'],['un pa__talon','n'],['la mo__tagne','n'],['un si__ge','n'],['dima__che','n'],['un ba__c','n'],['le ve__t','n'],['mo__trer','n'],['une bra__che','n']];
+const CONTR_A=[['grand','petit'],['chaud','froid'],['rapide','lent'],['lourd','léger'],['propre','sale'],['plein','vide'],['gentil','méchant'],['facile','difficile'],['long','court'],['jeune','vieux'],['mouillé','sec'],['riche','pauvre'],['dur','mou'],['triste','joyeux'],['haut','bas'],['clair','sombre'],['ouvert','fermé'],['fort','faible']];
+const CONTR_V=[['monter','descendre'],['ouvrir','fermer'],['rire','pleurer'],['commencer','finir'],['allumer','éteindre'],['entrer','sortir'],['gagner','perdre'],['pousser','tirer'],['acheter','vendre'],['se lever','se coucher'],['remplir','vider'],['arriver','partir']];
+const CONFUS=[['petit','court','bas','faible','jeune','léger'],['grand','long','haut','fort','vieux','lourd'],['vide','léger'],['fermer','éteindre','finir'],['ouvrir','allumer','commencer'],['sortir','partir','descendre'],['entrer','arriver','monter']];
+const PHRASES=['Le chat dort sur le canapé.','Mon frère joue au ballon.','La maîtresse écrit au tableau.','Nous allons à la piscine.','Le chien court dans le jardin.','Papa prépare le dîner.','Les oiseaux chantent le matin.','Hailey dessine une maison.','Je range ma chambre.','Le train arrive à la gare.','Mamie tricote un bonnet.','Les enfants jouent dans la cour.'];
+const S_SS=[['un poi__on rouge','ss'],['une ro__e','s'],['une mai__on','s'],['la cla__e','ss'],['un oi__eau','s'],['une tre__e','ss'],['une chemi__e','s'],['un de__in','ss'],['une vali__e','s'],['une ta__e','ss'],['un vi__age','s'],['la cui__ine','s'],['la mou__e','ss'],['une cai__e','ss'],['le dé__ert de sable','s'],['un de__ert au chocolat','ss'],['une chai__e','s'],['un cou__in','ss'],['mon cou__in Tom','s'],['une fu__ée','s'],['la maître__e','ss'],['une ceri__e','s']];
+const C_CED=[['un gar__on','ç'],['un __itron','c'],['une le__on','ç'],['un gla__on','ç'],['une __erise','c'],['un ma__on','ç'],['__inq','c'],['un re__u','ç'],['une balan__oire','ç'],['le __iel','c'],['un hame__on','ç'],['la fa__ade','ç'],['mer__i','c'],['le fran__ais','ç'],['un __irque','c'],['une pu__e','c'],['un cale__on','ç'],['la pla__e','c'],['une ger__ure','ç'],['un __ygne','c']];
+const G_GU=[['une __itare','gu'],['un __âteau','g'],['une ba__e','gu'],['une __omme','g'],['une va__e','gu'],['un __ant','g'],['une __êpe','gu'],['la lan__e','gu'],['un __orille','g'],['fati__é','gu'],['un escar__ot','g'],['une fi__ure','g'],['un __idon','gu'],['une __irlande','gu'],['un kan__ourou','g'],['un dra__on','g'],['une ba__ette','gu'],['le __oûter','g'],['un __ichet','gu'],['une vir__ule','g']];
+const SYNO=[['content','joyeux'],['beau','joli'],['finir','terminer'],['une auto','une voiture'],['crier','hurler'],['un copain','un ami'],['calme','tranquille'],['casser','briser'],['un habit','un vêtement'],['lancer','jeter'],['habiter','vivre'],['bizarre','étrange'],['un docteur','un médecin'],['laver','nettoyer'],['drôle','amusant'],['regarder','observer'],['un bateau','un navire'],['énorme','gigantesque'],['peureux','craintif'],['une maison','une habitation'],['fatigué','épuisé'],['un chemin','un sentier']];
+const PONCT=[['Comment t’appelles-tu','?'],['Quelle belle journée','!'],['Le chat dort sur le canapé','.'],['Où est mon cartable','?'],['Attention, ça brûle','!'],['Je mange une pomme','.'],['Est-ce que tu viens','?'],['Bravo, tu as gagné','!'],['Nous allons à la piscine','.'],['Quel âge as-tu','?'],['Aïe, ça fait mal','!'],['Mon frère joue au ballon','.'],['Pourquoi pleures-tu','?'],['Chut, le bébé dort','!'],['Il pleut depuis ce matin','.'],['Qui a mangé le gâteau','?'],['Au secours','!'],['Veux-tu jouer avec moi','?'],['La maîtresse écrit au tableau','.'],['Vite, dépêche-toi','!']];
+const ACC_SV=[['Les enfants ___ dans la cour.',['joue','jouent'],'jouent'],['Le chien ___ très fort.',['aboie','aboient'],'aboie'],['Mes amis ___ ce soir.',['arrive','arrivent'],'arrivent'],['La maîtresse ___ une histoire.',['raconte','racontent'],'raconte'],['Les oiseaux ___ dans le ciel.',['vole','volent'],'volent'],['Papa et Maman ___ un film.',['regarde','regardent'],'regardent'],['Hailey ___ une chanson.',['chante','chantent'],'chante'],['Les voitures ___ vite.',['roule','roulent'],'roulent'],['Le bébé ___ beaucoup.',['pleure','pleurent'],'pleure'],['Les fleurs ___ au printemps.',['pousse','poussent'],'poussent'],['Willyam et son copain ___ au foot.',['joue','jouent'],'jouent'],['Ma sœur ___ un dessin.',['colorie','colorient'],'colorie'],['Les chats ___ les souris.',['chasse','chassent'],'chassent'],['Le vent ___ les feuilles.',['pousse','poussent'],'pousse'],['Tes parents ___ tard.',['travaille','travaillent'],'travaillent'],['Les élèves ___ leur leçon.',['récite','récitent'],'récitent'],['Mon cousin ___ à Paris.',['habite','habitent'],'habite'],['Les poules ___ des œufs.',['donne','donnent'],'donnent']];
+const ON_ONT=[['Demain, ___ va à la plage.','on'],['Les enfants ___ faim.','ont'],['À la récré, ___ joue au ballon.','on'],['Ils ___ un nouveau chien.','ont'],['Ce soir, ___ mange des crêpes.','on'],['Mes cousins ___ gagné le match.','ont'],['Hier, ___ a bien ri.','on'],['Elles ___ fini leurs devoirs.','ont'],['À l’école, ___ apprend à lire.','on'],['Les oiseaux ___ des plumes.','ont'],['Demain, ___ part en vacances.','on'],['Mes parents ___ une voiture bleue.','ont'],['Ils ___ très soif.','ont'],['Quand il pleut, ___ reste à la maison.','on'],['Les chats ___ des moustaches.','ont'],['Chez Mamie, ___ joue aux cartes.','on']];
+const SON_SONT=[['Les chats ___ dans le jardin.','sont'],['Il a perdu ___ bonnet.','son'],['Mes amis ___ gentils.','sont'],['Elle joue avec ___ frère.','son'],['Les pommes ___ mûres.','sont'],['Tom range ___ cartable.','son'],['Où ___ mes chaussures ?','sont'],['Le chien mange dans ___ bol.','son'],['Ils ___ partis à la mer.','sont'],['Léa promène ___ chien.','son'],['Les élèves ___ en classe.','sont'],['Papa cherche ___ téléphone.','son'],['Ces gâteaux ___ délicieux.','sont'],['Chacun prend ___ manteau.','son'],['Mes grands-parents ___ à la retraite.','sont'],['Willyam prête ___ vélo.','son']];
+const OU_OU=[['Dis-moi ___ tu habites.','où'],['Tu veux une pomme ___ une poire ?','ou'],['Je ne sais pas ___ est mon livre.','où'],['On joue dedans ___ dehors ?','ou'],['Voici la maison ___ je suis né.','où'],['Fromage ___ dessert ?','ou'],['Mais ___ vas-tu ?','où'],['Tu viens à pied ___ à vélo ?','ou'],['C’est le parc ___ je joue.','où'],['Il prend le bus ___ le train.','ou'],['Regarde ___ tu marches !','où'],['Tu préfères le rouge ___ le bleu ?','ou'],['Je cherche l’endroit ___ j’ai rangé mes billes.','où'],['Ce soir ___ demain ?','ou'],['Sais-tu ___ est le chat ?','où'],['Tu bois de l’eau ___ du jus ?','ou']];
+const IRREG={aller:[['vais','vas','va','allons','allez','vont'],'à l’école'],faire:[['fais','fais','fait','faisons','faites','font'],'un gâteau'],dire:[['dis','dis','dit','disons','dites','disent'],'bonjour'],venir:[['viens','viens','vient','venons','venez','viennent'],'à la maison'],pouvoir:[['peux','peux','peut','pouvons','pouvez','peuvent'],'venir'],vouloir:[['veux','veux','veut','voulons','voulez','veulent'],'un dessert'],prendre:[['prends','prends','prend','prenons','prenez','prennent'],'le bus'],voir:[['vois','vois','voit','voyons','voyez','voient'],'un oiseau']};
+const FEMININ=[['un boulanger','une boulangère',['une boulangeuse','une boulangé']],['un chanteur','une chanteuse',['une chanteure','une chantrice']],['un directeur','une directrice',['une directeuse','une directeure']],['un lion','une lionne',['une lione','une lionesse']],['un chat','une chatte',['une chate','une chatesse']],['un ami','une amie',['une ami','une amis']],['un prince','une princesse',['une prince','une princette']],['un voisin','une voisine',['une voisinne','une voisin']],['un infirmier','une infirmière',['une infirmiée','une infirmieuse']],['un danseur','une danseuse',['une danseure','une dansrice']],['un acteur','une actrice',['une acteuse','une acteure']],['un chien','une chienne',['une chiene','une chienesse']],['un cousin','une cousine',['une cousinne','une cousin']],['un fermier','une fermière',['une fermiée','une fermieuse']],['un coiffeur','une coiffeuse',['une coiffrice','une coiffeure']],['un roi','une reine',['une roie','une roisse']],['un homme','une femme',['une homme','une hommesse']],['un oncle','une tante',['une oncle','une onclesse']],['un cheval','une jument',['une chevale','une chevalle']],['un loup','une louve',['une loupe','une loupette']]];
+const PLUR2=[['un cheval','des chevaux',['des chevals','des chevaus'],'al'],['un journal','des journaux',['des journals','des journaus'],'al'],['un animal','des animaux',['des animals','des animaus'],'al'],['un bocal','des bocaux',['des bocals','des bocaus'],'al'],['un hôpital','des hôpitaux',['des hôpitals','des hôpitaus'],'al'],['un bijou','des bijoux',['des bijous','des bijoues'],'ou'],['un caillou','des cailloux',['des caillous','des cailloues'],'ou'],['un chou','des choux',['des chous','des choues'],'ou'],['un genou','des genoux',['des genous','des genoues'],'ou'],['un hibou','des hiboux',['des hibous','des hiboues'],'ou'],['un trou','des trous',['des troux','des troues'],'ou'],['un clou','des clous',['des cloux','des cloues'],'ou'],['un bisou','des bisous',['des bisoux','des bisoues'],'ou'],['un carnaval','des carnavals',['des carnavaux','des carnavales'],'bal'],['un bal','des bals',['des baux','des bales'],'bal'],['un nez','des nez',['des nezs','des nés'],'sxz'],['une souris','des souris',['des souriss','des sourises'],'sxz'],['un prix','des prix',['des prixs','des pris'],'sxz'],['un œil','des yeux',['des œils','des yeus'],'oeil'],['un travail','des travaux',['des travails','des travaus'],'ail']];
+const FAMILLE=[['dent',['dentiste','dentifrice','dentition'],'danser'],['lait',['laitier','laitage','allaiter'],'laid'],['terre',['terrain','terrier','enterrer'],'terrible'],['chant',['chanteur','chanson','chanter'],'champ'],['jardin',['jardinier','jardiner','jardinage'],'jambon'],['fleur',['fleuriste','fleurir','fleuri'],'fleuve'],['mer',['marin','maritime','marée'],'mère'],['long',['longueur','allonger','longtemps'],'loin'],['froid',['froidement','refroidir','froideur'],'fromage'],['grand',['grandir','grandeur','agrandir'],'grange'],['école',['écolier','scolaire','écolière'],'écouter'],['saut',['sauter','sautiller','sursaut'],'saucisse'],['coiffer',['coiffeur','coiffure','décoiffer'],'coffre'],['vent',['venter','éventail','ventilateur'],'vendre'],['nage',['nager','nageur','nageoire'],'nuage'],['peinture',['peindre','peintre','repeindre'],'peigne'],['dessin',['dessiner','dessinateur','redessiner'],'dessert'],['mont',['montagne','monter','montagnard'],'montre']];
+const INFINITIF=[['Nous mangeons une pizza.','manger',['mangeons','mangé','mangeur']],['Tu finis ton dessin.','finir',['finis','fini','finer']],['Elle est à l’école.','être',['est','avoir','étais']],['Ils ont un chien.','avoir',['ont','être','a']],['Je vais au parc.','aller',['vais','va','venir']],['Vous faites un gâteau.','faire',['faites','fait','faiter']],['Le chat dort.','dormir',['dort','dormer','dors']],['Nous prenons le train.','prendre',['prenons','prener','pris']],['Les enfants jouent.','jouer',['jouent','joué','joueur']],['Tu viens avec moi ?','venir',['viens','vener','aller']],['Elle lit un livre.','lire',['lit','liser','lu']],['Je vois un oiseau.','voir',['vois','voyer','vu']],['Il écrit une lettre.','écrire',['écrit','écriver','écrivain']],['Nous chantons ensemble.','chanter',['chantons','chanté','chanteur']],['Vous dites bonjour.','dire',['dites','diser','dit']],['Je peux t’aider.','pouvoir',['peux','peuver','pouvons']],['Maman boit un café.','boire',['boit','boiver','bu']],['Ils courent vite.','courir',['courent','courer','couru']]];
+const NEG=[['Il','joue','dehors.'],['Je','mange','ma soupe.'],['Nous','partons','demain.'],['Elle','aime','les épinards.'],['Tu','ranges','ta chambre.'],['Le chien','aboie','la nuit.'],['Mes amis','viennent','ce soir.'],['Vous','regardez','la télé.'],['Je','trouve','mon stylo.'],['Papa','travaille','le dimanche.'],['Les oiseaux','chantent','en hiver.'],['Tu','écoutes','la maîtresse.'],['On','court','dans le couloir.'],['Elle','oublie','son cartable.'],['Le bébé','dort','la nuit.'],['Nous','jouons','sous la pluie.']];
+const A_A=[['Willyam ___ un vélo rouge.','a'],['Il va ___ l’école.','à'],['Hailey ___ quatre ans.','a'],['Nous allons ___ la piscine.','à'],['Le chat ___ faim.','a'],['Je pense ___ toi.','à'],['Elle ___ perdu son bonnet.','a'],['Papa est ___ la maison.','à'],['Tom ___ un petit chien.','a'],['Je vais ___ Paris.','à'],['Mamie ___ fait une tarte.','a'],['Une tarte ___ la fraise.','à'],['On joue ___ cache-cache.','à'],['Le bébé ___ sommeil.','a'],['Mon frère ___ huit ans.','a'],['Elle rentre ___ midi.','à'],['Le lapin ___ de grandes oreilles.','a'],['Il habite ___ Lyon.','à'],['Hailey ___ trouvé un trésor.','a'],['Je joue ___ la poupée.','à'],['Ce livre est ___ moi.','à'],['Le chien ___ soif.','a']];
+const ET_EST=[['Le ciel ___ bleu.','est'],['Willyam ___ Hailey jouent ensemble.','et'],['Il ___ très content.','est'],['J’aime les pommes ___ les poires.','et'],['La soupe ___ chaude.','est'],['Le chat ___ le chien dorment.','et'],['Maman ___ au travail.','est'],['J’ai un crayon ___ une gomme.','et'],['Le bébé ___ dans son lit.','est'],['Il pleut ___ il fait froid.','et'],['Ce gâteau ___ délicieux.','est'],['Papa ___ Mamie arrivent.','et'],['Mon vélo ___ rouge.','est'],['Le pain ___ le beurre sont sur la table.','et'],['Elle ___ en colère.','est'],['Il a un frère ___ une sœur.','et'],['Ton dessin ___ très joli.','est'],['Je mange une pomme ___ une banane.','et'],['La porte ___ fermée.','est'],['Le lion ___ le tigre sont des félins.','et']];
+const NATURE=[['Le petit chat dort.','petit','adjectif'],['Le petit chat dort.','chat','nom'],['Le petit chat dort.','dort','verbe'],['Ma sœur porte une robe bleue.','robe','nom'],['Ma sœur porte une robe bleue.','bleue','adjectif'],['Ma sœur porte une robe bleue.','porte','verbe'],['Ma sœur porte une robe bleue.','une','déterminant'],['Les grands arbres bougent.','Les','déterminant'],['Les grands arbres bougent.','grands','adjectif'],['Les grands arbres bougent.','arbres','nom'],['Willyam mange une pomme rouge.','mange','verbe'],['Willyam mange une pomme rouge.','rouge','adjectif'],['Un énorme camion passe.','énorme','adjectif'],['Un énorme camion passe.','camion','nom'],['Un énorme camion passe.','passe','verbe'],['Le chien noir aboie.','noir','adjectif'],['Le chien noir aboie.','chien','nom'],['Le chien noir aboie.','aboie','verbe'],['Mon frère lit un gros livre.','gros','adjectif'],['Mon frère lit un gros livre.','lit','verbe'],['Mon frère lit un gros livre.','Mon','déterminant'],['Mon frère lit un gros livre.','livre','nom'],['Ces jolies fleurs sentent bon.','Ces','déterminant'],['Ces jolies fleurs sentent bon.','jolies','adjectif'],['Ces jolies fleurs sentent bon.','sentent','verbe'],['La souris grise grignote.','souris','nom'],['La souris grise grignote.','grise','adjectif']];
+const SUJET=[[['Le chat de Léo','mange','une souris.'],0,'mange'],[['Dans la cour,','les enfants','jouent','au ballon.'],1,'jouent'],[['Hailey et Willyam','regardent','un dessin animé.'],0,'regardent'],[['Ce matin,','Papa','prépare','des crêpes.'],1,'prépare'],[['Les oiseaux','chantent','dans l’arbre.'],0,'chantent'],[['Ma maîtresse','lit','une histoire.'],0,'lit'],[['Sous le lit,','le chat','dort.'],1,'dort'],[['Nous','partons','en vacances.'],0,'partons'],[['Le gros chien noir','aboie','très fort.'],0,'aboie'],[['Demain,','mes cousins','viennent','à la maison.'],1,'viennent'],[['La petite fille','saute','à la corde.'],0,'saute'],[['Le soir,','mon grand frère','lit','dans son lit.'],1,'lit'],[['Les voitures','roulent','vite.'],0,'roulent'],[['Chaque matin,','le boulanger','prépare','le pain.'],1,'prépare'],[['Tu','manges','une glace.'],0,'manges'],[['Dans le ciel,','un avion','passe.'],1,'passe'],[['Mes parents','travaillent','beaucoup.'],0,'travaillent'],[['Le facteur','apporte','le courrier.'],0,'apporte']];
+const ACCORD=[['des fleurs ___',['rouge','rouges'],'rouges'],['une ___ fille',['petit','petite','petits'],'petite'],['les chiens ___',['noir','noirs','noires'],'noirs'],['une robe ___',['vert','verte','verts'],'verte'],['des ballons ___',['bleu','bleus','bleues'],'bleus'],['un ___ château',['grand','grande','grands'],'grand'],['deux ___ souris',['petit','petits','petites'],'petites'],['la ___ maison',['joli','jolie','jolis'],'jolie'],['mes ___ amies',['meilleur','meilleurs','meilleures'],'meilleures'],['un chien ___',['content','contente','contents'],'content'],['des tartes ___',['sucré','sucrés','sucrées'],'sucrées'],['les ___ voitures',['rapide','rapides'],'rapides'],['une pomme ___',['vert','verte','verts'],'verte'],['des yeux ___',['bleu','bleus','bleues'],'bleus'],['les ___ filles',['grand','grands','grandes'],'grandes'],['des chaussures ___',['neuf','neufs','neuves'],'neuves'],['une histoire ___',['amusant','amusante','amusants'],'amusante'],['des chats ___',['gris','grise','grises'],'gris'],['ma ___ sœur',['petit','petite','petits'],'petite']];
 const noAcc=s=>s.normalize('NFD').replace(/[̀-ͯ]/g,'');
 function lectQ(bank){const T=pick(bank),[qq,a,w]=pick(T.qs);return {p:'Lis le texte, puis réponds',q:`<div class="text">${T.t}</div><div class="qq">${qq}</div>`,say:`${T.t} … ${qq}`,type:'choice',choices:shuffle([a,...w]),answer:a,explain:'Relis le texte : la réponse y est écrite, ou on peut la deviner.'};}
+function pickQ(bank,p,explain){const [t,ch,a]=pick(bank);return {p,q:`<div class="mid">${t.replace('___',SLOT)}</div>`,say:t.replace('___','…'),type:'choice',choices:ch,keep:true,answer:a,explain:typeof explain==='function'?explain(t,a):explain};}
+function holeQ(bank,choices,p,explain){const [w,a]=pick(bank),full=w.replace('__',a);return {p,q:`<div class="big">${w.replace('__',SLOT)}</div>`,say:`${p} ${full}.`,type:'choice',choices,keep:true,answer:a,explain:`On écrit « ${full} ». ${explain}`};}
+function contrQ(){const bank=Math.random()<.6?CONTR_A:CONTR_V,pair=pick(bank),[w,a]=Math.random()<.5?pair:[pair[1],pair[0]];
+  const bad=new Set([w,a]);CONFUS.forEach(g=>{if(g.includes(a)||g.includes(w))g.forEach(x=>bad.add(x));});
+  const wr=bank.flat().filter(x=>!bad.has(x));
+  return {p:'Trouve le contraire',q:`<div class="mid">Le contraire de <b>${w}</b></div>`,say:`Quel est le contraire de ${w} ?`,type:'choice',cls:'list',choices:uniqChoices(a,wr),answer:a,explain:`Le contraire de « ${w} », c’est « ${a} ».`};}
 function blankQ(bank,choices,p,explain){const [s,a]=pick(bank);return {p,q:`<div class="mid">${s.replace('___',SLOT)}</div>`,say:s.replace('___','…'),type:'choice',choices,keep:true,answer:a,explain};}
 
 const GF={
@@ -410,7 +568,35 @@ const GF={
     const a=`${aux} ${s}é`,subj=i===0?'Hier, j’':`Hier, ${p} `;
     return {p:'Conjugue au passé composé',q:`<div class="mid">${subj}${SLOT}</div><div class="tag">verbe ${v}</div>`,say:`${subj}… verbe ${v}, au passé composé.`,type:'choice',choices:uniqChoices(a,[`${aux} ${s}er`,`${aux} ${s}ez`,s+END.pres[i]]),answer:a,
       explain:`Avec « avoir », le verbe finit par -é : ${subj}${a}.`};},
-  F17(){const [g,ch,a]=pick(ACCORD);return {p:'Choisis le mot bien accordé',q:`<div class="mid">${g.replace('___',SLOT)}</div>`,say:g.replace('___','…'),type:'choice',choices:ch,keep:true,answer:a,explain:`On écrit « ${g.replace('___',a)} ». L’adjectif suit le nom : féminin → e, pluriel → s.`};}
+  F17(){const [g,ch,a]=pick(ACCORD);return {p:'Choisis le mot bien accordé',q:`<div class="mid">${g.replace('___',SLOT)}</div>`,say:g.replace('___','…'),type:'choice',choices:ch,keep:true,answer:a,explain:`On écrit « ${g.replace('___',a)} ». L’adjectif suit le nom : féminin → e, pluriel → s.`};},
+
+  // ----- Missions ajoutées -----
+  F18(){const [e,w,a]=pick(SONS2),full=w.replace(/__/g,a);return {p:'Quel son manque ?',q:`<div class="pic">${e}</div><div class="big">${w.replace(/__/g,SLOT)}</div>`,say:`Quel son manque dans le mot : ${full} ?`,type:'choice',choices:['ch','gn','ph','qu'],keep:true,answer:a,explain:`On écrit « ${full} ».`};},
+  F19(){return holeQ(MBP,['m','n'],'m ou n ?','Devant m, b et p, on écrit m. Sinon, on écrit n.');},
+  F20(){return contrQ();},
+  F21(){const t=pick(PHRASES),low=t.charAt(0).toLowerCase()+t.slice(1);
+    return {p:'Quelle phrase est bien écrite ?',q:'<div class="tag">Regarde le début et la fin de la phrase</div>',say:`Quelle phrase est bien écrite ? ${t}`,type:'choice',cls:'list',choices:[t,low,t.slice(0,-1),low.slice(0,-1)],answer:t,explain:'Une phrase commence par une majuscule et se termine par un point.'};},
+  F22(){return holeQ(S_SS,['s','ss'],'s ou ss ?','Entre deux voyelles, un seul s se lit « z ». Pour entendre « s », il faut ss.');},
+  F23(){return holeQ(C_CED,['c','ç'],'c ou ç ?','Devant a, o et u, il faut une cédille pour entendre « s ». Devant e et i, pas besoin.');},
+  F24(){return holeQ(G_GU,['g','gu'],'g ou gu ?','Devant e et i, il faut « gu » pour entendre le son « g » de gâteau. Devant a, o et u, un g suffit.');},
+  F25(){const pair=pick(SYNO),[w,a]=Math.random()<.5?pair:[pair[1],pair[0]],isN=x=>/^une? /.test(x),wr=SYNO.filter(x=>x!==pair).flat().filter(x=>isN(x)===isN(a));
+    return {p:'Trouve le mot qui veut dire la même chose',q:`<div class="mid"><b>${w}</b>, c’est comme…</div>`,say:`Quel mot veut dire la même chose que ${w} ?`,type:'choice',cls:'list',choices:uniqChoices(a,wr),answer:a,explain:`« ${w} » et « ${a} » veulent dire la même chose : ce sont des synonymes.`};},
+  F26(){const [t,a]=pick(PONCT),tips={'.':'La phrase raconte quelque chose : on met un point.','?':'C’est une question : on met un point d’interrogation.','!':'La phrase montre une émotion forte ou un ordre : on met un point d’exclamation.'};
+    return {p:'Quel point faut-il à la fin ?',q:`<div class="mid">${t} ${SLOT}</div>`,say:`Quel point faut-il à la fin de la phrase ? ${t}`,type:'choice',choices:['.','?','!'],keep:true,answer:a,explain:tips[a]};},
+  F27(){return pickQ(ACC_SV,'Choisis le verbe bien écrit',(t,a)=>`On écrit « ${t.replace('___',a)} ». ${a.endsWith('ent')?'Le sujet est au pluriel (ils, elles) : le verbe finit par -ent.':'Le sujet est au singulier (il, elle) : le verbe finit par -e.'}`);},
+  F28(){return blankQ(ON_ONT,['on','ont'],'on ou ont ?','Astuce : si on peut dire « il », on écrit « on ». Si on peut dire « avaient », on écrit « ont ».');},
+  F29(){return blankQ(SON_SONT,['son','sont'],'son ou sont ?','Astuce : si on peut dire « étaient », on écrit « sont ». Si on peut dire « mon », on écrit « son ».');},
+  F30(){return blankQ(OU_OU,['ou','où'],'ou ou où ?','Astuce : si on peut dire « ou bien », on écrit « ou » sans accent. « Où » avec un accent parle d’un endroit.');},
+  F31(){const v=pick(Object.keys(IRREG)),[forms,comp]=IRREG[v],[P,,i]=pick(PRON),a=forms[i];
+    return {p:`Conjugue le verbe ${v} au présent`,q:`<div class="mid">${P} ${SLOT} ${comp}.</div><div class="tag">verbe ${v}</div>`,say:`${P}… ${comp}. Verbe ${v}, au présent.`,type:'choice',choices:uniqChoices(a,forms.filter(f=>f!==a)),answer:a,explain:`On dit : ${P} ${a} ${comp}.`};},
+  F32(){const [m,f,w]=pick(FEMININ);return {p:'Trouve le féminin',q:`<div class="mid"><b>${m}</b> → ${SLOT}</div>`,say:`Quel est le féminin de : ${m} ?`,type:'choice',cls:'list',choices:shuffle([f,...w]),answer:f,explain:`${m} → ${f}.`};},
+  F33(){const [sg,plu,w,r]=pick(PLUR2),tips={al:'Beaucoup de noms en -al font leur pluriel en -aux.',ou:'Les noms en -ou prennent un s. Sept exceptions prennent un x : bijou, caillou, chou, genou, hibou, joujou, pou.',bal:'Attention, exception : ce nom en -al prend simplement un s.',sxz:'Un nom qui finit déjà par s, x ou z ne change pas au pluriel.',oeil:'C’est un pluriel spécial, à retenir par cœur.',ail:'Quelques noms en -ail font leur pluriel en -aux.'};
+    return {p:'Écris au pluriel',q:`<div class="mid"><b>${sg}</b> → ${SLOT}</div>`,say:`Comment écrit-on au pluriel : ${sg} ?`,type:'choice',cls:'list',choices:shuffle([plu,...w]),answer:plu,explain:`${sg} → ${plu}. ${tips[r]}`};},
+  F34(){const [root,mem,odd]=pick(FAMILLE);return {p:'Trouve l’intrus',q:`<div class="mid">Quel mot n’est pas de la famille de <b>${root}</b> ?</div>`,say:`Quel mot n’est pas de la famille de ${root} ?`,type:'choice',cls:'list',choices:shuffle([...mem,odd]),answer:odd,explain:`« ${odd} » ressemble aux autres, mais il n’a pas le même sens. ${mem.join(', ')} : ces mots parlent tous de « ${root} ».`};},
+  F35(){const [t,inf,w]=pick(INFINITIF);return {p:'Trouve l’infinitif du verbe',q:`<div class="mid">${t}</div><div class="tag">Astuce : « il faut… »</div>`,say:`${t} Quel est l’infinitif du verbe ?`,type:'choice',choices:shuffle([inf,...w]),answer:inf,explain:`L’infinitif, c’est le nom du verbe. On peut dire : « il faut ${inf} ».`};},
+  F36(){const [S0,V,rest]=pick(NEG),ne=/^[aeiouéèêhy]/i.test(V)?'n’':'ne ',ok=`${S0} ${ne}${V} pas ${rest}`;
+    return {p:'Choisis la bonne phrase négative',q:`<div class="mid">${S0} ${V} ${rest}</div><div class="tag">Dis le contraire avec « ne… pas »</div>`,say:`${S0} ${V} ${rest} Choisis la bonne phrase négative.`,type:'choice',cls:'list',choices:shuffle([ok,`${S0} ${V} pas ${rest}`,`${S0} ne pas ${V} ${rest}`,`${S0} ${V} ne pas ${rest}`]),answer:ok,explain:`On écrit : « ${ok} » Le verbe se place entre « ${ne.trim()} » et « pas ».`};},
+  F37(){return lectQ(LECT3);}
 };
 
 /* ---------- Niveaux ---------- */
@@ -419,46 +605,83 @@ const LEVELS={
   maths:[
     ['M1',0,'Comparer jusqu’à 100','Sur ta feuille, écris deux nombres et mets le bon signe entre eux : < ou >.'],
     ['M2',0,'Dizaines et unités','Écris sur ta feuille le nombre qui a 7 dizaines et 3 unités.'],
+    ['M20',0,'Les amis de 10 et de 20','Écris toutes les façons de faire 10 : 1 + 9, 2 + 8…'],
     ['M3',0,'Additions','Écris une addition dont le résultat est 50.'],
     ['M4',0,'Soustractions','Écris une soustraction dont le résultat est 12.'],
+    ['M21',0,'Compter de 2 en 2, 5 en 5, 10 en 10','Écris les nombres de 5 en 5, de 5 jusqu’à 50.'],
     ['M5',0,'Additions avec retenue','Pose 38 + 27 en colonnes sur ta feuille, puis calcule.'],
+    ['M22',0,'Les nombres en lettres','Écris en lettres : 16, 71 et 80.'],
     ['M6',0,'Tables de 2, 5 et 10','Écris la table de 5, de 5 × 1 jusqu’à 5 × 5.'],
     ['M7',0,'Petits problèmes','Invente un petit problème avec des billes et écris la réponse.'],
+    ['M24',0,'Le calendrier','Écris les 7 jours de la semaine dans l’ordre.'],
     ['M8',0,'L’heure pile et la demie','Dessine une horloge qui montre 4 h 30.'],
+    ['M25',0,'Les figures','Avec ta règle, trace un carré, un rectangle et un triangle.'],
     ['M9',0,'La monnaie','Dessine les pièces et les billets pour faire 17 €.'],
     ['M10',1,'Les nombres jusqu’à 1 000','Écris en chiffres : trois cent quarante-deux.'],
+    ['M23',1,'Pair ou impair','Écris 3 nombres pairs et 3 nombres impairs.'],
     ['M11',1,'Soustractions avec retenue','Pose 52 − 28 en colonnes, puis calcule.'],
+    ['M28',1,'Calcul malin : 9 et 11','Calcule dans ta tête, puis écris : 34 + 9 et 34 + 11.'],
     ['M12',1,'Tables de 3 et 4','Écris la table de 3, de 3 × 1 jusqu’à 3 × 10.'],
+    ['M30',1,'Problèmes de multiplication','Dessine 3 paquets de 4 bonbons et écris la multiplication.'],
     ['M13',1,'Double et moitié','Écris le double de 25 et la moitié de 30.'],
+    ['M27',1,'Multiplier par 10 et par 100','Écris : 7 × 10, 12 × 10 et 5 × 100.'],
+    ['M26',1,'Additions à 3 chiffres','Pose 256 + 137 en colonnes, puis calcule.'],
+    ['M29',1,'Suites de grands nombres','Écris les nombres de 100 en 100, de 100 jusqu’à 1 000.'],
     ['M14',2,'Les nombres jusqu’à 10 000','Écris en chiffres : deux mille cinq cent six.'],
     ['M15',2,'Tables de 6 à 9','Écris la table de 7, de 7 × 1 jusqu’à 7 × 5.'],
+    ['M32',2,'Tables à trous','Écris 3 multiplications dont le résultat est 24.'],
+    ['M31',2,'Soustractions à 3 chiffres','Pose 432 − 157 en colonnes, puis calcule.'],
     ['M16',2,'L’heure et les minutes','Dessine une horloge qui montre 8 h 15.'],
+    ['M34',2,'Les durées','Écris à quelle heure tu te lèves et à quelle heure tu te couches.'],
     ['M17',2,'Partager','Dessine 15 ronds et entoure des groupes de 3. Combien de groupes ?'],
+    ['M33',2,'Multiplier un grand nombre','Calcule 24 × 3 en écrivant d’abord 20 × 3, puis 4 × 3.'],
     ['M18',2,'Les mesures','Écris 3 objets de la maison qu’on mesure en centimètres.'],
+    ['M35',2,'Le périmètre','Trace un rectangle de 6 cm sur 3 cm, puis calcule son périmètre.'],
+    ['M36',2,'Rendre la monnaie','Un livre coûte 13 €. Tu donnes 20 €. Écris le calcul de la monnaie.'],
     ['M19',2,'Problèmes en 2 étapes','Écris les deux calculs du dernier problème de la mission.']
   ],
   fr:[
     ['F1',0,'Les sons ou, on, an, oi','Écris 3 mots avec le son « on ».'],
     ['F2',0,'Le ou la ? Un ou une ?','Écris 2 mots avec « la » et 2 mots avec « le ».'],
+    ['F18',0,'Les sons ch, gn, ph, qu','Écris 2 mots avec « ch » et 2 mots avec « qu ».'],
     ['F3',0,'Un ou plusieurs ?','Écris au pluriel : le chat, la fleur, le gâteau.'],
     ['F4',0,'L’ordre alphabétique','Range dans l’ordre alphabétique : vélo, arbre, maison.'],
+    ['F21',0,'La majuscule et le point','Écris une phrase sur ton animal préféré. N’oublie pas la majuscule et le point.'],
     ['F5',0,'Trouve le verbe','Écris une phrase, puis souligne le verbe.'],
+    ['F19',0,'m devant m, b, p','Écris : une chambre, une lampe, un tambour.'],
     ['F6',0,'Être et avoir','Écris : je suis, tu es, il est, j’ai, tu as, il a.'],
+    ['F20',0,'Les contraires','Écris le contraire de : grand, chaud, ouvrir.'],
     ['F7',0,'Lire et comprendre','Écris une phrase pour raconter le texte que tu as préféré.'],
     ['F8',1,'Les verbes en -er au présent','Écris : je chante, tu chantes, nous chantons.'],
+    ['F22',1,'s ou ss ?','Écris : un poisson, une maison, une tasse.'],
     ['F9',1,'a ou à ?','Écris une phrase avec « a » et une phrase avec « à ».'],
+    ['F23',1,'c ou ç ?','Écris : un garçon, un citron, une leçon.'],
     ['F10',1,'et ou est ?','Écris une phrase avec « et » et une phrase avec « est ».'],
+    ['F24',1,'g ou gu ?','Écris : une guitare, un gâteau, une bague.'],
+    ['F26',1,'Le point, ? ou !','Écris une question que tu aimerais poser à un astronaute.'],
+    ['F25',1,'Les synonymes','Écris un autre mot pour dire « content » et « joli ».'],
+    ['F27',1,'Le verbe s’accorde','Écris : le chat joue, les chats jouent.'],
     ['F11',1,'Lire entre les lignes','Écris ce que tu ferais s’il neigeait demain.'],
     ['F12',2,'Nom, verbe ou adjectif ?','Écris un nom, un verbe et un adjectif.'],
     ['F13',2,'Le sujet du verbe','Écris une phrase et entoure le sujet.'],
+    ['F35',2,'L’infinitif du verbe','Écris l’infinitif de : nous jouons, tu finis, il va.'],
+    ['F31',2,'Aller, faire, dire, venir…','Écris : je vais, tu fais, il dit, nous venons.'],
+    ['F28',2,'on ou ont ?','Écris une phrase avec « on » et une phrase avec « ont ».'],
+    ['F29',2,'son ou sont ?','Écris une phrase avec « son » et une phrase avec « sont ».'],
+    ['F30',2,'ou ou où ?','Écris une question qui commence par « Où ».'],
     ['F14',2,'Le futur','Écris ce que tu feras demain : « Demain, je… »'],
     ['F15',2,'L’imparfait','Termine la phrase : « Quand j’étais bébé, je… »'],
     ['F16',2,'Le passé composé','Écris ce que tu as fait hier : « Hier, j’ai… »'],
-    ['F17',2,'Les accords','Écris : une petite fille, des petites filles.']
+    ['F36',2,'La phrase négative','Écris à la forme négative : « J’aime la pluie. »'],
+    ['F17',2,'Les accords','Écris : une petite fille, des petites filles.'],
+    ['F32',2,'Le féminin des noms','Écris le féminin de : un boulanger, un lion, un acteur.'],
+    ['F33',2,'Les pluriels difficiles','Écris au pluriel : un cheval, un bijou, un trou.'],
+    ['F34',2,'Les familles de mots','Écris 3 mots de la famille de « jardin ».'],
+    ['F37',2,'Lire un texte plus long','Écris deux phrases pour raconter l’histoire que tu as préférée.']
   ]
 };
 const GEN=Object.assign({},GM,GF);
-const MOVES=['Fais 10 sauts de grenouille.','Marche comme un ours jusqu’à la porte et reviens.','Fais 5 grands cercles avec tes bras.','Saute 10 fois sur un pied, puis sur l’autre.','Étire-toi comme un chat, le plus haut possible.','Fais 8 flexions comme un robot.','Tape 10 fois dans tes mains au-dessus de ta tête.','Cours sur place en comptant jusqu’à 20.','Fais l’avion : bras écartés, tiens sur un pied jusqu’à 10.','Touche tes pieds, puis tends les bras vers le ciel. Fais-le 5 fois.','Fais 5 sauts d’étoile : bras et jambes écartés.','Fais 5 pompes contre le mur.'];
+const MOVES=['Fais 10 sauts de grenouille.','Marche comme un ours jusqu’à la porte et reviens.','Fais 5 grands cercles avec tes bras.','Saute 10 fois sur un pied, puis sur l’autre.','Étire-toi comme un chat, le plus haut possible.','Fais 8 flexions comme un robot.','Tape 10 fois dans tes mains au-dessus de ta tête.','Cours sur place en comptant jusqu’à 20.','Fais l’avion : bras écartés, tiens sur un pied jusqu’à 10.','Touche tes pieds, puis tends les bras vers le ciel. Fais-le 5 fois.','Fais 5 sauts d’étoile : bras et jambes écartés.','Fais 5 pompes contre le mur.','Fais le flamant rose : tiens sur une jambe, puis sur l’autre.','Monte les genoux très haut, 10 fois.','Fais la chaise contre le mur et compte jusqu’à 10.','Boxe dans le vide : 10 coups avec chaque bras.'];
 const PRAISE=['Bravo !','Super !','Génial !','Exact !','Trop fort !','Bien joué !','Oui !'];
 
 /* ---------- État ---------- */
@@ -479,6 +702,7 @@ function ensureFields(){
   S.usage={day:typeof u.day==='string'?u.day:'',sec:Math.max(0,+u.sec||0),bonus:Math.max(0,+u.bonus||0)};
   if(!Array.isArray(S.moveBag))S.moveBag=[];                              // mouvements pas encore tirés
   if(typeof S.lastMove!=='number')S.lastMove=-1;
+  if(![5,8,10].includes(S.qCount))S.qCount=5;                              // questions par mission
 }
 ensureFields();
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -513,6 +737,7 @@ function cleanState(d){
   // Le code parent voyage avec la sauvegarde ; s'il n'y en a pas, on garde celui de cet appareil.
   o.pin=typeof d.pin==='string'&&/^\d{4}$/.test(d.pin)?d.pin:S.pin;
   o.limitMin=int(d.limitMin,0,240,S.limitMin);
+  o.qCount=[5,8,10].includes(+d.qCount)?+d.qCount:S.qCount;
   return o;
 }
 let track='maths',M=null,sessionCount=0,lastPause=0,resetArmed=false,curView='home';
@@ -545,7 +770,14 @@ const $=s=>document.querySelector(s);
 const view=()=>document.getElementById('view');
 const lvls=t=>LEVELS[t].map(([id,stage,title,crayon],i)=>({id,stage,title,crayon,i,track:t}));
 const findLvl=id=>[...lvls('maths'),...lvls('fr')].find(l=>l.id===id);
-const unlocked=l=>S.unlockAll||l.i===0||(S.stars[lvls(l.track)[l.i-1].id]||0)>=1;
+// Une mission s'ouvre quand la précédente a au moins 1 étoile. Tout ce qui se trouve avant la mission réussie
+// la plus avancée reste ouvert : ajouter de nouvelles missions au milieu ne reverrouille donc rien.
+const lastDone=t=>{let m=-1;lvls(t).forEach(l=>{if((S.stars[l.id]||0)>=1)m=l.i;});return m;};
+const unlocked=l=>S.unlockAll||l.i===0||l.i<=lastDone(l.track)||(S.stars[lvls(l.track)[l.i-1].id]||0)>=1;
+const QN=()=>S.qCount||5;
+// Mission surprise : un mélange de questions tirées des missions déjà réussies de la matière.
+const MIX_MIN=3;
+const mixPool=t=>lvls(t).filter(l=>(S.stars[l.id]||0)>=1);
 const totalStars=()=>Object.values(S.stars).reduce((a,b)=>a+b,0)+Object.values(S.crayon).filter(Boolean).length;
 
 function renderHome(){
@@ -558,10 +790,12 @@ function renderHome(){
     <button class="tab sticker maths" role="tab" aria-selected="${track==='maths'}" data-track="maths"><span class="ic">12</span>Maths</button>
     <button class="tab sticker fr" role="tab" aria-selected="${track==='fr'}" data-track="fr"><span class="ic">Aa</span>Français</button>
   </div>
-  <p class="intro">Choisis une mission : 5 questions, puis un défi crayon. Gagne au moins 1 étoile pour ouvrir la suivante. Tes étoiles vont dans ta tirelire pour gagner des récompenses.</p>`;
+  <p class="intro">Choisis une mission : ${QN()} questions, puis un défi crayon. Gagne au moins 1 étoile pour ouvrir la suivante. Tes étoiles vont dans ta tirelire pour gagner des récompenses.</p>`;
+  if(mixPool(track).length>=MIX_MIN)html+=`<button class="mix sticker" id="mixBtn"><span class="mixic" aria-hidden="true">🎲</span><span><b>Mission surprise</b><small>Un mélange de ce que tu sais déjà faire</small></span></button>`;
   STAGES.forEach((st,si)=>{
-    html+=`<section><div class="stage-h"><span class="pill">${st.n}</span><p>${st.d}</p></div><div class="grid">`;
-    L.filter(l=>l.stage===si).forEach(l=>{
+    const SL=L.filter(l=>l.stage===si),ok=SL.filter(l=>S.stars[l.id]>=1).length;
+    html+=`<section><div class="stage-h"><span class="pill">${st.n}</span><p>${st.d}</p><span class="cnt2" aria-label="${ok} missions réussies sur ${SL.length}">${ok}/${SL.length}</span></div><div class="grid">`;
+    SL.forEach(l=>{
       const u=unlocked(l),s=S.stars[l.id]||0,isNext=l.id===nextId;
       html+=`<button class="tile sticker ${u?'':'locked'} ${isNext?'next':''}" data-lvl="${l.id}" ${u?'':'disabled aria-disabled="true"'}>
         ${isNext?'<span class="badge">À toi !</span>':''}
@@ -576,18 +810,28 @@ function renderHome(){
   view().querySelectorAll('.tile:not(.locked)').forEach(b=>b.onclick=()=>startLevel(b.dataset.lvl));
   $('#parentBtn').onclick=()=>askPin(renderParent);
   $('#rewBtn').onclick=renderRewards;
+  const mb=$('#mixBtn');if(mb)mb.onclick=()=>startLevel('MIX');
 }
 
-function makeMission(id){
-  const gen=GEN[id],qs=[],keys=new Set();let tries=0;
-  while(qs.length<5&&tries++<80){const q=gen();const k=q.p+q.q+q.answer;if(keys.has(k)&&tries<60)continue;keys.add(k);q._ch=q.type==='choice'?(q.keep?q.choices:shuffle(q.choices)):null;qs.push(q);}
-  return qs;
+// Tire les questions d'une mission, sans doublon. On évite aussi de reposer celles de la mission
+// précédente du même niveau, tant que le générateur a autre chose à proposer.
+const recent={};
+function makeMission(genAt,memo,n){
+  const qs=[],keys=new Set(),old=recent[memo]||new Set();let tries=0;
+  while(qs.length<n&&tries++<400){const q=genAt(qs.length)();const k=q.p+q.q+q.answer;if((keys.has(k)&&tries<140)||(old.has(k)&&tries<50))continue;keys.add(k);q._ch=q.type==='choice'?(q.keep?q.choices:shuffle(q.choices)):null;qs.push(q);}
+  recent[memo]=keys;return qs;
 }
 function startLevel(id){
   if(timeUp()){renderTimeUp();return;}
   if(sessionCount>0&&sessionCount%2===0&&lastPause!==sessionCount){lastPause=sessionCount;showPause(()=>startLevel(id));return;}
-  const l=findLvl(id);track=l.track;document.body.dataset.track=track;
-  M={lvl:l,qs:makeMission(id),i:0,attempt:1,points:0,results:[],entry:'',locked:false};
+  let l,qs;
+  if(id==='MIX'){
+    const pool=shuffle(mixPool(track));if(pool.length<MIX_MIN){renderHome();return;}
+    l={id:'MIX',mix:true,track,title:'Mission surprise'};
+    qs=makeMission(i=>()=>{const src=pool[i%pool.length],q=GEN[src.id]();q._from=src.title;return q;},'MIX-'+track,QN());
+  }else{l=findLvl(id);track=l.track;qs=makeMission(()=>GEN[id],id,QN());}
+  document.body.dataset.track=track;
+  M={lvl:l,qs,i:0,attempt:1,points:0,results:[],entry:'',locked:false};
   renderQuestion();
 }
 function speechText(q){if(q.say)return q.say;const d=document.createElement('div');d.innerHTML=q.p+'. '+q.q.replace(/<span class="slot">\?<\/span>/g,' … ');return d.textContent;}
@@ -597,16 +841,19 @@ function renderQuestion(){
   curView='mission';const q=M.qs[M.i];
   let ans='';
   if(q.type==='choice'){
-    const ch=q._ch;const long=ch.some(c=>c.length>9);
-    const cls=q.chips?'chips':long?'list':ch.length===2?'row2':ch.length===3?'row3':'grid2';
+    // Mise en page selon la longueur des réponses : 3 colonnes seulement pour des réponses très courtes,
+    // une liste dès qu'un mot ne tiendrait pas sur un petit écran.
+    const ch=q._ch,mxl=Math.max(...ch.map(c=>c.length));
+    const auto=q.chips?'chips':mxl>9?'list':ch.length===2?'row2':ch.length===3?(mxl>4?'list':'row3'):'grid2';
+    const cls=q.cls||(auto+(mxl>7&&(auto==='row2'||auto==='grid2')?' sm':''));
     ans=`<div class="answers ${cls}" id="answers">${ch.map(c=>`<button class="btn choice" data-v="${c.replace(/"/g,'&quot;')}">${c}</button>`).join('')}</div>`;
   }else{
     ans=`<div class="entry empty" id="entry" aria-live="polite">?</div><div class="pad" id="pad">${[1,2,3,4,5,6,7,8,9].map(n=>`<button class="btn" data-k="${n}">${n}</button>`).join('')}<button class="btn" data-k="del" aria-label="Effacer">⌫</button><button class="btn" data-k="0">0</button><button class="btn ok" data-k="ok">OK</button></div>`;
   }
   view().innerHTML=`<div class="mtop"><button class="btn small" id="quit">✕ Quitter</button>
-    <div class="dots" aria-label="Question ${M.i+1} sur 5">${M.qs.map((_,k)=>`<span class="dot ${M.results[k]||''} ${k===M.i?'cur':''}"></span>`).join('')}</div>
+    <div class="dots ${M.qs.length>6?'many':''}" aria-label="Question ${M.i+1} sur ${M.qs.length}">${M.qs.map((_,k)=>`<span class="dot ${M.results[k]||''} ${k===M.i?'cur':''}"></span>`).join('')}</div>
     ${canSpeak?`<button class="btn small" id="listen" aria-label="Écouter la question">${speakSvg}</button>`:'<span></span>'}</div>
-    <div class="level-name">Mission ${M.lvl.i+1} · ${M.lvl.title}</div>
+    <div class="level-name">${M.lvl.mix?`🎲 Mission surprise · ${q._from}`:`Mission ${M.lvl.i+1} · ${M.lvl.title}`}</div>
     <div class="qcard sticker" id="qcard"><div class="prompt">${q.p}</div><div class="qzone">${q.q}</div></div>
     ${ans}<div class="fb" id="fb" aria-live="polite"></div>`;
   window.scrollTo(0,0);
@@ -649,9 +896,9 @@ function next(){M.i++;M.attempt=1;M.locked=false;M.entry='';if(M.i>=M.qs.length)
 
 function finish(){
   curView='result';
-  const l=M.lvl,p=M.points,stars=p>=9?3:p>=7?2:p>=5?1:0;
-  const L=lvls(l.track),nx=L[l.i+1];const wasLocked=nx&&!unlocked(nx);
-  S.stars[l.id]=Math.max(S.stars[l.id]||0,stars);S.missions++;S.wallet+=stars;sessionCount++;save();
+  const l=M.lvl,p=M.points,mx=M.qs.length*2,stars=10*p>=9*mx?3:10*p>=7*mx?2:2*p>=mx?1:0;   // 90 %, 70 %, 50 % des points
+  const L=lvls(l.track),nx=l.mix?null:L[l.i+1];const wasLocked=nx&&!unlocked(nx);
+  if(!l.mix)S.stars[l.id]=Math.max(S.stars[l.id]||0,stars);S.missions++;S.wallet+=stars;sessionCount++;save();
   const newly=wasLocked&&nx&&unlocked(nx),over=timeUp();
   const msg=stars===3?'Mission parfaite !':stars===2?'Super travail !':stars===1?'Mission réussie !':'Tu y es presque !';
   const sub=stars===0?'Encore un essai et tu vas y arriver.':`${M.results.filter(r=>r==='ok').length} bonnes réponses du premier coup.`;
@@ -659,14 +906,14 @@ function finish(){
     <div class="bigstars" aria-label="${stars} étoile${stars>1?'s':''} sur 3">${starSvg(stars>=1)}${starSvg(stars>=2)}${starSvg(stars>=3)}</div>
     <p class="score">${sub}</p>${newly?`<span class="unlock">Mission ${nx.i+1} débloquée !</span>`:''}
     <p class="tirinfo" id="tirinfo"></p>
-    <div class="crayon"><h3>${pencilSvg}Défi crayon</h3><p>${l.crayon}</p><div id="crayonZone"></div></div>
+    ${l.mix?'':`<div class="crayon"><h3>${pencilSvg}Défi crayon</h3><p>${l.crayon}</p><div id="crayonZone"></div></div>`}
     ${over?'<p class="unlock">⏱ Le temps de jeu est fini pour aujourd’hui.</p>':''}
-    <div class="actions">${over?'<button class="btn go" id="endT">Terminer</button>':`${stars>=1&&nx?`<button class="btn go" id="nextL">Mission suivante →</button>`:''}<button class="btn" id="again">${stars===0?'Réessayer':'Rejouer'}</button>`}<button class="btn" id="rew">Récompenses</button>${over?'':'<button class="btn" id="home">Carte</button>'}</div></div>`;
+    <div class="actions">${over?'<button class="btn go" id="endT">Terminer</button>':`${stars>=1&&nx?`<button class="btn go" id="nextL">Mission suivante →</button>`:''}<button class="btn" id="again">${l.mix?'Encore une surprise':stars===0?'Réessayer':'Rejouer'}</button>`}<button class="btn" id="rew">Récompenses</button>${over?'':'<button class="btn" id="home">Carte</button>'}</div></div>`;
   window.scrollTo(0,0);
   const updTir=()=>{$('#tirinfo').innerHTML=(stars?`<b>+${stars} ★</b> dans ta tirelire. `:'')+rewardStatus();};
   let crayonDone=false;
   const cz=()=>{$('#crayonZone').innerHTML=crayonDone?'<span class="done">Défi validé ✓ +1 étoile</span>':'<button class="btn small" id="valid">Un adulte a vérifié ✓ (+1 étoile)</button>';const v=$('#valid');if(v)v.onclick=()=>askPin(()=>{crayonDone=true;S.crayon[l.id]=true;S.crayonN=(S.crayonN||0)+1;S.wallet++;save();cz();updTir();},'Un adulte valide le défi');};
-  cz();updTir();$('#rew').onclick=renderRewards;
+  if(!l.mix)cz();updTir();$('#rew').onclick=renderRewards;
   if(over)$('#endT').onclick=renderTimeUp;
   else{if(nx&&stars>=1)$('#nextL').onclick=()=>startLevel(nx.id);$('#again').onclick=()=>startLevel(l.id);$('#home').onclick=renderHome;}
   if(stars===3)confetti();
@@ -770,6 +1017,9 @@ function renderParent(){
     <div class="pinrow"><select id="limSel" aria-label="Temps de jeu par jour">${[...new Set([5,10,15,20,30,45,60,S.limitMin,0])].sort((a,b)=>(a||1e9)-(b||1e9)).map(m=>`<option value="${m}" ${m===S.limitMin?'selected':''}>${m?m+' min par jour':'Sans limite'}</option>`).join('')}</select>
     <span class="hint2">Aujourd’hui : ${Math.floor(usage().sec/60)} min jouées${S.limitMin?` sur ${S.limitMin+usage().bonus}`:''}</span></div>
     ${S.limitMin?'<div class="row"><button class="btn small" id="addT">+10 min aujourd’hui</button><button class="btn small" id="rstT">Remettre le temps du jour à zéro</button></div>':''}
+    <h3>Longueur des missions</h3>
+    <p class="hint2">Nombre de questions par mission. Si il finit trop vite, passe à 8 ou 10 questions. Les étoiles se gagnent pareil : il faut la moitié des points pour 1 étoile, 70 % pour 2 et 90 % pour 3.</p>
+    <div class="pinrow"><select id="qSel" aria-label="Questions par mission">${[5,8,10].map(n=>`<option value="${n}" ${n===S.qCount?'selected':''}>${n} questions par mission</option>`).join('')}</select></div>
     <h3>Code parent</h3>
     <p class="hint2">${S.pin?'Le code protège cet espace, la validation des récompenses et celle des défis crayon.':'Optionnel : avec un code à 4 chiffres, il ne peut plus valider lui-même les récompenses et les défis crayon, ni ouvrir cet espace.'}</p>
     <div class="pinrow"><input id="pinIn" type="password" inputmode="numeric" maxlength="4" placeholder="••••" aria-label="Nouveau code à 4 chiffres"><button class="btn small" id="pinSave">${S.pin?'Changer le code':'Enregistrer le code'}</button>${S.pin?'<button class="btn small" id="pinDel">Supprimer le code</button>':''}</div>
@@ -788,7 +1038,8 @@ function renderParent(){
     <li>Le défi crayon est le moment d’écriture : court, concret, sur une feuille. Vérifie avec lui avant d’appuyer sur le bouton.</li>
     <li>Une pause bouge apparaît toutes les deux missions. Le bouton « J’ai fini ! » ne s’active qu’à la fin des 20 secondes : elle aide à se reconcentrer.</li>
     <li>Le bouton haut-parleur lit la question à voix haute s’il bloque sur la lecture.</li>
-    <li>Une bonne réponse au premier essai vaut 2 points, au deuxième essai 1 point. 9-10 points = 3 étoiles, 7-8 = 2, 5-6 = 1.</li>
+    <li>Une bonne réponse au premier essai vaut 2 points, au deuxième essai 1 point. Avec 5 questions : 9-10 points = 3 étoiles, 7-8 = 2, 5-6 = 1.</li>
+    <li>La mission surprise 🎲 apparaît dès que 3 missions sont réussies dans une matière. Elle mélange des questions déjà vues : c’est la révision.</li>
     <li>Chaque partie remplit la tirelire, même quand il rejoue une mission. S’il gagne trop vite, augmente simplement le prix des récompenses.</li>
     <li>Sur iPhone : ouvre la page dans Safari, touche Partager, puis « Sur l’écran d’accueil ». L’icône marche ensuite sans Internet. Attention : elle a sa propre mémoire, séparée de Safari. Si des étoiles ont déjà été gagnées dans Safari, exporte-les puis importe-les dans l’icône.</li></ul>
     <p class="score">La progression est gardée sur cet appareil, dans ce navigateur. « Remettre à zéro » efface les étoiles et la tirelire, mais garde tes récompenses et ton code.</p>
@@ -807,10 +1058,11 @@ function renderParent(){
   $('#wPlus').onclick=()=>{S.wallet++;save();wv();};
   $('#pinSave').onclick=()=>{const v=$('#pinIn').value.trim();if(!/^\d{4}$/.test(v)){$('#pinMsg').textContent='Le code doit faire exactement 4 chiffres.';return;}S.pin=v;save();renderParent();$('#pinMsg').textContent='Code enregistré. Retiens-le bien.';};
   if(S.pin)$('#pinDel').onclick=()=>{S.pin='';save();renderParent();$('#pinMsg').textContent='Code supprimé.';};
+  $('#qSel').onchange=e=>{S.qCount=parseInt(e.target.value,10)||5;save();};
   $('#limSel').onchange=e=>{S.limitMin=parseInt(e.target.value,10)||0;save();renderParent();};
   if(S.limitMin){$('#addT').onclick=()=>{usage().bonus+=10;save();renderParent();};$('#rstT').onclick=()=>{const u=usage();u.sec=0;u.bonus=0;save();renderParent();};}
   $('#unl').onclick=()=>{S.unlockAll=!S.unlockAll;save();renderParent();};
-  $('#rst').onclick=e=>{if(!resetArmed){resetArmed=true;e.target.textContent='Sûr ? Touche encore pour tout effacer';e.target.style.background='var(--bad-soft)';return;}S={stars:{},crayon:{},crayonN:0,missions:0,unlockAll:false,wallet:0,rewards:S.rewards,claimed:[],pin:S.pin,lastExport:S.lastExport,limitMin:S.limitMin,usage:S.usage,moveBag:S.moveBag,lastMove:S.lastMove};save();renderParent();};
+  $('#rst').onclick=e=>{if(!resetArmed){resetArmed=true;e.target.textContent='Sûr ? Touche encore pour tout effacer';e.target.style.background='var(--bad-soft)';return;}S={stars:{},crayon:{},crayonN:0,missions:0,unlockAll:false,wallet:0,rewards:S.rewards,claimed:[],pin:S.pin,lastExport:S.lastExport,limitMin:S.limitMin,qCount:S.qCount,usage:S.usage,moveBag:S.moveBag,lastMove:S.lastMove};save();renderParent();};
   $('#back').onclick=renderHome;
   bindBackup();
 }
