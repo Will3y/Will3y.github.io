@@ -7,6 +7,7 @@ En un seul fichier : `index.html`.
 - Un côté par enfant, chacun son planning. Sur un grand écran (tablette), les deux côtés sont affichés ; sur un téléphone, deux boutons changent de côté.
 - Trois routines : matin, après l'école, soir. Le planning ouvre tout seul celle du moment.
 - Une tâche peut revenir un jour sur deux, pour les tours de rôle (un jour Willyam met la table et Hailey débarrasse, le lendemain l'inverse).
+- Des alertes à heure fixe (départ à l'école à 8 h 20, avec un rappel 5 minutes avant) : grand message, sonnerie et lecture à voix haute. Elles ne sonnent que si le planning est affiché, écran allumé.
 - Tout repart de zéro chaque jour. L'historique des 7 derniers jours est dans l'espace parent.
 - Sur la tablette : Chrome → ⋮ → « Ajouter à l'écran d'accueil ». L'icône marche ensuite sans Internet (grâce à `sw.js`).
 

@@ -91,6 +91,21 @@ button:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-vis
 .note.win{background:var(--ok-soft)}
 .note .big{display:block;font-size:44px;line-height:1.1}
 
+/* Alertes : le prochain rendez-vous de la journée, puis un grand message à l'heure dite */
+.next{margin-top:14px;padding:8px 16px;border:3px solid var(--ink);border-radius:16px;background:var(--paper);font-family:var(--display);font-weight:600;font-size:clamp(19px,2.6vw,24px);text-align:center}
+.next b{font-variant-numeric:tabular-nums}
+.next small{font-family:var(--body);font-weight:700;font-size:16px;color:var(--muted)}
+.next.soon{background:var(--star)}
+.next.soon small{color:var(--ink)}
+.alarm{position:fixed;inset:0;z-index:40;background:rgba(255,194,38,.94);display:grid;place-items:center;padding:16px;overflow:auto}
+.acard{padding:26px 20px;display:grid;gap:18px;justify-items:center;text-align:center;width:min(620px,100%)}
+.aitem{display:grid;gap:4px;justify-items:center}
+.aicon{font-size:clamp(80px,18vw,130px);line-height:1;animation:shake 1s ease-in-out infinite}
+.awhen{font-family:var(--display);font-weight:700;font-size:clamp(26px,5vw,38px);color:var(--bad)}
+.aname{font-family:var(--display);font-weight:700;font-size:clamp(32px,7vw,56px);line-height:1.1;overflow-wrap:anywhere}
+.acard .btn{font-size:26px;padding:14px 28px}
+@keyframes shake{0%,100%{transform:rotate(-8deg)}50%{transform:rotate(8deg)}}
+
 .cf{position:absolute;top:-20px;width:10px;height:14px;z-index:5;animation:fall 2.2s linear forwards;pointer-events:none}
 @keyframes fall{to{transform:translateY(900px) rotate(720deg)}}
 
@@ -111,6 +126,10 @@ button:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-vis
 .edit{display:grid;grid-template-columns:70px 1fr auto auto auto 210px;gap:6px;align-items:center}
 input,select,textarea{font:inherit;font-size:18px;border:3px solid var(--ink);border-radius:12px;padding:8px;background:var(--paper);color:var(--ink);min-width:0;width:100%}
 .edit .btn{width:42px;height:42px;padding:0}
+.abox{border:3px solid var(--ink);border-radius:16px;padding:12px;display:grid;gap:10px;background:var(--star-soft)}
+.aedit{display:grid;grid-template-columns:130px 70px 1fr 200px auto auto;gap:6px;align-items:center}
+.aedit .adel{width:42px;height:42px;padding:0}
+.aedit .atry{white-space:nowrap}
 .pinrow input{width:120px;letter-spacing:.3em}
 .pinrow select{width:auto}
 table{border-collapse:collapse;width:100%;font-size:16px}
@@ -133,6 +152,11 @@ td.fullc{color:var(--ok);font-weight:700}
   body[data-show="w"] .kid[data-kid="h"],body[data-show="h"] .kid[data-kid="w"]{display:none}
   .edit{grid-template-columns:64px 1fr auto auto auto}
   .edit .ef{grid-column:1/-1}
+  .aedit{grid-template-columns:130px 70px 1fr auto}
+  .aedit .an{grid-column:1/-1;grid-row:2}
+  .aedit .al{grid-column:1/3;grid-row:3}
+  .aedit .atry{grid-column:3/-1;grid-row:3}
+  .aedit .adel{grid-column:4;grid-row:1;justify-self:end}
 }
 @media (max-width:430px){.tbtn{gap:8px;padding:10px}.ti{font-size:32px;width:36px}.chk{width:38px;height:38px}.chk svg{width:22px;height:22px}.say{width:44px}}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
@@ -141,6 +165,7 @@ td.fullc{color:var(--ok);font-weight:700}
 <body data-show="w">
 <main class="wrap" id="view"></main>
 <div id="layer"></div>
+<div id="alarm"></div>
 <script>
 /* ---------- Outils ---------- */
 const $=s=>document.querySelector(s);
@@ -165,10 +190,12 @@ const speakSvg='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h4l5-4v
 const ROUTINES=[{id:'matin',name:'Matin',icon:'☀️',done:'du matin'},{id:'ecole',name:'Après l’école',icon:'🎒',done:'d’après l’école'},{id:'soir',name:'Soir',icon:'🌙',done:'du soir'}];
 const KIDS=['w','h'];
 const DAY_LETTERS=['L','M','M','J','V','S','D'],DAY_NAMES=['lundi','mardi','mercredi','jeudi','vendredi','samedi','dimanche'];
-const ICONS=['🛏️','🥣','🥐','🥛','🍽️','🍎','🧃','👕','👗','👖','🧦','👟','🧥','🪥','🧼','🚿','🛁','🚽','💇','👓','💊','🎒','📚','✏️','📖','📝','🧹','🧺','🧸','🗑️','🌱','🐶','🐱','🎹','⚽','🎨','📺','🎮','🤗','😴','🌙','⭐'];
+const ICONS=['🛏️','🥣','🥐','🥛','🍽️','🍎','🧃','👕','👗','👖','🧦','👟','🧥','🪥','🧼','🚿','🛁','🚽','💇','👓','💊','🎒','📚','✏️','📖','📝','🧹','🧺','🧸','🗑️','🌱','🐶','🐱','🎹','⚽','🎨','📺','🎮','🤗','😴','🌙','⭐','⏰','🔔','🚌','🚗','🏫'];
 const T=(icon,name,alt)=>alt?{id:uid(),icon,name,alt}:{id:uid(),icon,name};
 const ALL=[true,true,true,true,true,true,true],SCHOOL=[true,true,false,true,true,false,false];
-function defaults(){return {v:1,cut:[720,1110],pin:'',awake:false,lastExport:'',log:{},kids:{
+// Alertes : une heure (en minutes depuis minuit), des jours, et un rappel facultatif quelques minutes avant. Communes aux deux enfants.
+const LEADS=[0,5,10,15];
+function defaults(){return {v:1,cut:[720,1110],pin:'',awake:false,lastExport:'',log:{},alerts:[{id:uid(),t:500,icon:'🚌',name:'Départ à l’école',lead:5,days:SCHOOL.slice()}],kids:{
   w:{name:'Willyam',avatar:'🧒',routines:{
     matin:{days:ALL.slice(),tasks:[T('🛏️','Je fais mon lit'),T('🥣','Je prends mon petit-déjeuner'),T('👕','Je m’habille'),T('🪥','Je me brosse les dents'),T('🎒','Je prépare mon cartable'),T('👟','Je mets mes chaussures')]},
     ecole:{days:SCHOOL.slice(),tasks:[T('🧼','Je me lave les mains'),T('🍎','Je prends mon goûter'),T('🎒','Je vide mon cartable'),T('📚','Je fais mes devoirs'),T('🧸','Je range mes affaires')]},
@@ -181,13 +208,16 @@ function defaults(){return {v:1,cut:[720,1110],pin:'',awake:false,lastExport:'',
 const STORE='planning-famille-v1';
 // Remet un état lu (mémoire de l'appareil ou sauvegarde importée) dans une forme sûre : tout ce qui manque reprend la valeur par défaut.
 function clean(d){
-  const def=defaults(),o={v:1,cut:def.cut.slice(),pin:'',awake:false,lastExport:'',log:{},kids:{}};
+  const def=defaults(),o={v:1,cut:def.cut.slice(),pin:'',awake:false,lastExport:'',log:{},alerts:def.alerts,kids:{}};
   if(!d||typeof d!=='object')return def;
   const int=(v,a,b,dv)=>Number.isFinite(+v)&&v!==null&&v!==''?clamp(Math.round(+v),a,b):dv;
   const str=(v,n,dv)=>typeof v==='string'&&v.trim()?v.trim().slice(0,n):dv;
   if(Array.isArray(d.cut)){o.cut[0]=int(d.cut[0],600,960,720);o.cut[1]=int(d.cut[1],o.cut[0]+60,1320,Math.max(1110,o.cut[0]+60));}
   o.pin=typeof d.pin==='string'&&/^\d{4}$/.test(d.pin)?d.pin:'';
   o.awake=d.awake===true;o.lastExport=typeof d.lastExport==='string'?d.lastExport:'';
+  // Pas de liste d'alertes (planning enregistré avant leur arrivée) : on garde celle de départ. Une liste vide reste vide.
+  if(Array.isArray(d.alerts)){const seen=new Set();o.alerts=d.alerts.filter(a=>a&&typeof a==='object').slice(0,10).map(a=>{let id=str(a.id,24,uid());if(seen.has(id))id=uid();seen.add(id);
+    return {id,t:int(a.t,0,1439,480),icon:str(a.icon,8,'⏰'),name:str(a.name,40,'Alerte'),lead:LEADS.includes(a.lead)?a.lead:0,days:Array.from({length:7},(_,i)=>Array.isArray(a.days)?a.days[i]===true:true)};});}
   for(const k of KIDS){
     const src=d.kids&&d.kids[k]&&typeof d.kids[k]==='object'?d.kids[k]:{},kd={name:str(src.name,20,def.kids[k].name),avatar:str(src.avatar,8,def.kids[k].avatar),routines:{}};
     for(const r of ROUTINES){
@@ -259,6 +289,7 @@ function renderHome(){
   view='home';lastStamp=stamp();
   const d=new Date(),date=d.toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'});
   $('#view').innerHTML=`<header class="top"><h1>${date.charAt(0).toUpperCase()+date.slice(1)}<small>Le planning de la journée</small></h1><span class="clock" id="clock" aria-label="Il est ${hhmm(nowMin())}">${hhmm(nowMin())}</span><button class="btn gear" id="gear" aria-label="Espace parent">⚙️</button></header>
+  <div id="next">${nextHtml()}</div>
   <div class="switch">${KIDS.map(k=>`<button class="btn" data-kid="${k}" data-show="${k}" aria-pressed="${document.body.dataset.show===k}">${esc(S.kids[k].avatar)} ${esc(S.kids[k].name)}</button>`).join('')}</div>
   <div class="kids">${KIDS.map(kidHtml).join('')}</div>`;
   $('#gear').onclick=()=>askPin(renderParent);
@@ -289,9 +320,60 @@ function confetti(box){
 }
 // Heure affichée, changement de routine et passage à minuit : vérifiés toutes les 20 secondes et au retour sur la page.
 function tick(){
+  checkAlerts();
   if(view!=='home'||document.querySelector('#layer .overlay'))return;
   if(stamp()!==lastStamp){renderHome();return;}
   const c=$('#clock');if(c)c.textContent=hhmm(nowMin());
+  const n=$('#next');if(n)n.innerHTML=nextHtml();
+}
+
+/* ---------- Alertes ---------- */
+// Vérifiées en même temps que l'heure (toutes les 20 secondes). Elles ne sonnent que si le planning est affiché :
+// une page web ne peut pas réveiller une tablette en veille.
+const todayAlerts=()=>S.alerts.filter(a=>a.days[dayIdx()]).sort((x,y)=>x.t-y.t);
+function nextHtml(){
+  const m=nowMin(),a=todayAlerts().find(x=>x.t>=m);if(!a)return '';
+  const left=a.t-m;
+  return `<p class="next ${left<=Math.max(a.lead,10)?'soon':''}"><span aria-hidden="true">${esc(a.icon)}</span> <b>${hhmm(a.t)}</b> ${esc(a.name)}${left===0?' <small>c’est l’heure !</small>':left<=60?` <small>dans ${left} min</small>`:''}</p>`;
+}
+// Ce qui a déjà sonné aujourd'hui est noté à part, pour ne pas resonner si la page est rouverte.
+const FIRED='planning-famille-alertes';
+let fired=null;try{fired=JSON.parse(localStorage.getItem(FIRED));}catch(e){}
+function firedToday(){if(!fired||fired.day!==dayKey()||!fired.keys||typeof fired.keys!=='object')fired={day:dayKey(),keys:{}};return fired.keys;}
+function checkAlerts(){
+  const m=nowMin(),keys=firedToday();let hit=false;
+  for(const a of todayAlerts()){
+    // Le rappel vaut jusqu'à l'heure dite ; l'alerte elle-même encore 5 minutes après (planning rouvert un peu tard).
+    const evs=[[`${a.id}@${a.t}`,a.t,a.t+5]];
+    if(a.lead&&a.t>=a.lead)evs.unshift([`${a.id}-${a.lead}@${a.t}`,a.t-a.lead,a.t]);
+    for(const [key,from,to] of evs)if(!keys[key]&&m>=from&&m<to){keys[key]=1;hit=true;ring(a,Math.max(0,a.t-m));}
+  }
+  if(hit)try{localStorage.setItem(FIRED,JSON.stringify(fired));}catch(e){}
+}
+// Le son : trois notes, deux fois. Un navigateur ne joue un son que si l'écran a déjà été touché depuis l'ouverture de la page.
+let actx=null;
+function unlock(){try{const C=window.AudioContext||window.webkitAudioContext;if(!C)return;if(!actx)actx=new C();if(actx.state==='suspended')actx.resume();}catch(e){}}
+document.addEventListener('pointerdown',unlock,{passive:true});
+function chime(){
+  if(!actx)return;
+  try{if(actx.state==='suspended')actx.resume();const t0=actx.currentTime+.05;
+    [880,1109,1319,880,1109,1319].forEach((f,i)=>{const o=actx.createOscillator(),g=actx.createGain(),t=t0+i*.2;o.type='triangle';o.frequency.value=f;g.gain.setValueAtTime(.0001,t);g.gain.linearRampToValueAtTime(.4,t+.02);g.gain.exponentialRampToValueAtTime(.001,t+.19);o.connect(g);g.connect(actx.destination);o.start(t);o.stop(t+.2);});
+  }catch(e){}
+}
+const whenText=left=>left?`Dans ${left} minute${left>1?'s':''}`:'C’est l’heure !';
+let ringing=[],ringTimers=[];
+function ring(a,left){
+  ringing=ringing.filter(x=>x.id!==a.id);ringing.push({id:a.id,icon:a.icon,name:a.name,left});
+  $('#alarm').innerHTML=`<div class="alarm" role="alertdialog" aria-modal="true" aria-label="Alerte"><div class="acard sticker">${ringing.map(x=>`<p class="aitem"><span class="aicon" aria-hidden="true">${esc(x.icon)}</span><span class="awhen">${whenText(x.left)}</span><span class="aname">${esc(x.name)}</span></p>`).join('')}<button class="btn go" id="aok">D’accord 👍</button></div></div>`;
+  $('#aok').onclick=stopAlarm;$('#aok').focus({preventScroll:true});
+  // Sonne et parle trois fois en une minute, puis reste affichée sans bruit ; se ferme seule au bout de 10 minutes.
+  const say=()=>{chime();ringTimers.push(setTimeout(()=>speak(ringing.map(x=>`${whenText(x.left)} ${x.name}`).join('. ')),1400));};
+  ringTimers.forEach(clearTimeout);
+  ringTimers=[0,20000,40000].map(d=>setTimeout(say,d));ringTimers.push(setTimeout(stopAlarm,600000));
+}
+function stopAlarm(){
+  ringTimers.forEach(clearTimeout);ringTimers=[];ringing=[];$('#alarm').innerHTML='';
+  if(canSpeak)try{speechSynthesis.cancel();}catch(e){}
 }
 
 /* ---------- Code parent ---------- */
@@ -336,6 +418,12 @@ function renderParent(){
     <h3>Horaires</h3>
     <p class="hint">Le planning ouvre tout seul la routine du moment. Les enfants peuvent quand même toucher une autre routine pour la voir.</p>
     <div class="row pinrow"><span>« Après l’école » à partir de</span><select id="cut0" aria-label="Début de l’après-midi">${times(600,960,S.cut[0])}</select><span>« Soir » à partir de</span><select id="cut1" aria-label="Début du soir">${times(Math.max(960,S.cut[0]+60),1320,S.cut[1])}</select></div>
+    <h3>Alertes</h3>
+    <p class="hint">À l’heure choisie, le planning affiche un grand message, sonne et le lit à voix haute. Les alertes sont les mêmes pour les deux enfants. Avec un rappel, il y a un premier message quelques minutes avant.</p>
+    <p class="hint">Elles ne sonnent que si le planning est affiché, écran allumé : active « Écran toujours allumé » juste en dessous et laisse la tablette branchée. Pour le son, il faut que l’écran ait été touché au moins une fois depuis l’ouverture du planning.</p>
+    ${S.alerts.map((a,i)=>`<div class="abox" data-a="${i}"><div class="aedit"><input type="time" class="at" value="${pad2(Math.floor(a.t/60))}:${pad2(a.t%60)}" aria-label="Heure de l’alerte ${esc(a.name)}"><select class="ai" aria-label="Image de l’alerte">${opts(a.icon)}</select><input class="an" value="${esc(a.name)}" maxlength="40" aria-label="Nom de l’alerte"><select class="al" aria-label="Rappel avant ${esc(a.name)}">${LEADS.map(l=>`<option value="${l}" ${l===a.lead?'selected':''}>${l?`Rappel ${l} min avant`:'Sans rappel'}</option>`).join('')}</select><button class="btn small atry">🔔 Essayer</button><button class="btn small adel" aria-label="Supprimer l’alerte ${esc(a.name)}">✕</button></div>
+      <div class="days" role="group" aria-label="Jours de l’alerte ${esc(a.name)}">${DAY_LETTERS.map((l,j)=>`<button class="day" data-d="${j}" aria-pressed="${a.days[j]}" aria-label="${DAY_NAMES[j]}">${l}</button>`).join('')}</div></div>`).join('')}
+    <div class="row"><button class="btn small" id="aadd" ${S.alerts.length>=10?'disabled':''}>+ Ajouter une alerte</button></div>
     <h3>Écran</h3>
     <p class="hint">Pour laisser la tablette posée comme un tableau : l’écran reste allumé tant que le planning est affiché. Ne marche pas sur tous les appareils, et consomme de la batterie.</p>
     <div class="row"><button class="btn small" id="awake">${S.awake?'Écran toujours allumé : activé ✓':'Écran toujours allumé : désactivé'}</button></div>
@@ -379,6 +467,18 @@ function renderParent(){
   arm($('#defTasks'),'d','Sûr ? Touche encore pour remplacer ses tâches',()=>{K.routines=defaults().kids[kid].routines;snapshot(kid);save();again(true);});
   $('#cut0').onchange=e=>{S.cut[0]=+e.target.value;if(S.cut[1]<S.cut[0]+60)S.cut[1]=S.cut[0]+60;if(S.cut[1]<960)S.cut[1]=960;save();again(true);};
   $('#cut1').onchange=e=>{S.cut[1]=+e.target.value;save();};
+  document.querySelectorAll('.abox').forEach(box=>{
+    const i=+box.dataset.a,a=S.alerts[i];
+    box.querySelector('.at').onchange=e=>{const v=/^(\d{2}):(\d{2})/.exec(e.target.value);if(v){a.t=clamp(+v[1]*60+ +v[2],0,1439);save();}};
+    box.querySelector('.ai').onchange=e=>{a.icon=e.target.value;save();};
+    box.querySelector('.an').onchange=e=>{a.name=e.target.value.trim().slice(0,40)||'Alerte';e.target.value=a.name;save();};
+    box.querySelector('.al').onchange=e=>{a.lead=+e.target.value;save();};
+    box.querySelectorAll('.day').forEach(b=>b.onclick=()=>{const j=+b.dataset.d;a.days[j]=!a.days[j];b.setAttribute('aria-pressed',a.days[j]);save();});
+    box.querySelector('.atry').onclick=()=>{unlock();ring(a,0);};
+    box.querySelector('.adel').onclick=()=>{S.alerts.splice(i,1);save();again(true);};
+  });
+  // Une nouvelle alerte est posée à la prochaine heure pleine, pour ne pas sonner tout de suite.
+  $('#aadd').onclick=()=>{if(S.alerts.length>=10)return;S.alerts.push({id:uid(),t:Math.min(1439,(Math.floor(nowMin()/60)+1)*60),icon:'⏰',name:'Alerte',lead:0,days:ALL.slice()});save();again(true);const ins=document.querySelectorAll('.abox .an'),last=ins[ins.length-1];if(last){last.focus();last.select();}};
   $('#awake').onclick=()=>{S.awake=!S.awake;save();wake();again(true);};
   $('#pinSave').onclick=()=>{const v=$('#pinIn').value.trim();if(!/^\d{4}$/.test(v)){$('#pinMsg').textContent='Le code doit faire exactement 4 chiffres.';return;}S.pin=v;save();again(true);$('#pinMsg').textContent='Code enregistré. Retiens-le bien.';};
   if(S.pin)$('#pinDel').onclick=()=>{S.pin='';save();again(true);$('#pinMsg').textContent='Code supprimé.';};
@@ -417,7 +517,7 @@ async function wake(){
 
 /* ---------- Démarrage ---------- */
 KIDS.forEach(snapshot);save();
-renderHome();wake();
+renderHome();wake();checkAlerts();
 setInterval(tick,20000);
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'){tick();wake();}else save();});
 window.addEventListener('pagehide',save);
