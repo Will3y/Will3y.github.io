@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Le planning de Willyam et Hailey</title>
+<!-- Écran d'accueil (tablette, téléphone) et hors ligne : ne sert que sur la version en ligne, sans effet en double-clic. -->
+<meta name="theme-color" content="#eef1f6">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="img/icon-192.png">
+<link rel="apple-touch-icon" href="img/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Planning">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Andika:wght@400;700&family=Fredoka:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  /* Même monde d'autocollants que les missions. Un côté par enfant, chacun sa couleur : bleu pour Willyam, rose pour Hailey. */
+  --bg:#eef1f6; --paper:#ffffff; --ink:#1b2632; --muted:#56636f;
+  --star:#ffc226; --star-soft:#fff1c7; --ok:#1c9e61; --ok-soft:#d5f2e3; --bad:#d93b45; --bad-soft:#fde1e2;
+  --display:"Fredoka","Trebuchet MS",system-ui,sans-serif;
+  --body:"Andika","Comic Sans MS",system-ui,sans-serif;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:18px;line-height:1.4;-webkit-tap-highlight-color:transparent}
+h1,h2,h3,p{margin:0}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-visible{outline:4px solid #4c5ff5;outline-offset:3px}
+.wrap{max-width:1180px;margin:0 auto;padding:16px 16px 48px}
+.sticker{background:var(--paper);border:3px solid var(--ink);border-radius:20px;box-shadow:0 5px 0 var(--ink)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;background:var(--paper);border:3px solid var(--ink);border-radius:14px;box-shadow:0 4px 0 var(--ink);padding:10px 16px;font-family:var(--display);font-weight:600;font-size:18px;transition:transform .08s,box-shadow .08s}
+.btn:active:not(:disabled){transform:translateY(3px);box-shadow:0 1px 0 var(--ink)}
+.btn.go{background:var(--star)}
+.btn.small{padding:6px 10px;font-size:16px;border-radius:12px;box-shadow:0 3px 0 var(--ink)}
+.btn:disabled{opacity:.4;cursor:default}
+
+/* En-tête : la date du jour, l'heure, et l'entrée de l'espace parent */
+.top{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.top h1{font-family:var(--display);font-weight:700;font-size:clamp(24px,4.6vw,36px);line-height:1.1;flex:1;min-width:0}
+.top h1 small{display:block;font-family:var(--body);font-weight:400;font-size:16px;color:var(--muted);margin-top:2px}
+.clock{font-family:var(--display);font-weight:700;font-size:clamp(22px,4vw,30px);font-variant-numeric:tabular-nums;padding:4px 14px;border-radius:999px;border:3px solid var(--ink);background:var(--paper)}
+.gear{width:48px;height:48px;padding:0;font-size:22px}
+
+/* Sur un petit écran, un seul enfant à la fois : ces deux boutons changent de côté */
+.switch{display:none;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
+.switch .btn{font-size:20px;padding:10px 8px}
+.switch .btn[aria-pressed="true"]{background:var(--c-soft)}
+.switch .btn[aria-pressed="false"]{box-shadow:0 2px 0 var(--ink);transform:translateY(2px);opacity:.75}
+
+.kids{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:16px;align-items:start}
+.kid{padding:16px;position:relative;overflow:hidden}
+[data-kid="w"]{--c:#4c5ff5;--c-soft:#e0e4ff;--on-c:#fff}
+[data-kid="h"]{--c:#ff5fa2;--c-soft:#ffe0ee;--on-c:#1b2632}
+.khead{display:flex;align-items:center;gap:12px}
+.avatar{width:60px;height:60px;flex:none;border-radius:50%;border:3px solid var(--ink);background:var(--c);display:grid;place-items:center;font-size:32px;line-height:1}
+.khead h2{font-family:var(--display);font-weight:700;font-size:clamp(26px,3.6vw,34px);line-height:1.1;flex:1;min-width:0;overflow-wrap:anywhere}
+.count{font-family:var(--display);font-weight:700;font-size:22px;font-variant-numeric:tabular-nums;color:var(--muted);white-space:nowrap}
+
+/* Les routines du jour */
+.chips{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}
+.chip{flex:1 1 0;min-width:96px;display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 6px;border:3px solid var(--ink);border-radius:16px;background:var(--paper);font-family:var(--display);font-weight:600;font-size:17px;line-height:1.15;box-shadow:0 2px 0 var(--ink);opacity:.8}
+.chip .ci{font-size:26px;line-height:1}
+.chip small{font-family:var(--body);font-weight:700;font-size:14px;color:var(--muted);font-variant-numeric:tabular-nums}
+.chip[aria-selected="true"]{background:var(--c-soft);box-shadow:0 4px 0 var(--ink);opacity:1;transform:translateY(-2px)}
+.chip.full small{color:var(--ok)}
+.bar{height:16px;border:3px solid var(--ink);border-radius:999px;background:var(--paper);margin-top:14px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--c);transition:width .35s}
+.bar.full i{background:var(--ok)}
+
+/* Les tâches : une grande ligne à toucher par tâche */
+.tasks{list-style:none;margin:14px 0 0;padding:0;display:grid;gap:10px}
+.task{display:flex;gap:8px;align-items:stretch}
+.tbtn{flex:1;min-width:0;display:flex;align-items:center;gap:12px;text-align:left;padding:10px 12px;min-height:74px;border:3px solid var(--ink);border-radius:18px;background:var(--paper);box-shadow:0 4px 0 var(--ink);transition:transform .08s,box-shadow .08s}
+.tbtn:active{transform:translateY(3px);box-shadow:0 1px 0 var(--ink)}
+.ti{font-size:40px;line-height:1;flex:none;width:48px;text-align:center}
+.tn{flex:1;min-width:0;font-family:var(--display);font-weight:600;font-size:clamp(19px,2.3vw,24px);line-height:1.2;overflow-wrap:anywhere}
+.chk{flex:none;width:46px;height:46px;border-radius:50%;border:3px solid var(--ink);display:grid;place-items:center;background:var(--paper)}
+.chk svg{width:28px;height:28px;opacity:0;transform:scale(.3);transition:opacity .15s,transform .2s}
+.task.done .tbtn{background:var(--ok-soft)}
+.task.done .chk{background:var(--ok)}
+.task.done .chk svg{opacity:1;transform:none}
+.task.pop .chk{animation:pop .4s}
+@keyframes pop{50%{transform:scale(1.3)}}
+.say{flex:none;width:52px;border:3px solid var(--ink);border-radius:16px;background:var(--star-soft);box-shadow:0 4px 0 var(--ink);display:grid;place-items:center}
+.say svg{width:24px;height:24px}
+.note{margin-top:14px;padding:14px;border-radius:16px;background:var(--c-soft);font-family:var(--display);font-weight:600;font-size:20px;text-align:center}
+.note.win{background:var(--ok-soft)}
+.note .big{display:block;font-size:44px;line-height:1.1}
+
+.cf{position:absolute;top:-20px;width:10px;height:14px;z-index:5;animation:fall 2.2s linear forwards;pointer-events:none}
+@keyframes fall{to{transform:translateY(900px) rotate(720deg)}}
+
+/* Espace parent */
+.parent{padding:20px 18px;display:grid;gap:14px;margin-top:16px}
+.parent h2{font-family:var(--display);font-size:28px}
+.parent h3{font-family:var(--display);font-size:22px;margin-top:10px}
+.parent h4{font-family:var(--display);font-size:19px;margin:0}
+.hint{color:var(--muted);font-size:16px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.tabs2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.tabs2 .btn[aria-pressed="true"]{background:var(--c-soft)}
+.tabs2 .btn[aria-pressed="false"]{box-shadow:0 2px 0 var(--ink);transform:translateY(2px);opacity:.75}
+.rbox{border:3px solid var(--ink);border-radius:16px;padding:12px;display:grid;gap:10px;background:var(--c-soft)}
+.days{display:flex;gap:6px;flex-wrap:wrap}
+.day{width:42px;height:42px;border:3px solid var(--ink);border-radius:50%;background:var(--paper);font-family:var(--display);font-weight:700;font-size:16px;padding:0}
+.day[aria-pressed="true"]{background:var(--c);color:var(--on-c)}
+.edit{display:grid;grid-template-columns:70px 1fr auto auto auto;gap:6px;align-items:center}
+input,select,textarea{font:inherit;font-size:18px;border:3px solid var(--ink);border-radius:12px;padding:8px;background:var(--paper);color:var(--ink);min-width:0;width:100%}
+.edit .btn{width:42px;height:42px;padding:0}
+.pinrow input{width:120px;letter-spacing:.3em}
+.pinrow select{width:auto}
+table{border-collapse:collapse;width:100%;font-size:16px}
+th,td{padding:6px 8px;text-align:center;border-bottom:2px solid #d8dee6;font-variant-numeric:tabular-nums}
+th:first-child,td:first-child{text-align:left}
+td.fullc{color:var(--ok);font-weight:700}
+.savebox{font-size:14px;resize:vertical;word-break:break-all}
+.pindots{display:flex;gap:14px;justify-content:center}
+.pindots span{width:22px;height:22px;border-radius:50%;border:3px solid var(--ink)}
+.pindots span.f{background:var(--ink)}
+.overlay{position:fixed;inset:0;background:rgba(27,38,50,.55);display:grid;place-items:center;padding:16px;z-index:30}
+.modal{padding:22px 18px;display:grid;gap:14px;justify-items:center;width:min(360px,100%)}
+.modal h2{font-family:var(--display);font-size:24px;text-align:center}
+.pad{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;width:100%}
+.pad .btn{font-size:26px;min-height:58px}
+
+@media (max-width:759px){
+  .switch{display:grid}
+  .kids{grid-template-columns:1fr}
+  body[data-show="w"] .kid[data-kid="h"],body[data-show="h"] .kid[data-kid="w"]{display:none}
+  .edit{grid-template-columns:64px 1fr auto auto auto}
+}
+@media (max-width:430px){.tbtn{gap:8px;padding:10px}.ti{font-size:32px;width:36px}.chk{width:38px;height:38px}.chk svg{width:22px;height:22px}.say{width:44px}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body data-show="w">
+<main class="wrap" id="view"></main>
+<div id="layer"></div>
+<script>
+/* ---------- Outils ---------- */
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const pad2=n=>String(n).padStart(2,'0');
+const dayKey=(d=new Date())=>`${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`;
+const dayIdx=(d=new Date())=>(d.getDay()+6)%7;                 // 0 = lundi … 6 = dimanche
+const nowMin=()=>{const d=new Date();return d.getHours()*60+d.getMinutes();};
+const hhmm=m=>`${Math.floor(m/60)} h ${pad2(m%60)}`;
+const uid=()=>'t'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+const canSpeak=typeof window!=='undefined'&&'speechSynthesis' in window&&typeof SpeechSynthesisUtterance!=='undefined';
+const reduced=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+function speak(t){if(!canSpeak)return;try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.lang='fr-FR';u.rate=.9;speechSynthesis.speak(u);}catch(e){}}
+const checkSvg='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="#fff" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+const speakSvg='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/></svg>';
+
+/* ---------- Données ---------- */
+// Trois routines par jour et par enfant. Chaque routine a ses jours (lundi → dimanche) et sa liste de tâches.
+const ROUTINES=[{id:'matin',name:'Matin',icon:'☀️',done:'du matin'},{id:'ecole',name:'Après l’école',icon:'🎒',done:'d’après l’école'},{id:'soir',name:'Soir',icon:'🌙',done:'du soir'}];
+const KIDS=['w','h'];
+const DAY_LETTERS=['L','M','M','J','V','S','D'],DAY_NAMES=['lundi','mardi','mercredi','jeudi','vendredi','samedi','dimanche'];
+const ICONS=['🛏️','🥣','🥐','🥛','🍽️','🍎','🧃','👕','👗','👖','🧦','👟','🧥','🪥','🧼','🚿','🛁','🚽','💇','👓','💊','🎒','📚','✏️','📖','📝','🧹','🧺','🧸','🗑️','🌱','🐶','🐱','🎹','⚽','🎨','📺','🎮','🤗','😴','🌙','⭐'];
+const T=(icon,name)=>({id:uid(),icon,name});
+const ALL=[true,true,true,true,true,true,true],SCHOOL=[true,true,false,true,true,false,false];
+function defaults(){return {v:1,cut:[720,1110],pin:'',awake:false,lastExport:'',log:{},kids:{
+  w:{name:'Willyam',avatar:'🧒',routines:{
+    matin:{days:ALL.slice(),tasks:[T('🛏️','Je fais mon lit'),T('🥣','Je prends mon petit-déjeuner'),T('👕','Je m’habille'),T('🪥','Je me brosse les dents'),T('🎒','Je prépare mon cartable'),T('👟','Je mets mes chaussures')]},
+    ecole:{days:SCHOOL.slice(),tasks:[T('🧼','Je me lave les mains'),T('🍎','Je prends mon goûter'),T('🎒','Je vide mon cartable'),T('📚','Je fais mes devoirs'),T('🧸','Je range mes affaires')]},
+    soir:{days:ALL.slice(),tasks:[T('🚿','Je prends ma douche'),T('👕','Je mets mon pyjama'),T('🍽️','Je mets la table'),T('🪥','Je me brosse les dents'),T('🎒','Je prépare mes affaires pour demain'),T('📖','Je lis une histoire'),T('🌙','Au lit !')]}}},
+  h:{name:'Hailey',avatar:'👧',routines:{
+    matin:{days:ALL.slice(),tasks:[T('🥣','Je prends mon petit-déjeuner'),T('👗','Je m’habille'),T('🪥','Je me brosse les dents'),T('🚽','Je vais aux toilettes'),T('👟','Je mets mes chaussures')]},
+    ecole:{days:SCHOOL.slice(),tasks:[T('🧼','Je me lave les mains'),T('🍎','Je prends mon goûter'),T('🧸','Je range mes jouets')]},
+    soir:{days:ALL.slice(),tasks:[T('🛁','Je prends mon bain'),T('👗','Je mets mon pyjama'),T('🍽️','Je mange'),T('🪥','Je me brosse les dents'),T('🚽','Je vais aux toilettes'),T('📖','On lit une histoire'),T('🌙','Au lit !')]}}}}};}
+
+const STORE='planning-famille-v1';
+// Remet un état lu (mémoire de l'appareil ou sauvegarde importée) dans une forme sûre : tout ce qui manque reprend la valeur par défaut.
+function clean(d){
+  const def=defaults(),o={v:1,cut:def.cut.slice(),pin:'',awake:false,lastExport:'',log:{},kids:{}};
+  if(!d||typeof d!=='object')return def;
+  const int=(v,a,b,dv)=>Number.isFinite(+v)&&v!==null&&v!==''?clamp(Math.round(+v),a,b):dv;
+  const str=(v,n,dv)=>typeof v==='string'&&v.trim()?v.trim().slice(0,n):dv;
+  if(Array.isArray(d.cut)){o.cut[0]=int(d.cut[0],600,960,720);o.cut[1]=int(d.cut[1],o.cut[0]+60,1320,Math.max(1110,o.cut[0]+60));}
+  o.pin=typeof d.pin==='string'&&/^\d{4}$/.test(d.pin)?d.pin:'';
+  o.awake=d.awake===true;o.lastExport=typeof d.lastExport==='string'?d.lastExport:'';
+  for(const k of KIDS){
+    const src=d.kids&&d.kids[k]&&typeof d.kids[k]==='object'?d.kids[k]:{},kd={name:str(src.name,20,def.kids[k].name),avatar:str(src.avatar,8,def.kids[k].avatar),routines:{}};
+    for(const r of ROUTINES){
+      const rs=src.routines&&src.routines[r.id];
+      if(!rs||typeof rs!=='object'||!Array.isArray(rs.tasks)){kd.routines[r.id]=def.kids[k].routines[r.id];continue;}
+      const seen=new Set();
+      kd.routines[r.id]={days:Array.from({length:7},(_,i)=>Array.isArray(rs.days)?rs.days[i]===true:true),
+        tasks:rs.tasks.filter(t=>t&&typeof t==='object').slice(0,20).map(t=>{let id=str(t.id,24,uid());if(seen.has(id))id=uid();seen.add(id);return {id,icon:str(t.icon,8,'⭐'),name:str(t.name,48,'Nouvelle tâche')};})};
+    }
+    o.kids[k]=kd;
+  }
+  if(d.log&&typeof d.log==='object')for(const day of Object.keys(d.log).filter(x=>/^\d{4}-\d{2}-\d{2}$/.test(x)).sort().slice(-40)){
+    const e={};
+    for(const k of KIDS){
+      const s=d.log[day]&&d.log[day][k],done={},sum={};
+      if(s&&s.done&&typeof s.done==='object')for(const id of Object.keys(s.done).slice(0,80))if(s.done[id])done[String(id).slice(0,24)]=1;
+      if(s&&s.sum&&typeof s.sum==='object')for(const r of ROUTINES){const v=s.sum[r.id];if(Array.isArray(v))sum[r.id]=[int(v[0],0,20,0),int(v[1],0,20,0)];}
+      e[k]={done,sum};
+    }
+    o.log[day]=e;
+  }
+  return o;
+}
+let S;
+try{S=clean(JSON.parse(localStorage.getItem(STORE)));}catch(e){S=defaults();}
+function save(){try{localStorage.setItem(STORE,JSON.stringify(S));}catch(e){}}
+
+/* ---------- Le jour en cours ---------- */
+// Les coches sont rangées par jour : un nouveau jour repart donc de zéro, sans rien effacer des jours précédents (gardés 40 jours).
+function today(){
+  const k=dayKey();
+  if(!S.log[k]){S.log[k]={w:{done:{},sum:{}},h:{done:{},sum:{}}};const keys=Object.keys(S.log).sort();while(keys.length>40)delete S.log[keys.shift()];}
+  return S.log[k];
+}
+const routine=(kid,r)=>S.kids[kid].routines[r];
+const active=kid=>ROUTINES.filter(r=>routine(kid,r.id).days[dayIdx()]&&routine(kid,r.id).tasks.length);
+function tally(kid,r){const done=today()[kid].done,ts=routine(kid,r).tasks;return [ts.filter(t=>done[t.id]).length,ts.length];}
+// Résumé du jour, enregistré à chaque coche : c'est lui qui alimente l'historique, même si la liste des tâches change ensuite.
+function snapshot(kid){const s={};active(kid).forEach(r=>s[r.id]=tally(kid,r.id));today()[kid].sum=s;}
+const slotNow=()=>{const m=nowMin();return m<S.cut[0]?'matin':m<S.cut[1]?'ecole':'soir';};
+// La routine affichée : celle de l'heure qu'il est. Si elle n'existe pas aujourd'hui, la première pas encore finie.
+const picked={};   // choix fait à la main, valable 20 minutes
+function shown(kid){
+  const act=active(kid);if(!act.length)return null;
+  const p=picked[kid];if(p&&p.until>Date.now()&&p.day===dayKey()&&act.some(r=>r.id===p.r))return p.r;
+  const slot=slotNow();if(act.some(r=>r.id===slot))return slot;
+  const open=act.find(r=>{const [d,t]=tally(kid,r.id);return d<t;});
+  return (open||act[act.length-1]).id;
+}
+
+/* ---------- Écran des enfants ---------- */
+let view='home',parentKid='w',lastStamp='';
+function kidHtml(kid){
+  const K=S.kids[kid],act=active(kid),rid=shown(kid);
+  let h=`<section class="kid sticker" data-kid="${kid}" aria-label="Planning de ${esc(K.name)}"><div class="khead"><span class="avatar" aria-hidden="true">${esc(K.avatar)}</span><h2>${esc(K.name)}</h2>`;
+  if(!rid)return h+`</div><p class="note"><span class="big">🌈</span>Rien de prévu aujourd’hui. Bonne journée !</p></section>`;
+  const [d,t]=tally(kid,rid),R=ROUTINES.find(r=>r.id===rid),full=d===t,allDone=act.every(r=>{const [a,b]=tally(kid,r.id);return a===b;});
+  h+=`<span class="count" aria-label="${d} tâches faites sur ${t}">${d} / ${t}</span></div>
+  <div class="chips" role="tablist" aria-label="Routines de ${esc(K.name)}">${act.map(r=>{const [a,b]=tally(kid,r.id);return `<button class="chip ${a===b?'full':''}" role="tab" aria-selected="${r.id===rid}" data-r="${r.id}"><span class="ci" aria-hidden="true">${r.icon}</span>${r.name}<small>${a===b?'✓ fini':`${a} / ${b}`}</small></button>`;}).join('')}</div>
+  <div class="bar ${full?'full':''}" aria-hidden="true"><i style="width:${t?Math.round(100*d/t):0}%"></i></div>
+  ${full?`<p class="note win"><span class="big">${allDone?'🏆':'🎉'}</span>${allDone?`Bravo ${esc(K.name)} ! Tout est fait pour aujourd’hui.`:`Bravo ${esc(K.name)} ! Routine ${R.done} terminée.`}</p>`:''}
+  <ul class="tasks">${routine(kid,rid).tasks.map(x=>{const on=!!today()[kid].done[x.id];return `<li class="task ${on?'done':''}" data-t="${esc(x.id)}"><button class="tbtn" aria-pressed="${on}"><span class="ti" aria-hidden="true">${esc(x.icon)}</span><span class="tn">${esc(x.name)}</span><span class="chk">${checkSvg}</span></button>${canSpeak?`<button class="say" aria-label="Écouter : ${esc(x.name)}">${speakSvg}</button>`:''}</li>`;}).join('')}</ul></section>`;
+  return h;
+}
+function stamp(){return dayKey()+slotNow();}
+function renderHome(){
+  view='home';lastStamp=stamp();
+  const d=new Date(),date=d.toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'});
+  $('#view').innerHTML=`<header class="top"><h1>${date.charAt(0).toUpperCase()+date.slice(1)}<small>Le planning de la journée</small></h1><span class="clock" id="clock" aria-label="Il est ${hhmm(nowMin())}">${hhmm(nowMin())}</span><button class="btn gear" id="gear" aria-label="Espace parent">⚙️</button></header>
+  <div class="switch">${KIDS.map(k=>`<button class="btn" data-kid="${k}" data-show="${k}" aria-pressed="${document.body.dataset.show===k}">${esc(S.kids[k].avatar)} ${esc(S.kids[k].name)}</button>`).join('')}</div>
+  <div class="kids">${KIDS.map(kidHtml).join('')}</div>`;
+  $('#gear').onclick=()=>askPin(renderParent);
+  document.querySelectorAll('.switch .btn').forEach(b=>b.onclick=()=>{document.body.dataset.show=b.dataset.show;renderHome();});
+  document.querySelectorAll('.kid').forEach(sec=>{
+    const kid=sec.dataset.kid;
+    sec.querySelectorAll('.chip').forEach(c=>c.onclick=()=>{picked[kid]={r:c.dataset.r,until:Date.now()+20*60000,day:dayKey()};renderHome();});
+    sec.querySelectorAll('.task').forEach(li=>{
+      li.querySelector('.tbtn').onclick=()=>toggle(kid,li.dataset.t);
+      const s=li.querySelector('.say');if(s)s.onclick=()=>speak(li.querySelector('.tn').textContent);
+    });
+  });
+}
+function toggle(kid,id){
+  const rid=shown(kid),log=today()[kid],was=tally(kid,rid);
+  picked[kid]={r:rid,until:Date.now()+20*60000,day:dayKey()};   // on reste sur cette routine tant qu'on y coche
+  if(log.done[id])delete log.done[id];else log.done[id]=1;
+  snapshot(kid);save();
+  const now=tally(kid,rid),y=window.scrollY;
+  renderHome();window.scrollTo(0,y);
+  const li=[...document.querySelectorAll(`.kid[data-kid="${kid}"] .task`)].find(x=>x.dataset.t===id);
+  if(li){li.querySelector('.tbtn').focus({preventScroll:true});if(log.done[id])li.classList.add('pop');}
+  if(now[0]===now[1]&&was[0]<was[1])confetti(document.querySelector(`.kid[data-kid="${kid}"]`));
+}
+function confetti(box){
+  if(reduced||!box)return;const cols=['#ffc226','#ff7a3d','#4c5ff5','#1c9e61','#ff5fa2'];
+  for(let i=0;i<36;i++){const c=document.createElement('span');c.className='cf';c.style.left=Math.random()*100+'%';c.style.background=cols[i%cols.length];c.style.animationDelay=Math.random()*.5+'s';box.appendChild(c);setTimeout(()=>c.remove(),3000);}
+}
+// Heure affichée, changement de routine et passage à minuit : vérifiés toutes les 20 secondes et au retour sur la page.
+function tick(){
+  if(view!=='home'||document.querySelector('#layer .overlay'))return;
+  if(stamp()!==lastStamp){renderHome();return;}
+  const c=$('#clock');if(c)c.textContent=hhmm(nowMin());
+}
+
+/* ---------- Code parent ---------- */
+function askPin(fn,title){
+  if(!S.pin){fn();return;}
+  const layer=$('#layer');let entry='';
+  layer.innerHTML=`<div class="overlay" role="dialog" aria-modal="true" aria-labelledby="pt"><div class="modal sticker"><h2 id="pt">${title||'Code parent'}</h2><div class="pindots" id="pd" aria-live="polite"></div><p class="hint" id="pm"></p><div class="pad">${[1,2,3,4,5,6,7,8,9].map(n=>`<button class="btn" data-k="${n}">${n}</button>`).join('')}<button class="btn" data-k="x">Annuler</button><button class="btn" data-k="0">0</button><button class="btn" data-k="del" aria-label="Effacer">⌫</button></div></div></div>`;
+  const dots=()=>{$('#pd').innerHTML=[0,1,2,3].map(i=>`<span class="${i<entry.length?'f':''}"></span>`).join('');};dots();
+  layer.querySelectorAll('.pad .btn').forEach(b=>b.onclick=()=>{
+    const k=b.dataset.k;
+    if(k==='x'){layer.innerHTML='';return;}
+    if(k==='del')entry=entry.slice(0,-1);else if(entry.length<4)entry+=k;
+    dots();
+    if(entry.length===4){if(entry===S.pin){layer.innerHTML='';fn();}else{entry='';dots();$('#pm').textContent='Ce n’est pas le bon code.';}}
+  });
+}
+
+/* ---------- Espace parent ---------- */
+let resetArmed='';
+function renderParent(){
+  view='parent';resetArmed='';const kid=parentKid,K=S.kids[kid];
+  const opts=sel=>[...new Set([sel,...ICONS])].map(i=>`<option ${i===sel?'selected':''}>${esc(i)}</option>`).join('');
+  const times=(a,b,sel)=>{let o='';for(let m=a;m<=b;m+=30)o+=`<option value="${m}" ${m===sel?'selected':''}>${hhmm(m)}</option>`;return o;};
+  const hist=()=>{const rows=[];for(let i=0;i<7;i++){const d=new Date();d.setDate(d.getDate()-i);const e=S.log[dayKey(d)],s=e&&e[kid]?e[kid].sum:{};
+    rows.push(`<tr><td>${i===0?'Aujourd’hui':i===1?'Hier':d.toLocaleDateString('fr-FR',{weekday:'short',day:'numeric',month:'short'})}</td>${ROUTINES.map(r=>{const v=s[r.id];return v&&v[1]?`<td class="${v[0]===v[1]?'fullc':''}">${v[0]===v[1]?'✓ ':''}${v[0]} / ${v[1]}</td>`:'<td>–</td>';}).join('')}</tr>`);}
+    return rows.join('');};
+  $('#view').innerHTML=`<div class="parent sticker" data-kid="${kid}"><h2>Espace parent</h2>
+    <div class="tabs2">${KIDS.map(k=>`<button class="btn" data-kid="${k}" data-pk="${k}" aria-pressed="${k===kid}">${esc(S.kids[k].avatar)} ${esc(S.kids[k].name)}</button>`).join('')}</div>
+    <h3>Le planning de ${esc(K.name)}</h3>
+    <p class="hint">Chaque enfant a son propre planning. Pour chaque routine, choisis les jours où elle s’affiche et la liste des tâches. Les changements sont enregistrés tout de suite.</p>
+    <div class="row"><label for="kname" class="hint">Prénom</label><input id="kname" value="${esc(K.name)}" maxlength="20" style="width:200px"></div>
+    ${ROUTINES.map(r=>{const ro=routine(kid,r.id);return `<div class="rbox" data-r="${r.id}"><h4>${r.icon} ${r.name}</h4>
+      <div class="days" role="group" aria-label="Jours de la routine ${r.name}">${DAY_LETTERS.map((l,i)=>`<button class="day" data-d="${i}" aria-pressed="${ro.days[i]}" aria-label="${DAY_NAMES[i]}">${l}</button>`).join('')}</div>
+      ${ro.tasks.map((x,i)=>`<div class="edit" data-i="${i}"><select class="ei" aria-label="Image de la tâche">${opts(x.icon)}</select><input class="en" value="${esc(x.name)}" maxlength="48" aria-label="Nom de la tâche"><button class="btn small up" aria-label="Monter ${esc(x.name)}" ${i===0?'disabled':''}>↑</button><button class="btn small down" aria-label="Descendre ${esc(x.name)}" ${i===ro.tasks.length-1?'disabled':''}>↓</button><button class="btn small del" aria-label="Supprimer ${esc(x.name)}">✕</button></div>`).join('')}
+      <div class="row"><button class="btn small add" ${ro.tasks.length>=20?'disabled':''}>+ Ajouter une tâche</button></div></div>`;}).join('')}
+    <div class="row"><button class="btn small" id="uncheck">Tout décocher aujourd’hui pour ${esc(K.name)}</button><button class="btn small" id="defTasks">Remettre les tâches de départ de ${esc(K.name)}</button></div>
+    <h3>Les 7 derniers jours de ${esc(K.name)}</h3>
+    <table><thead><tr><th>Jour</th>${ROUTINES.map(r=>`<th>${r.icon} ${r.name}</th>`).join('')}</tr></thead><tbody>${hist()}</tbody></table>
+    <h3>Horaires</h3>
+    <p class="hint">Le planning ouvre tout seul la routine du moment. Les enfants peuvent quand même toucher une autre routine pour la voir.</p>
+    <div class="row pinrow"><span>« Après l’école » à partir de</span><select id="cut0" aria-label="Début de l’après-midi">${times(600,960,S.cut[0])}</select><span>« Soir » à partir de</span><select id="cut1" aria-label="Début du soir">${times(Math.max(960,S.cut[0]+60),1320,S.cut[1])}</select></div>
+    <h3>Écran</h3>
+    <p class="hint">Pour laisser la tablette posée comme un tableau : l’écran reste allumé tant que le planning est affiché. Ne marche pas sur tous les appareils, et consomme de la batterie.</p>
+    <div class="row"><button class="btn small" id="awake">${S.awake?'Écran toujours allumé : activé ✓':'Écran toujours allumé : désactivé'}</button></div>
+    <h3>Code parent</h3>
+    <p class="hint">${S.pin?'Le code protège cet espace.':'Optionnel : avec un code à 4 chiffres, les enfants ne peuvent plus ouvrir cet espace.'}</p>
+    <div class="row pinrow"><input id="pinIn" type="password" inputmode="numeric" maxlength="4" placeholder="••••" aria-label="Nouveau code à 4 chiffres"><button class="btn small" id="pinSave">${S.pin?'Changer le code':'Enregistrer le code'}</button>${S.pin?'<button class="btn small" id="pinDel">Supprimer le code</button>':''}</div>
+    <p class="hint" id="pinMsg" aria-live="polite"></p>
+    <h3>Sauvegarde</h3>
+    <p class="hint">Le planning est gardé sur cet appareil. Pour le copier sur un autre appareil : copie le code ici, puis colle-le là-bas et touche « Importer ». Les tâches, les jours et l’historique sont transférés.</p>
+    <div class="row"><button class="btn small" id="expCopy">Copier le code</button></div>
+    <textarea class="savebox" id="expOut" rows="3" readonly hidden aria-label="Code de sauvegarde"></textarea>
+    <textarea class="savebox" id="impIn" rows="3" placeholder="Pour importer : colle le code ici" aria-label="Code à importer"></textarea>
+    <div class="row"><button class="btn small" id="impBtn">Importer le code</button></div>
+    <p class="hint" id="saveMsg" aria-live="polite"></p>
+    <h3>Comment s’en servir</h3>
+    <ul class="hint"><li>Sur la tablette : ouvre la page dans Chrome, touche ⋮ puis « Ajouter à l’écran d’accueil ». L’icône ouvre le planning en plein écran, même sans Internet.</li>
+    <li>Pour qu’un enfant ne sorte pas du planning : épingle l’application (Paramètres → Sécurité → Épinglage d’application).</li>
+    <li>Une tâche se coche en la touchant, et se décoche en la touchant encore. Le haut-parleur lit la tâche à voix haute.</li>
+    <li>Tout repart de zéro chaque matin. Peu de tâches, toujours dans le même ordre : c’est ce qui marche le mieux.</li></ul>
+    <div class="row"><button class="btn go" id="back">← Retour au planning</button></div></div>`;
+  window.scrollTo(0,0);
+  const again=keep=>{const y=window.scrollY;renderParent();if(keep)window.scrollTo(0,y);};
+  document.querySelectorAll('[data-pk]').forEach(b=>b.onclick=()=>{parentKid=b.dataset.pk;renderParent();});
+  $('#kname').onchange=e=>{K.name=e.target.value.trim().slice(0,20)||defaults().kids[kid].name;save();again(true);};
+  document.querySelectorAll('.rbox').forEach(box=>{
+    const ro=routine(kid,box.dataset.r),touch=()=>{snapshot(kid);save();};
+    box.querySelectorAll('.day').forEach(b=>b.onclick=()=>{const i=+b.dataset.d;ro.days[i]=!ro.days[i];b.setAttribute('aria-pressed',ro.days[i]);touch();});
+    box.querySelectorAll('.edit').forEach(row=>{
+      const i=+row.dataset.i,x=ro.tasks[i];
+      row.querySelector('.ei').onchange=e=>{x.icon=e.target.value;touch();};
+      row.querySelector('.en').onchange=e=>{x.name=e.target.value.trim().slice(0,48)||'Nouvelle tâche';e.target.value=x.name;touch();};
+      row.querySelector('.up').onclick=()=>{if(i>0){[ro.tasks[i-1],ro.tasks[i]]=[ro.tasks[i],ro.tasks[i-1]];touch();again(true);}};
+      row.querySelector('.down').onclick=()=>{if(i<ro.tasks.length-1){[ro.tasks[i+1],ro.tasks[i]]=[ro.tasks[i],ro.tasks[i+1]];touch();again(true);}};
+      row.querySelector('.del').onclick=()=>{ro.tasks.splice(i,1);touch();again(true);};
+    });
+    box.querySelector('.add').onclick=()=>{if(ro.tasks.length>=20)return;ro.tasks.push({id:uid(),icon:'⭐',name:'Nouvelle tâche'});touch();again(true);const ins=document.querySelectorAll(`.rbox[data-r="${box.dataset.r}"] .en`),last=ins[ins.length-1];if(last){last.focus();last.select();}};
+  });
+  const arm=(btn,key,label,fn)=>{btn.onclick=()=>{if(resetArmed!==key){resetArmed=key;btn.textContent=label;btn.style.background='var(--bad-soft)';return;}fn();};};
+  arm($('#uncheck'),'u','Sûr ? Touche encore pour tout décocher',()=>{today()[kid].done={};snapshot(kid);save();again(true);});
+  arm($('#defTasks'),'d','Sûr ? Touche encore pour remplacer ses tâches',()=>{K.routines=defaults().kids[kid].routines;snapshot(kid);save();again(true);});
+  $('#cut0').onchange=e=>{S.cut[0]=+e.target.value;if(S.cut[1]<S.cut[0]+60)S.cut[1]=S.cut[0]+60;if(S.cut[1]<960)S.cut[1]=960;save();again(true);};
+  $('#cut1').onchange=e=>{S.cut[1]=+e.target.value;save();};
+  $('#awake').onclick=()=>{S.awake=!S.awake;save();wake();again(true);};
+  $('#pinSave').onclick=()=>{const v=$('#pinIn').value.trim();if(!/^\d{4}$/.test(v)){$('#pinMsg').textContent='Le code doit faire exactement 4 chiffres.';return;}S.pin=v;save();again(true);$('#pinMsg').textContent='Code enregistré. Retiens-le bien.';};
+  if(S.pin)$('#pinDel').onclick=()=>{S.pin='';save();again(true);$('#pinMsg').textContent='Code supprimé.';};
+  $('#expCopy').onclick=async()=>{
+    const code=exportCode(),out=$('#expOut');out.hidden=false;out.value=code;S.lastExport=new Date().toISOString();save();
+    let ok=false;try{await navigator.clipboard.writeText(code);ok=true;}catch(e){out.focus();out.select();}
+    $('#saveMsg').textContent=ok?'Code copié. Colle-le dans un message ou une note pour le garder.':'Le code est affiché ci-dessus : sélectionne-le et copie-le.';
+  };
+  $('#impBtn').onclick=()=>{
+    try{const d=parseBackup($('#impIn').value);S=d;save();renderParent();$('#saveMsg').textContent='Planning importé.';}
+    catch(e){$('#saveMsg').textContent='Ce code n’est pas valide. Vérifie qu’il est copié en entier.';}
+  };
+  $('#back').onclick=renderHome;
+}
+
+/* ---------- Sauvegarde : export / import ---------- */
+// Code = "PLANNING1-" + JSON en base64 (UTF-8).
+const toB64=str=>{const b=new TextEncoder().encode(str);let s='';for(let i=0;i<b.length;i++)s+=String.fromCharCode(b[i]);return btoa(s);};
+const fromB64=b64=>{const s=atob(b64),b=new Uint8Array(s.length);for(let i=0;i<s.length;i++)b[i]=s.charCodeAt(i);return new TextDecoder().decode(b);};
+const exportCode=()=>'PLANNING1-'+toB64(JSON.stringify({app:'planning-famille',v:1,date:new Date().toISOString(),data:S}));
+function parseBackup(text){
+  const t=String(text||'').trim().replace(/\s+/g,'').replace(/^PLANNING\d+-/i,'');
+  const obj=JSON.parse(fromB64(t));
+  if(!obj||obj.app!=='planning-famille'||!obj.data||typeof obj.data.kids!=='object')throw new Error('format');
+  return clean(obj.data);
+}
+
+/* ---------- Écran toujours allumé ---------- */
+let lock=null;
+async function wake(){
+  try{
+    if(S.awake&&document.visibilityState==='visible'&&'wakeLock' in navigator){if(!lock){lock=await navigator.wakeLock.request('screen');lock.addEventListener('release',()=>{lock=null;});}}
+    else if(lock){await lock.release();lock=null;}
+  }catch(e){lock=null;}
+}
+
+/* ---------- Démarrage ---------- */
+KIDS.forEach(snapshot);save();
+renderHome();wake();
+setInterval(tick,20000);
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'){tick();wake();}else save();});
+window.addEventListener('pagehide',save);
+if('serviceWorker' in navigator&&/^https?:$/.test(location.protocol))window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
+</script>
+</body>
+</html>
