@@ -20,7 +20,7 @@
 :root{
   /* Monde "cahier d'aventure" : autocollants épais, une couleur par matière. Colonne unique, carte des niveaux par étape CE1 → CE2. */
   --bg:#e4f1ec; --paper:#ffffff; --ink:#1b2632; --muted:#56636f;
-  --maths:#ff7a3d; --maths-soft:#ffe4d6; --fr:#4c5ff5; --fr-soft:#e0e4ff;
+  --maths:#ff7a3d; --maths-soft:#ffe4d6; --fr:#4c5ff5; --fr-soft:#e0e4ff; --en:#8e5bd9; --en-soft:#ece2fb;
   --star:#ffc226; --star-soft:#fff1c7; --ok:#1c9e61; --ok-soft:#d5f2e3; --bad:#d93b45; --bad-soft:#fde1e2;
   --display:"Fredoka","Trebuchet MS",system-ui,sans-serif;
   --body:"Andika","Comic Sans MS",system-ui,sans-serif;
@@ -28,6 +28,7 @@
   color-scheme:light;
 }
 body[data-track="fr"]{--accent:var(--fr);--accent-soft:var(--fr-soft);--on-accent:#fff}
+body[data-track="en"]{--accent:var(--en);--accent-soft:var(--en-soft);--on-accent:#fff}
 *{box-sizing:border-box}
 html,body{margin:0;min-height:100%}
 body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:18px;line-height:1.45;-webkit-tap-highlight-color:transparent}
@@ -48,13 +49,15 @@ h1,h2,h3{font-family:var(--display);text-wrap:balance;margin:0}
 .top h1 small{display:block;font-family:var(--body);font-weight:400;font-size:16px;color:var(--muted);margin-top:4px}
 .total{display:flex;align-items:center;gap:6px;padding:6px 14px;font-family:var(--display);font-weight:700;font-size:24px;font-variant-numeric:tabular-nums}
 .total svg{width:28px;height:28px}
-.tabs{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:20px}
+.tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:20px}
 .tab{display:flex;align-items:center;justify-content:center;gap:10px;padding:14px 10px;font-size:22px}
 .tab .ic{width:44px;height:44px;border-radius:12px;border:3px solid var(--ink);display:grid;place-items:center;font-family:var(--display);font-weight:700;font-size:20px}
 .tab.maths .ic{background:var(--maths)}
 .tab.fr .ic{background:var(--fr);color:#fff}
+.tab.en .ic{background:var(--en);color:#fff}
 .tab[aria-selected="true"].maths{background:var(--maths-soft)}
 .tab[aria-selected="true"].fr{background:var(--fr-soft)}
+.tab[aria-selected="true"].en{background:var(--en-soft)}
 .tab[aria-selected="false"]{box-shadow:0 2px 0 var(--ink);transform:translateY(2px);opacity:.8}
 .intro{margin:16px 2px 0;color:var(--muted)}
 .stage-h{display:flex;align-items:center;gap:12px;margin:28px 0 12px;flex-wrap:wrap}
@@ -216,6 +219,15 @@ mark{background:var(--accent-soft);color:inherit;border-bottom:4px solid var(--a
 .cf{position:fixed;top:-20px;width:10px;height:14px;z-index:20;animation:fall 2.3s linear forwards;pointer-events:none}
 @keyframes fall{to{transform:translateY(110vh) rotate(720deg)}}
 @media (max-width:420px){.answers.row3{grid-template-columns:1fr 1fr 1fr}.choice{font-size:26px}.top h1{font-size:26px}}
+.hear{background:var(--star-soft)}
+.swatch{display:inline-block;width:64px;height:44px;border:3px solid var(--ink);border-radius:12px;vertical-align:middle}
+.swatch.xl{width:150px;height:96px;border-radius:18px}
+.sc{display:inline-flex;align-items:center;justify-content:center;font-size:40px;line-height:1.05}
+.sc.v{flex-direction:column}
+.scene .sc{font-size:64px}
+.answers.row3 .choice:has(.sc){padding-left:4px;padding-right:4px}
+.answers.row3 .sc{font-size:34px}
+@media (max-width:560px){.tab{flex-direction:column;gap:4px;padding:10px 4px;font-size:18px}.tab .ic{width:40px;height:40px;font-size:18px}}
 .seqn{font-family:var(--display);font-weight:600;font-size:clamp(26px,7.4vw,44px);text-align:center;line-height:1.3;font-variant-numeric:tabular-nums}
 .figure{width:min(190px,52vw);height:auto;display:block}
 .figure.wide{width:min(310px,86vw)}
@@ -599,8 +611,107 @@ const GF={
   F37(){return lectQ(LECT3);}
 };
 
+/* ---------- Questions d'anglais ---------- */
+// Les mots anglais sont prononcés par la voix de l'appareil (en-GB). « en » : ce que lit le bouton Écouter ;
+// « enAfter » : ce qui est prononcé une fois la réponse trouvée (ou montrée), pour entendre le mot juste.
+const EN_HEAR=en=>canSpeak?`<button class="btn small hear" data-en="${en}" aria-label="Écouter en anglais">${speakSvg} Écouter</button>`:'';
+const EAR='<div class="pic" aria-hidden="true">👂</div>';
+const sized=en=>`<div class="${en.length>12?'mid':'big'}">${en}</div>`;
+// Banques : [anglais, français, image]
+const EN_HELLO=[['hello','bonjour'],['goodbye','au revoir'],['please','s’il te plaît'],['thank you','merci'],['yes','oui'],['no','non'],['good morning','bonjour (le matin)'],['good night','bonne nuit'],['good evening','bonsoir'],['sorry','pardon'],['see you soon','à bientôt'],['welcome','bienvenue']];
+const EN_COLS=[['red','rouge','#e53935'],['blue','bleu','#1e88e5'],['green','vert','#43a047'],['yellow','jaune','#fdd835'],['orange','orange','#fb8c00'],['pink','rose','#f48fb1'],['purple','violet','#8e24aa'],['black','noir','#222222'],['white','blanc','#ffffff'],['brown','marron','#8d5a3b'],['grey','gris','#9e9e9e']];
+const NUM_EN=['zero','one','two','three','four','five','six','seven','eight','nine','ten','eleven','twelve','thirteen','fourteen','fifteen','sixteen','seventeen','eighteen','nineteen','twenty'];
+const EN_ANIMALS=[['cat','chat','🐱'],['dog','chien','🐶'],['bird','oiseau','🐦'],['fish','poisson','🐟'],['horse','cheval','🐴'],['cow','vache','🐮'],['pig','cochon','🐷'],['sheep','mouton','🐑'],['rabbit','lapin','🐰'],['mouse','souris','🐭'],['duck','canard','🦆'],['lion','lion','🦁'],['elephant','éléphant','🐘'],['monkey','singe','🐒'],['bear','ours','🐻'],['frog','grenouille','🐸'],['hen','poule','🐔'],['snake','serpent','🐍'],['tiger','tigre','🐯']];
+const EN_FAMILY=[['mother','mère'],['father','père'],['sister','sœur'],['brother','frère'],['grandmother','grand-mère'],['grandfather','grand-père'],['baby','bébé'],['friend','ami'],['mum','maman'],['dad','papa'],['family','famille'],['boy','garçon'],['girl','fille'],['aunt','tante'],['uncle','oncle']];
+const EN_SCHOOL=[['pen','stylo','🖊️'],['pencil','crayon','✏️'],['book','livre','📕'],['school bag','cartable','🎒'],['ruler','règle','📏'],['rubber','gomme'],['chair','chaise','🪑'],['table','table'],['teacher','maîtresse','👩‍🏫'],['school','école','🏫'],['scissors','ciseaux','✂️'],['glue','colle'],['pencil case','trousse'],['desk','bureau'],['classroom','salle de classe'],['computer','ordinateur','💻']];
+const EN_FOOD=[['apple','pomme','🍎'],['banana','banane','🍌'],['bread','pain','🍞'],['cheese','fromage','🧀'],['milk','lait','🥛'],['water','eau','💧'],['egg','œuf','🥚'],['cake','gâteau','🎂'],['chicken','poulet','🍗'],['rice','riz','🍚'],['orange juice','jus d’orange','🧃'],['chocolate','chocolat','🍫'],['ice cream','glace','🍦'],['carrot','carotte','🥕'],['strawberry','fraise','🍓'],['tomato','tomate','🍅'],['chips','frites','🍟'],['sweets','bonbons','🍬']];
+const EN_BODY=[['head','tête'],['hand','main','✋'],['foot','pied','🦶'],['eye','œil','👁️'],['nose','nez','👃'],['mouth','bouche','👄'],['ear','oreille','👂'],['leg','jambe','🦵'],['arm','bras','💪'],['hair','cheveux'],['tooth','dent','🦷'],['finger','doigt','☝️'],['knee','genou'],['shoulder','épaule'],['tummy','ventre']];
+const DAYS_EN=['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
+const EN_FEEL=[['I am happy.','Je suis content.','😀'],['I am sad.','Je suis triste.','😢'],['I am angry.','Je suis en colère.','😠'],['I am tired.','Je suis fatigué.','😴'],['I am hungry.','J’ai faim.','😋'],['I am scared.','J’ai peur.','😨'],['I am cold.','J’ai froid.','🥶'],['I am hot.','J’ai chaud.','🥵'],['I am thirsty.','J’ai soif.','🥤'],['I am sick.','Je suis malade.','🤒'],['I am surprised.','Je suis surpris.','😲']];
+const EN_CLOTHES=[['T-shirt','tee-shirt','👕'],['shoes','chaussures','👟'],['hat','chapeau','🎩'],['dress','robe','👗'],['trousers','pantalon','👖'],['socks','chaussettes','🧦'],['coat','manteau','🧥'],['jumper','pull'],['skirt','jupe'],['cap','casquette','🧢'],['gloves','gants','🧤'],['scarf','écharpe','🧣'],['boots','bottes','👢']];
+const EN_WEATHER=[['It’s sunny.','Il y a du soleil.','☀️'],['It’s raining.','Il pleut.','🌧️'],['It’s cloudy.','Il y a des nuages.','☁️'],['It’s windy.','Il y a du vent.','💨'],['It’s snowing.','Il neige.','❄️'],['It’s hot.','Il fait chaud.','🥵'],['It’s cold.','Il fait froid.','🥶'],['It’s foggy.','Il y a du brouillard.','🌫️'],['It’s stormy.','Il y a de l’orage.','⛈️']];
+const EN_LIKES=[['apples','les pommes','🍎'],['bananas','les bananes','🍌'],['cheese','le fromage','🧀'],['chocolate','le chocolat','🍫'],['cats','les chats','🐱'],['dogs','les chiens','🐶'],['milk','le lait','🥛'],['carrots','les carottes','🥕'],['football','le foot','⚽'],['school','l’école','🏫'],['pizza','la pizza','🍕'],['spiders','les araignées','🕷️'],['ice cream','la glace','🍦'],['rain','la pluie','🌧️']];
+const EN_PREP=[['🐱','cat','📦','box'],['🐶','dog','🪑','chair'],['🐭','mouse','🛏️','bed'],['🐦','bird','🚗','car'],['🧸','teddy bear','🎁','present'],['🐸','frog','🍄','mushroom']];
+const EN_HAVE_BE=[['I ___ a dog.',['have','am','is'],'have','J’ai un chien.'],['I ___ eight years old.',['am','have','is'],'am','J’ai huit ans.'],['She ___ my sister.',['is','am','are'],'is','Elle est ma sœur.'],['He ___ a blue bike.',['has','have','is'],'has','Il a un vélo bleu.'],['We ___ happy.',['are','is','am'],'are','Nous sommes contents.'],['You ___ my friend.',['are','is','am'],'are','Tu es mon ami.'],['The cat ___ black.',['is','are','have'],'is','Le chat est noir.'],['I ___ hungry.',['am','have','is'],'am','J’ai faim.'],['They ___ two cats.',['have','has','are'],'have','Ils ont deux chats.'],['My name ___ Willyam.',['is','am','are'],'is','Je m’appelle Willyam.'],['It ___ a big house.',['is','are','am'],'is','C’est une grande maison.'],['I ___ a brother and a sister.',['have','am','has'],'have','J’ai un frère et une sœur.'],['The dogs ___ in the garden.',['are','is','am'],'are','Les chiens sont dans le jardin.'],['She ___ long hair.',['has','have','is'],'has','Elle a les cheveux longs.']];
+// [question, réponse, traduction de la question, famille de réponses à ne pas mélanger]
+const EN_QA=[['What’s your name?','My name is Willyam.','Comment t’appelles-tu ?'],['How old are you?','I’m eight.','Quel âge as-tu ?'],['How are you?','I’m fine, thank you.','Comment vas-tu ?'],['Where do you live?','I live in France.','Où habites-tu ?'],['What colour is the sun?','It’s yellow.','De quelle couleur est le soleil ?','it'],['Do you like chocolate?','Yes, I do.','Aimes-tu le chocolat ?','yes'],['Have you got a pet?','Yes, I’ve got a cat.','As-tu un animal ?','yes'],['What’s the weather like?','It’s sunny.','Quel temps fait-il ?','it'],['What time is it?','It’s three o’clock.','Quelle heure est-il ?','it'],['What’s this?','It’s a book.','Qu’est-ce que c’est ?','it'],['Can you swim?','Yes, I can.','Sais-tu nager ?','yes'],['What’s your favourite colour?','My favourite colour is green.','Quelle est ta couleur préférée ?'],['Where is the cat?','It’s under the bed.','Où est le chat ?','it'],['Who is she?','She’s my sister.','Qui est-ce ?'],['When is your birthday?','It’s in May.','Quand est ton anniversaire ?','it']];
+const EN_READ=[
+  {t:'Hello! My name is Tom. I am nine. I have a black cat. I like football.',qs:[
+    ['Quel âge a Tom ?','9 ans',['8 ans','10 ans','7 ans']],['Quel animal a Tom ?','un chat noir',['un chien noir','un chat blanc','un lapin']],['Qu’est-ce que Tom aime ?','le foot',['le tennis','la natation','le vélo']]]},
+  {t:'This is my sister Lily. She is six. She has a pink bike and a big teddy bear. She likes apples.',qs:[
+    ['Qui est Lily ?','sa sœur',['sa mère','son amie','sa cousine']],['De quelle couleur est le vélo ?','rose',['rouge','bleu','vert']],['Quel fruit aime Lily ?','les pommes',['les bananes','les fraises','les oranges']],['Quel âge a Lily ?','6 ans',['5 ans','7 ans','8 ans']]]},
+  {t:'It is Monday. It’s raining. Ben has a blue coat and yellow boots. He goes to school with his dad.',qs:[
+    ['Quel jour sommes-nous ?','lundi',['mardi','dimanche','mercredi']],['Quel temps fait-il ?','Il pleut.',['Il neige.','Il y a du soleil.','Il y a du vent.']],['De quelle couleur sont les bottes ?','jaunes',['bleues','rouges','noires']],['Avec qui Ben va-t-il à l’école ?','avec son papa',['avec sa maman','avec son frère','tout seul']]]},
+  {t:'I have a dog. His name is Max. He is brown and white. He likes balls and he sleeps on my bed.',qs:[
+    ['Comment s’appelle le chien ?','Max',['Tom','Ben','Rex']],['De quelles couleurs est-il ?','marron et blanc',['noir et blanc','gris et blanc','tout noir']],['Où dort le chien ?','sur le lit',['sous la table','dans le jardin','sur le canapé']]]},
+  {t:'On Saturday, I go to the park with my friends. We play football. Then we eat a cake and drink orange juice.',qs:[
+    ['Quel jour vont-ils au parc ?','samedi',['dimanche','vendredi','mercredi']],['À quoi jouent-ils ?','au foot',['au basket','à cache-cache','aux cartes']],['Que boivent-ils ?','du jus d’orange',['du lait','de l’eau','du chocolat chaud']]]},
+  {t:'My mum has a red car. My dad has a green bike. I have a blue scooter. My baby brother has a yellow duck!',qs:[
+    ['De quelle couleur est la voiture ?','rouge',['verte','bleue','jaune']],['Qui a un vélo vert ?','le papa',['la maman','le bébé','le garçon']],['Qu’a le petit frère ?','un canard jaune',['un vélo jaune','un chat jaune','une voiture jaune']]]}
+];
+// Question de vocabulaire, tirée au hasard dans un des trois sens : anglais → français, français → anglais, écoute.
+function vocQ(bank,what,conf){
+  const it=pick(bank),[en,fr,e]=it,k=canSpeak?R(0,2):R(0,1),ce=what==='phrase'?'cette phrase':'ce mot';
+  const clash=x=>x[0]===en||x[1]===fr||(conf||[]).some(g=>g.includes(en)&&g.includes(x[0]));
+  const others=bank.filter(x=>!clash(x)),pic=e?`<div class="pic">${e}</div>`:'',frc=x=>(x[2]?x[2]+' ':'')+x[1];
+  if(k===1)return {p:'Comment dit-on en anglais ?',q:`${pic}<div class="mid">${fr}</div>`,say:`Comment dit-on en anglais : ${fr} ?`,type:'choice',choices:uniqChoices(en,others.map(x=>x[0])),answer:en,enAfter:en,explain:`« ${fr} » se dit « ${en} » en anglais.`};
+  if(k===0)return {p:`Que veut dire ${ce} en français ?`,q:sized(en)+EN_HEAR(en),say:`Que veut dire ${ce} en français ?`,en,type:'choice',choices:uniqChoices(frc(it),others.map(frc)),answer:frc(it),enAfter:en,explain:`« ${en} » veut dire : ${fr}`};
+  return {p:`Écoute ${ce} en anglais, puis trouve ce que ça veut dire`,q:EAR+EN_HEAR(en),say:`Écoute ${ce} en anglais.`,en,auto:true,type:'choice',choices:uniqChoices(frc(it),others.map(frc)),answer:frc(it),enAfter:en,explain:`Tu as entendu « ${en} » : ${fr}`};
+}
+function numEnQ(lo,hi){
+  const n=R(lo,hi),w=NUM_EN[n],k=canSpeak?R(0,3):R(0,2),near=[];
+  for(let d=1;near.length<6&&d<=hi-lo;d++){if(n-d>=lo)near.push(NUM_EN[n-d]);if(n+d<=hi)near.push(NUM_EN[n+d]);}
+  if(k===1)return {p:'Comment dit-on ce nombre en anglais ?',q:`<div class="big">${n}</div>`,say:`Comment dit-on ${n} en anglais ?`,type:'choice',choices:uniqChoices(w,near),answer:w,enAfter:w,explain:`${n} se dit « ${w} ».`};
+  if(k===2&&n>=2){const a=R(1,n-1),b=n-a,t=`${NUM_EN[a]} + ${NUM_EN[b]}`,sp=`${NUM_EN[a]} plus ${NUM_EN[b]}`;
+    return {p:'Calcule, puis écris le résultat en chiffres',q:`<div class="mid">${t}</div>${EN_HEAR(sp)}`,say:'Calcule, puis écris le résultat en chiffres.',en:sp,type:'num',answer:String(n),enAfter:`${sp} is ${w}`,explain:`${a} + ${b} = ${n}, qui se dit « ${w} ».`};}
+  if(k===3)return {p:'Écoute le nombre en anglais, puis écris-le en chiffres',q:EAR+EN_HEAR(w),say:'Écoute le nombre en anglais.',en:w,auto:true,type:'num',answer:String(n),enAfter:w,explain:`Tu as entendu « ${w} » : c’est ${n}.`};
+  return {p:'Écris ce nombre en chiffres',q:`<div class="big">${w}</div>${EN_HEAR(w)}`,say:'Écris ce nombre en chiffres.',en:w,type:'num',answer:String(n),enAfter:w,explain:`« ${w} », c’est ${n}.`};
+}
+const GE={
+  E1(){return vocQ(EN_HELLO,'mot',[['hello','good morning'],['good night','good evening']]);},
+  E2(){const it=pick(EN_COLS),[en,fr,hex]=it,others=EN_COLS.filter(x=>x!==it),sw=x=>`<span class="swatch" style="background:${x[2]}"></span>`,k=canSpeak?R(0,3):R(0,2);
+    if(k===0)return {p:'Comment s’appelle cette couleur en anglais ?',q:`<div class="swatch xl" style="background:${hex}"></div>`,say:'Comment s’appelle cette couleur en anglais ?',type:'choice',choices:uniqChoices(en,others.map(x=>x[0])),answer:en,enAfter:en,explain:`« ${fr} » se dit « ${en} » en anglais.`};
+    if(k===1)return {p:'Comment dit-on en anglais ?',q:`<div class="mid">${fr}</div>`,say:`Comment dit-on en anglais : ${fr} ?`,type:'choice',choices:uniqChoices(en,others.map(x=>x[0])),answer:en,enAfter:en,explain:`« ${fr} » se dit « ${en} » en anglais.`};
+    if(k===2)return {p:'Trouve la bonne couleur',q:`<div class="big">${en}</div>${EN_HEAR(en)}`,say:'Trouve la bonne couleur.',en,type:'choice',cls:'grid2',choices:uniqChoices(sw(it),others.map(sw)),answer:sw(it),enAfter:en,explain:`« ${en} » veut dire : ${fr}`};
+    return {p:'Écoute la couleur en anglais, puis trouve-la',q:EAR+EN_HEAR(en),say:'Écoute la couleur en anglais.',en,auto:true,type:'choice',cls:'grid2',choices:uniqChoices(sw(it),others.map(sw)),answer:sw(it),enAfter:en,explain:`Tu as entendu « ${en} » : ${fr}`};},
+  E3(){return numEnQ(1,10);},
+  E4(){return vocQ(EN_ANIMALS);},
+  E5(){return vocQ(EN_FAMILY,'mot',[['mother','mum'],['father','dad'],['boy','brother'],['girl','sister']]);},
+  E6(){return vocQ(EN_SCHOOL,'mot',[['pen','pencil'],['table','desk']]);},
+  E7(){return vocQ(EN_FOOD);},
+  E8(){return vocQ(EN_BODY);},
+  E9(){return numEnQ(11,20);},
+  E10(){const i=R(0,6),en=DAYS_EN[i],fr=JOURS[i],k=R(0,canSpeak?3:2),oth=a=>a.filter((_,j)=>j!==i);
+    if(k===0)return {p:'Quel jour est-ce en français ?',q:`<div class="big">${en}</div>${EN_HEAR(en)}`,say:'Quel jour est-ce en français ?',en,type:'choice',choices:uniqChoices(fr,oth(JOURS)),answer:fr,enAfter:en,explain:`« ${en} » veut dire : ${fr}`};
+    if(k===1)return {p:'Comment dit-on ce jour en anglais ?',q:`<div class="big">${fr}</div>`,say:`Comment dit-on ${fr} en anglais ?`,type:'choice',choices:uniqChoices(en,oth(DAYS_EN)),answer:en,enAfter:en,explain:`« ${fr} » se dit « ${en} ».`};
+    if(k===2){const a=DAYS_EN[(i+1)%7];return {p:'Quel jour vient juste après ?',q:`<div class="big">${en}</div>${EN_HEAR(en)}`,say:'Quel jour vient juste après ?',en,type:'choice',choices:uniqChoices(a,DAYS_EN.filter(x=>x!==a&&x!==en)),answer:a,enAfter:`${en}, ${a}`,explain:`Les jours dans l’ordre : ${DAYS_EN.join(', ')}.`};}
+    return {p:'Écoute le jour en anglais, puis trouve-le',q:EAR+EN_HEAR(en),say:'Écoute le jour en anglais.',en,auto:true,type:'choice',choices:uniqChoices(fr,oth(JOURS)),answer:fr,enAfter:en,explain:`Tu as entendu « ${en} » : ${fr}`};},
+  E11(){return vocQ(EN_FEEL,'phrase');},
+  E12(){return vocQ(EN_CLOTHES,'mot',[['hat','cap']]);},
+  E13(){return vocQ(EN_WEATHER,'phrase');},
+  E14(){const it=pick(EN_LIKES),o=pick(EN_LIKES.filter(x=>x!==it)),pos=Math.random()<.5,en=(x,y)=>`I ${y?'like':'don’t like'} ${x[0]}.`,fr=(x,y)=>`${y?'J’aime':'Je n’aime pas'} ${x[1]}.`,E=en(it,pos),F=fr(it,pos),tip='« I like » = j’aime. « I don’t like » = je n’aime pas.';
+    if(Math.random()<.5)return {p:'Que veut dire cette phrase en français ?',q:`<div class="pic">${it[2]}</div><div class="mid">${E}</div>${EN_HEAR(E)}`,say:'Que veut dire cette phrase en français ?',en:E,type:'choice',cls:'list',choices:[F,fr(it,!pos),fr(o,pos),fr(o,!pos)],answer:F,enAfter:E,explain:tip};
+    return {p:'Comment dit-on en anglais ?',q:`<div class="pic">${it[2]}</div><div class="mid">${F}</div>`,say:`Comment dit-on en anglais : ${F}`,type:'choice',cls:'list',choices:[E,en(it,!pos),en(o,pos),en(o,!pos)],answer:E,enAfter:E,explain:tip};},
+  E15(){const [a,an,b,bn]=pick(EN_PREP),sc={on:`<span class="sc v"><span>${a}</span><span>${b}</span></span>`,under:`<span class="sc v"><span>${b}</span><span>${a}</span></span>`,'next to':`<span class="sc"><span>${b}</span><span>${a}</span></span>`},ks=Object.keys(sc),t=pick(ks),sen=x=>`The ${an} is ${x} the ${bn}.`,tip='« on » = sur, « under » = sous, « next to » = à côté de.';
+    if(Math.random()<.5)return {p:'Lis la phrase, puis trouve la bonne image',q:`<div class="mid">${sen(t)}</div>${EN_HEAR(sen(t))}`,say:'Lis la phrase, puis trouve la bonne image.',en:sen(t),type:'choice',cls:'row3',choices:ks.map(x=>sc[x]),answer:sc[t],enAfter:sen(t),explain:tip};
+    return {p:'Quelle phrase décrit l’image ?',q:`<div class="scene">${sc[t]}</div>`,say:'Quelle phrase décrit l’image ?',type:'choice',cls:'list',choices:ks.map(sen),answer:sen(t),enAfter:sen(t),explain:tip};},
+  E16(){const [t,ch,a,fr]=pick(EN_HAVE_BE),full=t.replace('___',a);
+    return {p:'Choisis le bon mot',q:`<div class="mid">${t.replace('___',SLOT)}</div><div class="tag">${fr}</div>`,say:`Choisis le bon mot pour dire : ${fr}`,type:'choice',choices:ch,answer:a,enAfter:full,explain:`On dit : « ${full} » (${fr})`};},
+  E17(){const h=R(1,12),half=Math.random()<.5,m=half?30:0,nx=h===12?1:h+1,pv=h===1?12:h-1,sen=(x,y)=>y?`It’s half past ${NUM_EN[x]}.`:`It’s ${NUM_EN[x]} o’clock.`,E=sen(h,half);
+    const tip=half?`« half past ${NUM_EN[h]} » = ${h} heures et demie.`:`« ${NUM_EN[h]} o’clock » = ${h} heures pile.`;
+    if(Math.random()<.6)return {p:'Comment dit-on cette heure en anglais ?',q:clock(h,m),say:'Regarde l’horloge. Comment dit-on cette heure en anglais ?',type:'choice',cls:'list',choices:uniqChoices(E,[sen(h,!half),sen(nx,half),sen(pv,half),sen(nx,!half)]),answer:E,enAfter:E,explain:tip};
+    const c=hm(h,m);return {p:'Quelle heure est-ce ?',q:`<div class="mid">${E}</div>${EN_HEAR(E)}`,say:'Quelle heure est-ce ?',en:E,type:'choice',choices:uniqChoices(c,[hm(h,half?0:30),hm(nx,m),hm(pv,m),hm(nx,half?0:30)]),answer:c,enAfter:E,explain:tip};},
+  E18(){const it=pick(EN_QA),[qe,ae,qf,g]=it,others=EN_QA.filter(x=>x!==it);
+    if(Math.random()<.5)return {p:'Que veut dire cette question en français ?',q:`<div class="mid">${qe}</div>${EN_HEAR(qe)}`,say:'Que veut dire cette question en français ?',en:qe,type:'choice',cls:'list',choices:uniqChoices(qf,others.map(x=>x[2])),answer:qf,enAfter:qe,explain:`« ${qe} » veut dire : ${qf}`};
+    return {p:'Trouve la bonne réponse à la question',q:`<div class="mid">${qe}</div><div class="tag">${qf}</div>${EN_HEAR(qe)}`,say:'Trouve la bonne réponse à la question.',en:qe,type:'choice',cls:'list',choices:uniqChoices(ae,others.filter(x=>!g||x[3]!==g).map(x=>x[1]),3),answer:ae,enAfter:`${qe} ${ae}`,explain:`${qf} On répond : « ${ae} »`};},
+  E19(){const T=pick(EN_READ),[qq,a,w]=pick(T.qs);
+    return {p:'Lis le texte en anglais, puis réponds',q:`<div class="text">${T.t}</div>${EN_HEAR(T.t)}<div class="qq">${qq}</div>`,say:qq,en:T.t,type:'choice',cls:'list',choices:[a,...w],answer:a,explain:'Relis le texte et cherche les mots que tu connais.'};}
+};
+
 /* ---------- Niveaux ---------- */
 const STAGES=[{n:'CE1',d:'Les bases de l’année'},{n:'Vers le CE2',d:'On monte d’un cran'},{n:'CE2',d:'Comme les grands'}];
+// L'anglais a ses propres étapes : il ne suit pas les classes.
+const STAGES_T={en:[{n:'Niveau 1',d:'Les premiers mots'},{n:'Niveau 2',d:'De plus en plus de mots'},{n:'Niveau 3',d:'Les petites phrases'}]};
 const LEVELS={
   maths:[
     ['M1',0,'Comparer jusqu’à 100','Sur ta feuille, écris deux nombres et mets le bon signe entre eux : < ou >.'],
@@ -678,9 +789,30 @@ const LEVELS={
     ['F33',2,'Les pluriels difficiles','Écris au pluriel : un cheval, un bijou, un trou.'],
     ['F34',2,'Les familles de mots','Écris 3 mots de la famille de « jardin ».'],
     ['F37',2,'Lire un texte plus long','Écris deux phrases pour raconter l’histoire que tu as préférée.']
+  ],
+  en:[
+    ['E1',0,'Hello !','Écris « hello » et « goodbye », puis dis-les à voix haute.'],
+    ['E2',0,'Les couleurs','Colorie 3 ronds et écris la couleur en anglais à côté : red, blue, green.'],
+    ['E3',0,'Les nombres de 1 à 10','Écris les nombres de 1 à 5 en anglais : one, two, three, four, five.'],
+    ['E4',0,'Les animaux','Dessine un chat et un chien, puis écris « cat » et « dog ».'],
+    ['E5',0,'La famille','Dessine ta famille et écris : mum, dad, sister.'],
+    ['E6',0,'À l’école','Écris en anglais 3 objets de ton cartable.'],
+    ['E7',1,'La nourriture','Dessine ton goûter et écris les mots en anglais.'],
+    ['E8',1,'Le corps','Dessine un bonhomme et écris : head, hand, foot.'],
+    ['E9',1,'Les nombres de 11 à 20','Écris en anglais : 11, 12 et 13.'],
+    ['E10',1,'Les jours en anglais','Écris 3 jours de la semaine en anglais.'],
+    ['E11',1,'Comment je me sens','Dessine un visage et écris : « I am happy. »'],
+    ['E12',1,'Les vêtements','Dessine tes habits préférés et écris leur nom en anglais.'],
+    ['E13',2,'La météo','Regarde par la fenêtre et écris la météo en anglais : « It’s… »'],
+    ['E14',2,'J’aime, je n’aime pas','Écris une chose que tu aimes : « I like… », et une que tu n’aimes pas : « I don’t like… »'],
+    ['E15',2,'Sur, sous, à côté','Dessine un chat sous une table et écris : « The cat is under the table. »'],
+    ['E16',2,'Avoir ou être ?','Écris : « I have a sister. » et « I am happy. »'],
+    ['E17',2,'L’heure en anglais','Dessine une horloge qui montre « four o’clock ».'],
+    ['E18',2,'Questions et réponses','Écris ta réponse en anglais à la question : « What’s your name? »'],
+    ['E19',2,'Lire en anglais','Écris deux phrases en anglais pour te présenter.']
   ]
 };
-const GEN=Object.assign({},GM,GF);
+const GEN=Object.assign({},GM,GF,GE);
 const MOVES=['Fais 10 sauts de grenouille.','Marche comme un ours jusqu’à la porte et reviens.','Fais 5 grands cercles avec tes bras.','Saute 10 fois sur un pied, puis sur l’autre.','Étire-toi comme un chat, le plus haut possible.','Fais 8 flexions comme un robot.','Tape 10 fois dans tes mains au-dessus de ta tête.','Cours sur place en comptant jusqu’à 20.','Fais l’avion : bras écartés, tiens sur un pied jusqu’à 10.','Touche tes pieds, puis tends les bras vers le ciel. Fais-le 5 fois.','Fais 5 sauts d’étoile : bras et jambes écartés.','Fais 5 pompes contre le mur.','Fais le flamant rose : tiens sur une jambe, puis sur l’autre.','Monte les genoux très haut, 10 fois.','Fais la chaise contre le mur et compte jusqu’à 10.','Boxe dans le vide : 10 coups avec chaque bras.'];
 const PRAISE=['Bravo !','Super !','Génial !','Exact !','Trop fort !','Bien joué !','Oui !'];
 
@@ -727,7 +859,7 @@ function parseBackup(text){
 function cleanState(d){
   const int=(v,a,b,def)=>Number.isFinite(+v)&&v!==null&&v!==''?clamp(Math.round(+v),a,b):def;
   const str=(v,n,def)=>typeof v==='string'&&v.trim()?v.trim().slice(0,n):def;
-  const ids=new Set([...LEVELS.maths,...LEVELS.fr].map(l=>l[0]));
+  const ids=new Set(Object.values(LEVELS).flat().map(l=>l[0]));
   const o={stars:{},crayon:{},crayonN:0,missions:int(d.missions,0,1e6,0),unlockAll:d.unlockAll===true,wallet:int(d.wallet,0,99999,0),rewards:[],claimed:[],pin:''};
   for(const k of Object.keys(d.stars))if(ids.has(k)){const s=int(d.stars[k],0,3,0);if(s)o.stars[k]=s;}
   if(d.crayon&&typeof d.crayon==='object')for(const k of Object.keys(d.crayon))if(ids.has(k)&&d.crayon[k]===true)o.crayon[k]=true;
@@ -769,7 +901,7 @@ const pencilSvg='<svg viewBox="0 0 24 24" width="28" height="28" aria-hidden="tr
 const $=s=>document.querySelector(s);
 const view=()=>document.getElementById('view');
 const lvls=t=>LEVELS[t].map(([id,stage,title,crayon],i)=>({id,stage,title,crayon,i,track:t}));
-const findLvl=id=>[...lvls('maths'),...lvls('fr')].find(l=>l.id===id);
+const findLvl=id=>Object.keys(LEVELS).flatMap(lvls).find(l=>l.id===id);
 // Une mission s'ouvre quand la précédente a au moins 1 étoile. Tout ce qui se trouve avant la mission réussie
 // la plus avancée reste ouvert : ajouter de nouvelles missions au milieu ne reverrouille donc rien.
 const lastDone=t=>{let m=-1;lvls(t).forEach(l=>{if((S.stars[l.id]||0)>=1)m=l.i;});return m;};
@@ -789,10 +921,11 @@ function renderHome(){
   <div class="tabs" role="tablist">
     <button class="tab sticker maths" role="tab" aria-selected="${track==='maths'}" data-track="maths"><span class="ic">12</span>Maths</button>
     <button class="tab sticker fr" role="tab" aria-selected="${track==='fr'}" data-track="fr"><span class="ic">Aa</span>Français</button>
+    <button class="tab sticker en" role="tab" aria-selected="${track==='en'}" data-track="en"><span class="ic">Hi!</span>Anglais</button>
   </div>
   <p class="intro">Choisis une mission : ${QN()} questions, puis un défi crayon. Gagne au moins 1 étoile pour ouvrir la suivante. Tes étoiles vont dans ta tirelire pour gagner des récompenses.</p>`;
   if(mixPool(track).length>=MIX_MIN)html+=`<button class="mix sticker" id="mixBtn"><span class="mixic" aria-hidden="true">🎲</span><span><b>Mission surprise</b><small>Un mélange de ce que tu sais déjà faire</small></span></button>`;
-  STAGES.forEach((st,si)=>{
+  (STAGES_T[track]||STAGES).forEach((st,si)=>{
     const SL=L.filter(l=>l.stage===si),ok=SL.filter(l=>S.stars[l.id]>=1).length;
     html+=`<section><div class="stage-h"><span class="pill">${st.n}</span><p>${st.d}</p><span class="cnt2" aria-label="${ok} missions réussies sur ${SL.length}">${ok}/${SL.length}</span></div><div class="grid">`;
     SL.forEach(l=>{
@@ -835,7 +968,9 @@ function startLevel(id){
   renderQuestion();
 }
 function speechText(q){if(q.say)return q.say;const d=document.createElement('div');d.innerHTML=q.p+'. '+q.q.replace(/<span class="slot">\?<\/span>/g,' … ');return d.textContent;}
-function speak(t){if(!canSpeak)return;try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.lang='fr-FR';u.rate=.9;speechSynthesis.speak(u);}catch(e){}}
+function speak(t,lang,queue){if(!canSpeak)return;try{if(!queue)speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.lang=lang||'fr-FR';u.rate=lang?.85:.9;speechSynthesis.speak(u);}catch(e){}}
+// Prononce de l'anglais avec la voix anglaise de l'appareil. « queue » : à la suite de ce qui est en train d'être dit.
+const speakEn=(t,queue)=>speak(String(t).replace(/’/g,"'"),'en-GB',queue);
 
 function renderQuestion(){
   curView='mission';const q=M.qs[M.i];
@@ -858,7 +993,9 @@ function renderQuestion(){
     ${ans}<div class="fb" id="fb" aria-live="polite"></div>`;
   window.scrollTo(0,0);
   $('#quit').onclick=()=>{try{speechSynthesis.cancel();}catch(e){}renderHome();};
-  if(canSpeak)$('#listen').onclick=()=>speak(speechText(q));
+  if(canSpeak)$('#listen').onclick=()=>{speak(speechText(q));if(q.en)speakEn(q.en,true);};
+  view().querySelectorAll('.hear').forEach(b=>b.onclick=()=>speakEn(b.dataset.en));
+  if(q.auto&&q.en)speakEn(q.en);
   if(q.type==='choice')view().querySelectorAll('.choice').forEach(b=>b.onclick=()=>answer(b.dataset.v,b));
   else view().querySelectorAll('#pad .btn').forEach(b=>b.onclick=()=>key(b.dataset.k));
 }
@@ -879,7 +1016,7 @@ function answer(v,btn){
   if(ok){
     M.locked=true;M.points+=M.attempt===1?2:1;M.results[M.i]=M.attempt===1?'ok':'half';
     if(btn)btn.classList.add('right');else $('#entry').style.background='var(--ok-soft)';
-    feedback(`<b>${pick(PRAISE)}</b>`,'ok',false);setTimeout(next,1000);
+    feedback(`<b>${pick(PRAISE)}</b>`,'ok',false);if(q.enAfter)speakEn(q.enAfter);setTimeout(next,q.enAfter?1000+Math.min(2600,q.enAfter.length*70):1000);
   }else if(M.attempt===1){
     M.attempt=2;if(btn){btn.classList.add('wrong');btn.disabled=true;}
     else{M.entry='';key('');}
@@ -889,7 +1026,7 @@ function answer(v,btn){
     M.locked=true;M.results[M.i]='ko';
     if(btn){btn.classList.add('wrong');view().querySelectorAll('.choice').forEach(b=>{if(b.dataset.v===q.answer)b.classList.add('reveal');b.disabled=true;});}
     const shown=q.type==='num'?nf(q.answer):q.answer;
-    feedback(`La bonne réponse : <b>${shown}</b>${q.explain?`<br>${q.explain}`:''}`,'ko',true);
+    feedback(`La bonne réponse : <b>${shown}</b>${q.explain?`<br>${q.explain}`:''}`,'ko',true);if(q.enAfter)speakEn(q.enAfter);
   }
 }
 function next(){M.i++;M.attempt=1;M.locked=false;M.entry='';if(M.i>=M.qs.length)finish();else renderQuestion();}
@@ -1003,7 +1140,7 @@ function renderParent(){
   const crayons=S.crayonN||Object.values(S.crayon).filter(Boolean).length;
   const opts=sel=>ICONS.map(i=>`<option ${i===sel?'selected':''}>${i}</option>`).join('');
   view().innerHTML=`<div class="parent sticker"><h2>Espace parent</h2>
-    <div class="stats"><div class="stat"><b>${S.missions}</b>missions jouées</div><div class="stat"><b>${count('maths')}/${max('maths')}</b>étoiles en maths</div><div class="stat"><b>${count('fr')}/${max('fr')}</b>étoiles en français</div><div class="stat"><b>${crayons}</b>défis crayon validés</div></div>
+    <div class="stats"><div class="stat"><b>${S.missions}</b>missions jouées</div><div class="stat"><b>${count('maths')}/${max('maths')}</b>étoiles en maths</div><div class="stat"><b>${count('fr')}/${max('fr')}</b>étoiles en français</div><div class="stat"><b>${count('en')}/${max('en')}</b>étoiles en anglais</div><div class="stat"><b>${crayons}</b>défis crayon validés</div></div>
     <h3>Récompenses</h3>
     <p class="hint2">Choisis ce qu’il peut gagner et combien d’étoiles ça coûte. Une mission rapporte 0 à 3 étoiles, un défi crayon 1 étoile. Les changements sont enregistrés tout de suite.</p>
     ${S.rewards.length?`<div class="rhead"><span>Image</span><span>Récompense</span><span>Étoiles</span><span></span></div>`:''}
@@ -1034,7 +1171,8 @@ function renderParent(){
     <div class="hint2" id="saveMsg" aria-live="polite"></div>
     <h3>Comment s’en servir</h3>
     <ul><li>Une mission dure 3 à 5 minutes. Deux ou trois missions par jour valent mieux qu’une longue séance.</li>
-    <li>Laisse-le choisir entre maths et français : choisir lui donne envie de commencer.</li>
+    <li>Laisse-le choisir entre maths, français et anglais : choisir lui donne envie de commencer.</li>
+    <li>En anglais, les mots sont prononcés par la voix de l’appareil : monte le son. Le bouton « Écouter » répète le mot autant de fois qu’il veut, et la bonne réponse est redite à chaque fois. Fais-lui répéter à voix haute.</li>
     <li>Le défi crayon est le moment d’écriture : court, concret, sur une feuille. Vérifie avec lui avant d’appuyer sur le bouton.</li>
     <li>Une pause bouge apparaît toutes les deux missions. Le bouton « J’ai fini ! » ne s’active qu’à la fin des 20 secondes : elle aide à se reconcentrer.</li>
     <li>Le bouton haut-parleur lit la question à voix haute s’il bloque sur la lecture.</li>
