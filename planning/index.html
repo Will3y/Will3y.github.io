@@ -108,7 +108,7 @@ button:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-vis
 .days{display:flex;gap:6px;flex-wrap:wrap}
 .day{width:42px;height:42px;border:3px solid var(--ink);border-radius:50%;background:var(--paper);font-family:var(--display);font-weight:700;font-size:16px;padding:0}
 .day[aria-pressed="true"]{background:var(--c);color:var(--on-c)}
-.edit{display:grid;grid-template-columns:70px 1fr auto auto auto;gap:6px;align-items:center}
+.edit{display:grid;grid-template-columns:70px 1fr auto auto auto 210px;gap:6px;align-items:center}
 input,select,textarea{font:inherit;font-size:18px;border:3px solid var(--ink);border-radius:12px;padding:8px;background:var(--paper);color:var(--ink);min-width:0;width:100%}
 .edit .btn{width:42px;height:42px;padding:0}
 .pinrow input{width:120px;letter-spacing:.3em}
@@ -132,6 +132,7 @@ td.fullc{color:var(--ok);font-weight:700}
   .kids{grid-template-columns:1fr}
   body[data-show="w"] .kid[data-kid="h"],body[data-show="h"] .kid[data-kid="w"]{display:none}
   .edit{grid-template-columns:64px 1fr auto auto auto}
+  .edit .ef{grid-column:1/-1}
 }
 @media (max-width:430px){.tbtn{gap:8px;padding:10px}.ti{font-size:32px;width:36px}.chk{width:38px;height:38px}.chk svg{width:22px;height:22px}.say{width:44px}}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
@@ -148,6 +149,8 @@ const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const pad2=n=>String(n).padStart(2,'0');
 const dayKey=(d=new Date())=>`${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`;
 const dayIdx=(d=new Date())=>(d.getDay()+6)%7;                 // 0 = lundi … 6 = dimanche
+// Un jour sur deux : les jours « a » et « b » alternent, d'après le numéro du jour dans le calendrier (pas de saut au changement de mois).
+const dayAlt=(d=new Date())=>Math.floor(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())/864e5)%2===0?'a':'b';
 const nowMin=()=>{const d=new Date();return d.getHours()*60+d.getMinutes();};
 const hhmm=m=>`${Math.floor(m/60)} h ${pad2(m%60)}`;
 const uid=()=>'t'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
@@ -163,17 +166,17 @@ const ROUTINES=[{id:'matin',name:'Matin',icon:'☀️',done:'du matin'},{id:'eco
 const KIDS=['w','h'];
 const DAY_LETTERS=['L','M','M','J','V','S','D'],DAY_NAMES=['lundi','mardi','mercredi','jeudi','vendredi','samedi','dimanche'];
 const ICONS=['🛏️','🥣','🥐','🥛','🍽️','🍎','🧃','👕','👗','👖','🧦','👟','🧥','🪥','🧼','🚿','🛁','🚽','💇','👓','💊','🎒','📚','✏️','📖','📝','🧹','🧺','🧸','🗑️','🌱','🐶','🐱','🎹','⚽','🎨','📺','🎮','🤗','😴','🌙','⭐'];
-const T=(icon,name)=>({id:uid(),icon,name});
+const T=(icon,name,alt)=>alt?{id:uid(),icon,name,alt}:{id:uid(),icon,name};
 const ALL=[true,true,true,true,true,true,true],SCHOOL=[true,true,false,true,true,false,false];
 function defaults(){return {v:1,cut:[720,1110],pin:'',awake:false,lastExport:'',log:{},kids:{
   w:{name:'Willyam',avatar:'🧒',routines:{
     matin:{days:ALL.slice(),tasks:[T('🛏️','Je fais mon lit'),T('🥣','Je prends mon petit-déjeuner'),T('👕','Je m’habille'),T('🪥','Je me brosse les dents'),T('🎒','Je prépare mon cartable'),T('👟','Je mets mes chaussures')]},
     ecole:{days:SCHOOL.slice(),tasks:[T('🧼','Je me lave les mains'),T('🍎','Je prends mon goûter'),T('🎒','Je vide mon cartable'),T('📚','Je fais mes devoirs'),T('🧸','Je range mes affaires')]},
-    soir:{days:ALL.slice(),tasks:[T('🚿','Je prends ma douche'),T('👕','Je mets mon pyjama'),T('🍽️','Je mets la table'),T('🪥','Je me brosse les dents'),T('🎒','Je prépare mes affaires pour demain'),T('📖','Je lis une histoire'),T('🌙','Au lit !')]}}},
+    soir:{days:ALL.slice(),tasks:[T('🚿','Je prends ma douche'),T('👕','Je mets mon pyjama'),T('🍽️','Je mets la table','a'),T('🧹','Je débarrasse la table','b'),T('🪥','Je me brosse les dents'),T('🎒','Je prépare mes affaires pour demain'),T('📖','Je lis une histoire'),T('🌙','Au lit !')]}}},
   h:{name:'Hailey',avatar:'👧',routines:{
     matin:{days:ALL.slice(),tasks:[T('🥣','Je prends mon petit-déjeuner'),T('👗','Je m’habille'),T('🪥','Je me brosse les dents'),T('🚽','Je vais aux toilettes'),T('👟','Je mets mes chaussures')]},
     ecole:{days:SCHOOL.slice(),tasks:[T('🧼','Je me lave les mains'),T('🍎','Je prends mon goûter'),T('🧸','Je range mes jouets')]},
-    soir:{days:ALL.slice(),tasks:[T('🛁','Je prends mon bain'),T('👗','Je mets mon pyjama'),T('🍽️','Je mange'),T('🪥','Je me brosse les dents'),T('🚽','Je vais aux toilettes'),T('📖','On lit une histoire'),T('🌙','Au lit !')]}}}}};}
+    soir:{days:ALL.slice(),tasks:[T('🛁','Je prends mon bain'),T('👗','Je mets mon pyjama'),T('🍽️','Je mange'),T('🧹','Je débarrasse la table','a'),T('🍽️','Je mets la table','b'),T('🪥','Je me brosse les dents'),T('🚽','Je vais aux toilettes'),T('📖','On lit une histoire'),T('🌙','Au lit !')]}}}}};}
 
 const STORE='planning-famille-v1';
 // Remet un état lu (mémoire de l'appareil ou sauvegarde importée) dans une forme sûre : tout ce qui manque reprend la valeur par défaut.
@@ -192,7 +195,7 @@ function clean(d){
       if(!rs||typeof rs!=='object'||!Array.isArray(rs.tasks)){kd.routines[r.id]=def.kids[k].routines[r.id];continue;}
       const seen=new Set();
       kd.routines[r.id]={days:Array.from({length:7},(_,i)=>Array.isArray(rs.days)?rs.days[i]===true:true),
-        tasks:rs.tasks.filter(t=>t&&typeof t==='object').slice(0,20).map(t=>{let id=str(t.id,24,uid());if(seen.has(id))id=uid();seen.add(id);return {id,icon:str(t.icon,8,'⭐'),name:str(t.name,48,'Nouvelle tâche')};})};
+        tasks:rs.tasks.filter(t=>t&&typeof t==='object').slice(0,20).map(t=>{let id=str(t.id,24,uid());if(seen.has(id))id=uid();seen.add(id);const x={id,icon:str(t.icon,8,'⭐'),name:str(t.name,48,'Nouvelle tâche')};if(t.alt==='a'||t.alt==='b')x.alt=t.alt;return x;})};
     }
     o.kids[k]=kd;
   }
@@ -220,8 +223,10 @@ function today(){
   return S.log[k];
 }
 const routine=(kid,r)=>S.kids[kid].routines[r];
-const active=kid=>ROUTINES.filter(r=>routine(kid,r.id).days[dayIdx()]&&routine(kid,r.id).tasks.length);
-function tally(kid,r){const done=today()[kid].done,ts=routine(kid,r).tasks;return [ts.filter(t=>done[t.id]).length,ts.length];}
+// Les tâches du jour : toutes, sauf celles « un jour sur deux » dont ce n'est pas le tour.
+const due=(kid,r)=>routine(kid,r).tasks.filter(t=>!t.alt||t.alt===dayAlt());
+const active=kid=>ROUTINES.filter(r=>routine(kid,r.id).days[dayIdx()]&&due(kid,r.id).length);
+function tally(kid,r){const done=today()[kid].done,ts=due(kid,r);return [ts.filter(t=>done[t.id]).length,ts.length];}
 // Résumé du jour, enregistré à chaque coche : c'est lui qui alimente l'historique, même si la liste des tâches change ensuite.
 function snapshot(kid){const s={};active(kid).forEach(r=>s[r.id]=tally(kid,r.id));today()[kid].sum=s;}
 const slotNow=()=>{const m=nowMin();return m<S.cut[0]?'matin':m<S.cut[1]?'ecole':'soir';};
@@ -246,7 +251,7 @@ function kidHtml(kid){
   <div class="chips" role="tablist" aria-label="Routines de ${esc(K.name)}">${act.map(r=>{const [a,b]=tally(kid,r.id);return `<button class="chip ${a===b?'full':''}" role="tab" aria-selected="${r.id===rid}" data-r="${r.id}"><span class="ci" aria-hidden="true">${r.icon}</span>${r.name}<small>${a===b?'✓ fini':`${a} / ${b}`}</small></button>`;}).join('')}</div>
   <div class="bar ${full?'full':''}" aria-hidden="true"><i style="width:${t?Math.round(100*d/t):0}%"></i></div>
   ${full?`<p class="note win"><span class="big">${allDone?'🏆':'🎉'}</span>${allDone?`Bravo ${esc(K.name)} ! Tout est fait pour aujourd’hui.`:`Bravo ${esc(K.name)} ! Routine ${R.done} terminée.`}</p>`:''}
-  <ul class="tasks">${routine(kid,rid).tasks.map(x=>{const on=!!today()[kid].done[x.id];return `<li class="task ${on?'done':''}" data-t="${esc(x.id)}"><button class="tbtn" aria-pressed="${on}"><span class="ti" aria-hidden="true">${esc(x.icon)}</span><span class="tn">${esc(x.name)}</span><span class="chk">${checkSvg}</span></button>${canSpeak?`<button class="say" aria-label="Écouter : ${esc(x.name)}">${speakSvg}</button>`:''}</li>`;}).join('')}</ul></section>`;
+  <ul class="tasks">${due(kid,rid).map(x=>{const on=!!today()[kid].done[x.id];return `<li class="task ${on?'done':''}" data-t="${esc(x.id)}"><button class="tbtn" aria-pressed="${on}"><span class="ti" aria-hidden="true">${esc(x.icon)}</span><span class="tn">${esc(x.name)}</span><span class="chk">${checkSvg}</span></button>${canSpeak?`<button class="say" aria-label="Écouter : ${esc(x.name)}">${speakSvg}</button>`:''}</li>`;}).join('')}</ul></section>`;
   return h;
 }
 function stamp(){return dayKey()+slotNow();}
@@ -309,6 +314,8 @@ let resetArmed='';
 function renderParent(){
   view='parent';resetArmed='';const kid=parentKid,K=S.kids[kid];
   const opts=sel=>[...new Set([sel,...ICONS])].map(i=>`<option ${i===sel?'selected':''}>${esc(i)}</option>`).join('');
+  const tA=dayAlt(),tB=tA==='a'?'b':'a';   // « aujourd'hui » et « demain », traduits en jours a / b
+  const freq=alt=>`<option value="" ${!alt?'selected':''}>Tous les jours</option><option value="${tA}" ${alt===tA?'selected':''}>1 jour sur 2 : aujourd’hui</option><option value="${tB}" ${alt===tB?'selected':''}>1 jour sur 2 : demain</option>`;
   const times=(a,b,sel)=>{let o='';for(let m=a;m<=b;m+=30)o+=`<option value="${m}" ${m===sel?'selected':''}>${hhmm(m)}</option>`;return o;};
   const hist=()=>{const rows=[];for(let i=0;i<7;i++){const d=new Date();d.setDate(d.getDate()-i);const e=S.log[dayKey(d)],s=e&&e[kid]?e[kid].sum:{};
     rows.push(`<tr><td>${i===0?'Aujourd’hui':i===1?'Hier':d.toLocaleDateString('fr-FR',{weekday:'short',day:'numeric',month:'short'})}</td>${ROUTINES.map(r=>{const v=s[r.id];return v&&v[1]?`<td class="${v[0]===v[1]?'fullc':''}">${v[0]===v[1]?'✓ ':''}${v[0]} / ${v[1]}</td>`:'<td>–</td>';}).join('')}</tr>`);}
@@ -317,10 +324,11 @@ function renderParent(){
     <div class="tabs2">${KIDS.map(k=>`<button class="btn" data-kid="${k}" data-pk="${k}" aria-pressed="${k===kid}">${esc(S.kids[k].avatar)} ${esc(S.kids[k].name)}</button>`).join('')}</div>
     <h3>Le planning de ${esc(K.name)}</h3>
     <p class="hint">Chaque enfant a son propre planning. Pour chaque routine, choisis les jours où elle s’affiche et la liste des tâches. Les changements sont enregistrés tout de suite.</p>
+    <p class="hint">Pour une tâche à tour de rôle (un jour l’un, un jour l’autre) : mets la même tâche chez les deux enfants, en « 1 jour sur 2 : aujourd’hui » chez l’un et « 1 jour sur 2 : demain » chez l’autre.</p>
     <div class="row"><label for="kname" class="hint">Prénom</label><input id="kname" value="${esc(K.name)}" maxlength="20" style="width:200px"></div>
     ${ROUTINES.map(r=>{const ro=routine(kid,r.id);return `<div class="rbox" data-r="${r.id}"><h4>${r.icon} ${r.name}</h4>
       <div class="days" role="group" aria-label="Jours de la routine ${r.name}">${DAY_LETTERS.map((l,i)=>`<button class="day" data-d="${i}" aria-pressed="${ro.days[i]}" aria-label="${DAY_NAMES[i]}">${l}</button>`).join('')}</div>
-      ${ro.tasks.map((x,i)=>`<div class="edit" data-i="${i}"><select class="ei" aria-label="Image de la tâche">${opts(x.icon)}</select><input class="en" value="${esc(x.name)}" maxlength="48" aria-label="Nom de la tâche"><button class="btn small up" aria-label="Monter ${esc(x.name)}" ${i===0?'disabled':''}>↑</button><button class="btn small down" aria-label="Descendre ${esc(x.name)}" ${i===ro.tasks.length-1?'disabled':''}>↓</button><button class="btn small del" aria-label="Supprimer ${esc(x.name)}">✕</button></div>`).join('')}
+      ${ro.tasks.map((x,i)=>`<div class="edit" data-i="${i}"><select class="ei" aria-label="Image de la tâche">${opts(x.icon)}</select><input class="en" value="${esc(x.name)}" maxlength="48" aria-label="Nom de la tâche"><button class="btn small up" aria-label="Monter ${esc(x.name)}" ${i===0?'disabled':''}>↑</button><button class="btn small down" aria-label="Descendre ${esc(x.name)}" ${i===ro.tasks.length-1?'disabled':''}>↓</button><button class="btn small del" aria-label="Supprimer ${esc(x.name)}">✕</button><select class="ef" aria-label="Fréquence de ${esc(x.name)}">${freq(x.alt)}</select></div>`).join('')}
       <div class="row"><button class="btn small add" ${ro.tasks.length>=20?'disabled':''}>+ Ajouter une tâche</button></div></div>`;}).join('')}
     <div class="row"><button class="btn small" id="uncheck">Tout décocher aujourd’hui pour ${esc(K.name)}</button><button class="btn small" id="defTasks">Remettre les tâches de départ de ${esc(K.name)}</button></div>
     <h3>Les 7 derniers jours de ${esc(K.name)}</h3>
@@ -359,6 +367,7 @@ function renderParent(){
       const i=+row.dataset.i,x=ro.tasks[i];
       row.querySelector('.ei').onchange=e=>{x.icon=e.target.value;touch();};
       row.querySelector('.en').onchange=e=>{x.name=e.target.value.trim().slice(0,48)||'Nouvelle tâche';e.target.value=x.name;touch();};
+      row.querySelector('.ef').onchange=e=>{if(e.target.value)x.alt=e.target.value;else delete x.alt;touch();};
       row.querySelector('.up').onclick=()=>{if(i>0){[ro.tasks[i-1],ro.tasks[i]]=[ro.tasks[i],ro.tasks[i-1]];touch();again(true);}};
       row.querySelector('.down').onclick=()=>{if(i<ro.tasks.length-1){[ro.tasks[i+1],ro.tasks[i]]=[ro.tasks[i],ro.tasks[i+1]];touch();again(true);}};
       row.querySelector('.del').onclick=()=>{ro.tasks.splice(i,1);touch();again(true);};
