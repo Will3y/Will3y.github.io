@@ -242,6 +242,45 @@ mark{background:var(--accent-soft);color:inherit;border-bottom:4px solid var(--a
 .dots{flex-wrap:wrap;justify-content:center}
 .dots.many{gap:5px}
 .dots.many .dot{width:13px;height:13px;border-width:2px}
+/* Programme 2025 : fractions, droite graduée, règle, solides, quadrillage, graphiques */
+.frac{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;line-height:1.08;font-size:.8em;margin:0 .1em}
+.frac span:first-child{border-bottom:.09em solid currentColor;padding:0 .2em}
+.frac span:last-child{padding:0 .2em}
+.frac .slot{min-width:1em;border-bottom-width:3px}
+.ffig{display:block}
+.ffig .on{fill:var(--maths)}.ffig .off{fill:#fff}
+.ffig path,.ffig rect,.ffig polygon,.ffig circle,.ffig ellipse{stroke:var(--ink);stroke-width:2.5;stroke-linejoin:round}
+.fpie{width:150px}.fbar{width:min(300px,80vw)}
+.cmpf{display:grid;gap:8px;justify-items:center}
+.answers.fracs .choice{min-height:84px;font-size:34px}
+.answers.figs .choice{min-height:96px;padding:10px;justify-content:center}
+.answers.figs .fpie{width:76px}.answers.figs .fbar{width:min(250px,100%)}
+.answers.emo .choice{font-size:40px}
+.answers.arr .choice{font-size:28px;letter-spacing:.12em;font-family:var(--display)}
+.fb .ffig{display:inline-block;width:64px;vertical-align:middle}
+.nl{width:min(360px,100%)}.nl line{stroke:var(--ink)}
+.nl text{font-family:var(--display);font-weight:600;font-size:20px;fill:var(--ink)}
+.nl .qb{fill:var(--accent-soft);stroke:var(--accent);stroke-width:2.5}
+.ruler{width:min(380px,100%)}.ruler .body{fill:var(--star-soft);stroke:var(--ink);stroke-width:2.5}
+.ruler line{stroke:var(--ink)}.ruler text{font-family:var(--display);font-weight:600;font-size:15px;fill:var(--ink)}
+.ruler .seg{stroke:var(--maths);stroke-width:7}.ruler .cap{stroke:var(--maths);stroke-width:3}
+.coin.cg{width:52px;height:52px;font-size:16px;background:#e9c46a}
+.coin.cc{width:44px;height:44px;font-size:14px;background:#d6905f}
+.solid{width:150px}.solid .f1{fill:var(--star-soft)}.solid .f2{fill:var(--star)}.solid .f3{fill:#eaa800}
+.ffig .hid{fill:none;stroke-width:1.8;stroke-dasharray:5 4}.ffig .hid2{fill:none;stroke-width:1.8}
+.geo{width:160px}.geo rect,.geo polygon{fill:var(--accent-soft)}.ffig .ra{fill:none;stroke-width:2}
+.symf{width:min(230px,70vw)}.ffig .axis{stroke:var(--bad);stroke-width:3;stroke-dasharray:7 5}
+.symf rect,.half rect{stroke-width:1.5}.half{width:70px}
+.gridfig{width:100%;display:block}.gridfig rect{fill:#fff;stroke:var(--ink);stroke-width:2}.gridfig .hot{fill:var(--star-soft)}
+.gridfig text{font-family:var(--display);font-weight:700;font-size:22px;fill:var(--ink)}
+.arrows{font-family:var(--display);font-weight:600;font-size:34px;letter-spacing:.15em;text-align:center}
+.chart{width:min(330px,100%)}.chart .gl{stroke:#c9d1d8;stroke-width:1}.chart .ax{stroke:var(--ink);stroke-width:2.5}
+.chart rect{stroke:var(--ink);stroke-width:2.5}.chart .b0{fill:var(--maths)}.chart .b1{fill:var(--fr)}.chart .b2{fill:var(--star)}.chart .b3{fill:var(--ok)}
+.chart .yl{font-family:var(--display);font-weight:600;font-size:12.5px;fill:var(--ink)}.chart .xl{font-size:22px}
+.tbl{border-collapse:collapse;font-size:20px}.tbl th,.tbl td{border:3px solid var(--ink);padding:6px 14px;text-align:center}
+.tbl th{background:var(--accent-soft);font-family:var(--display);font-weight:600}.tbl td{font-family:var(--display);font-weight:600;font-size:24px}
+.xrow{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;font-size:38px;line-height:1.2}
+.xhint{font-size:16px;color:var(--muted);text-align:center;max-width:34ch}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
@@ -708,6 +747,308 @@ const GE={
     return {p:'Lis le texte en anglais, puis réponds',q:`<div class="text">${T.t}</div>${EN_HEAR(T.t)}<div class="qq">${qq}</div>`,say:qq,en:T.t,type:'choice',cls:'list',choices:[a,...w],answer:a,explain:'Relis le texte et cherche les mots que tu connais.'};}
 };
 
+/* ---------- Programme officiel de cycle 2 (BO du 31 octobre 2024) : missions ajoutées ---------- */
+// Fractions, droite graduée, quarts d'heure, règle, solides, centimes, quadrillage, tableaux et graphiques,
+// division, géométrie du CE2 ; en français : noms propres, types de phrases, pronoms, lettre muette,
+// mot-étiquette, être et avoir aux autres temps, verbes irréguliers, adverbe, expressions, textes pour s'informer.
+const cap=s=>s.charAt(0).toUpperCase()+s.slice(1);
+const frac=(a,b)=>`<span class="frac"><span>${a}</span><span>${b}</span></span>`;
+const FRN={2:'demi',3:'tiers',4:'quart',5:'cinquième',6:'sixième',8:'huitième',10:'dixième',12:'douzième'};
+const frPl=b=>FRN[b]+(b===3?'':'s');
+const fracSay=(a,b)=>`${frNum(a)} ${a>1?frPl(b):FRN[b]}`;
+const FD=[2,3,4,5,6,8,10];
+const firstK=k=>new Set(Array.from({length:k},(_,i)=>i));
+const randK=(n,k)=>new Set(shuffle(Array.from({length:n},(_,i)=>i)).slice(0,k));
+function fpie(n,on){const f=x=>x.toFixed(1);let s='';for(let i=0;i<n;i++){const a0=i/n*2*Math.PI-Math.PI/2,a1=(i+1)/n*2*Math.PI-Math.PI/2;
+  s+=`<path d="M50 50L${f(50+45*Math.cos(a0))} ${f(50+45*Math.sin(a0))}A45 45 0 0 1 ${f(50+45*Math.cos(a1))} ${f(50+45*Math.sin(a1))}Z" class="${on.has(i)?'on':'off'}"/>`;}
+  return `<svg viewBox="0 0 100 100" class="ffig fpie" role="img" aria-label="${on.size} sur ${n}">${s}</svg>`;}
+function fbar(n,on){const w=200/n;let s='';for(let i=0;i<n;i++)s+=`<rect x="${(2+i*w).toFixed(1)}" y="2" width="${w.toFixed(1)}" height="36" class="${on.has(i)?'on':'off'}"/>`;
+  return `<svg viewBox="0 0 204 40" class="ffig fbar" role="img" aria-label="${on.size} sur ${n}">${s}</svg>`;}
+const ffig=(n,on,kind)=>kind==='pie'?fpie(n,on):fbar(n,on);
+// Droite graduée : vals = étiquettes des graduations, q = graduation cachée, shown = graduations écrites.
+function numline(vals,q,shown){const n=vals.length,X=i=>(24+i*(312/(n-1))).toFixed(1);let s='<line x1="8" y1="26" x2="352" y2="26" stroke-width="3"/>';
+  vals.forEach((v,i)=>{s+=`<line x1="${X(i)}" y1="16" x2="${X(i)}" y2="36" stroke-width="2.5"/>`;
+    if(i===q)s+=`<rect x="${(+X(i)-15).toFixed(1)}" y="42" width="30" height="28" rx="6" class="qb"/><text x="${X(i)}" y="63" text-anchor="middle">?</text>`;
+    else if(shown.includes(i))s+=`<text x="${X(i)}" y="63" text-anchor="middle">${v}</text>`;});
+  return `<svg viewBox="0 0 360 76" class="nl" role="img" aria-label="Droite graduée">${s}</svg>`;}
+// Règle graduée de 0 à 12 cm, avec un trait de a à b.
+function ruler(a,b){const X=c=>16+c*26;let t='';for(let c=0;c<=12;c++){t+=`<line x1="${X(c)}" y1="44" x2="${X(c)}" y2="60" stroke-width="2"/><text x="${X(c)}" y="78" text-anchor="middle">${c}</text>`;if(c<12)t+=`<line x1="${X(c)+13}" y1="44" x2="${X(c)+13}" y2="53" stroke-width="1.2"/>`;}
+  return `<svg viewBox="0 0 344 90" class="ruler" role="img" aria-label="Règle graduée"><rect x="4" y="44" width="336" height="42" rx="6" class="body"/>${t}<line x1="${X(a)}" y1="24" x2="${X(b)}" y2="24" class="seg"/><line x1="${X(a)}" y1="14" x2="${X(a)}" y2="34" class="cap"/><line x1="${X(b)}" y1="14" x2="${X(b)}" y2="34" class="cap"/></svg>`;}
+// Pièces et billets, valeurs en centimes.
+function coins(list){return `<div class="money">${list.map(v=>v>=500?`<span class="bill b${v/100}">${v/100} €</span>`:v>=100?`<span class="coin c${v/100}">${v/100} €</span>`:`<span class="coin ${v>=10?'cg':'cc'}">${v} c</span>`).join('')}</div>`;}
+function solid(k){const P=(pts,c)=>`<polygon points="${pts}" class="${c}"/>`;let s;
+  if(k==='cube')s=P('20,38 76,38 76,94 20,94','f1')+P('20,38 44,16 100,16 76,38','f2')+P('76,38 100,16 100,72 76,94','f3');
+  else if(k==='pavé')s=P('8,48 84,48 84,92 8,92','f1')+P('8,48 30,28 106,28 84,48','f2')+P('84,48 106,28 106,72 84,92','f3');
+  else if(k==='pyramide')s=P('14,88 78,88 60,10','f1')+P('78,88 106,66 60,10','f3')+'<path d="M14 88L42 66L106 66M42 66L60 10" class="hid"/>';
+  else if(k==='cylindre')s='<path d="M22 26V82A38 12 0 0 0 98 82V26" class="f1"/><ellipse cx="60" cy="26" rx="38" ry="12" class="f2"/>';
+  else if(k==='cône')s='<path d="M20 86L60 8L100 86A40 12 0 0 1 20 86Z" class="f1"/><path d="M20 86A40 12 0 0 1 100 86" class="hid"/>';
+  else s='<circle cx="60" cy="52" r="42" class="f1"/><path d="M18 52A42 13 0 0 0 102 52" class="hid2"/><path d="M18 52A42 13 0 0 1 102 52" class="hid"/>';
+  return `<svg viewBox="0 0 120 104" class="ffig solid" role="img" aria-label="Solide">${s}</svg>`;}
+// Figures avec le codage de l'angle droit (petit carré dans le coin).
+function geoFig(k){const ra=(x,y,dx,dy)=>`<path d="M${x+dx} ${y}L${x+dx} ${y+dy}L${x} ${y+dy}" class="ra"/>`;
+  const G={carré:'<rect x="25" y="15" width="70" height="70"/>'+ra(25,15,10,10)+ra(95,15,-10,10)+ra(95,85,-10,-10)+ra(25,85,10,-10),
+    rectangle:'<rect x="8" y="26" width="104" height="48"/>'+ra(8,26,10,10)+ra(112,26,-10,10)+ra(112,74,-10,-10)+ra(8,74,10,-10),
+    losange:'<polygon points="60,6 100,50 60,94 20,50"/>','triangle rectangle':'<polygon points="20,86 104,86 20,20"/>'+ra(20,86,10,-10)};
+  return `<svg viewBox="0 0 120 100" class="ffig geo" role="img" aria-label="Figure">${G[k]}</svg>`;}
+function gridFig(cols,rows,cells){const c=40;let s='';for(let y=0;y<rows;y++)for(let x=0;x<cols;x++){const v=cells[x+','+y];
+    s+=`<rect x="${2+x*c}" y="${2+y*c}" width="${c}" height="${c}" class="${v?'hot':'cell'}"/>`;if(v)s+=`<text x="${2+x*c+c/2}" y="${2+y*c+c/2+8}" text-anchor="middle">${v}</text>`;}
+  return `<svg viewBox="0 0 ${cols*c+4} ${rows*c+4}" class="gridfig" style="max-width:${cols*c+4}px" role="img" aria-label="Quadrillage">${s}</svg>`;}
+const DIRS={'→':[1,0],'←':[-1,0],'↑':[0,-1],'↓':[0,1]},DOPP={'→':'←','←':'→','↑':'↓','↓':'↑'},DNAME={'→':'à droite','←':'à gauche','↑':'en haut','↓':'en bas'};
+function walk(start,path,cols,rows){let [x,y]=start;for(const d of path){x+=DIRS[d][0];y+=DIRS[d][1];if(x<0||y<0||x>=cols||y>=rows)return null;}return [x,y];}
+function randPath(cols,rows){for(;;){const start=[R(0,cols-1),R(0,rows-1)],path=[];let pos=start.slice(),g=0;const len=R(3,5);
+    while(path.length<len&&g++<60){const d=pick(Object.keys(DIRS));if(path.length&&DOPP[path[path.length-1]]===d)continue;const n=walk(pos,[d],cols,rows);if(!n)continue;pos=n;path.push(d);}
+    if(path.length===len&&(pos[0]!==start[0]||pos[1]!==start[1]))return {start,path,end:pos};}}
+function barChart(items,vals){const u=15,x0=34,y0=20+10*u;let s=`<line x1="${x0}" y1="14" x2="${x0}" y2="${y0}" class="ax"/>`;
+  for(let v=0;v<=10;v++){const y=y0-v*u;s+=`<line x1="${x0}" y1="${y}" x2="292" y2="${y}" class="${v?'gl':'ax'}"/><text x="${x0-7}" y="${y+4}" text-anchor="end" class="yl">${v}</text>`;}
+  items.forEach((e,i)=>{const x=x0+18+i*62;s+=`<rect x="${x}" y="${y0-vals[i]*u}" width="40" height="${vals[i]*u}" class="b${i}"/><text x="${x+20}" y="${y0+26}" text-anchor="middle" class="xl">${e}</text>`;});
+  return `<svg viewBox="0 0 300 ${y0+36}" class="chart" role="img" aria-label="Diagramme en barres">${s}</svg>`;}
+const tableFig=(head,rows)=>`<table class="tbl"><tr><th></th>${head.map(h=>`<th>${h}</th>`).join('')}</tr>${rows.map(r=>`<tr><th>${r[0]}</th>${r.slice(1).map(c=>`<td>${c}</td>`).join('')}</tr>`).join('')}</table>`;
+// Symétrie : une moitié de figure sur un quadrillage 3 × 4, et son reflet.
+function symPat(){let L;do{L=Array.from({length:4},()=>Array.from({length:3},()=>Math.random()<.5));}while(L.flat().filter(Boolean).length<4||L.every(r=>r[0]===r[2]));return L;}
+const mirror=L=>L.map(r=>[r[2],r[1],r[0]]);
+function symFig(L,Rt){const c=24;let s='';for(let y=0;y<4;y++)for(let x=0;x<6;x++){const on=x<3?L[y][x]:!!(Rt&&Rt[y][x-3]);s+=`<rect x="${2+x*c}" y="${2+y*c}" width="${c}" height="${c}" class="${on?'on':'off'}"/>`;}
+  return `<svg viewBox="0 0 ${6*c+4} ${4*c+4}" class="ffig symf" role="img" aria-label="Figure sur un quadrillage">${s}<line x1="${2+3*c}" y1="0" x2="${2+3*c}" y2="${4*c+4}" class="axis"/></svg>`;}
+function halfFig(H){const c=22;let s='';for(let y=0;y<4;y++)for(let x=0;x<3;x++)s+=`<rect x="${2+x*c}" y="${2+y*c}" width="${c}" height="${c}" class="${H[y][x]?'on':'off'}"/>`;
+  return `<svg viewBox="0 0 ${3*c+4} ${4*c+4}" class="ffig half" role="img" aria-label="Moitié de figure">${s}</svg>`;}
+
+const ORD=['','premier','deuxième','troisième','quatrième','cinquième','sixième'];
+const hw=h=>`${h} heure${h>1?'s':''}`;
+const SOL_TIP={cube:'Un cube a 6 faces carrées, toutes pareilles.',pavé:'Un pavé ressemble à une boîte : il a 6 faces rectangulaires.',pyramide:'Une pyramide a une base et des faces en triangle qui se rejoignent en pointe.',cylindre:'Un cylindre a 2 faces rondes et il peut rouler.',cône:'Un cône a une face ronde et une pointe.',boule:'Une boule est ronde de partout : elle roule dans tous les sens.'};
+const SOL_OBJ=[['🎲','Un dé','cube'],['🧊','Un glaçon','cube'],['⚽','Un ballon','boule'],['🍊','Une orange','boule'],['🥫','Une boîte de conserve','cylindre'],['🧻','Un rouleau de papier','cylindre'],['🕯️','Une bougie','cylindre'],['🍦','Un cornet de glace','cône'],['🥳','Un chapeau de fête pointu','cône'],['📦','Un carton','pavé'],['🧱','Une brique','pavé'],['📚','Un gros livre','pavé']];
+const SOL_N={cube:[6,8,12],pavé:[6,8,12],pyramide:[5,5,8]};
+const solArt=t=>(t==='boule'||t==='pyramide'?'une ':'un ')+t;
+const REF_LEN=[['Une gomme',4,'cm'],['Un crayon',15,'cm'],['Une porte',2,'m'],['Un lit',2,'m'],['Un doigt',6,'cm'],['Une voiture',4,'m'],['Un cahier',30,'cm'],['Un terrain de foot',100,'m'],['Le trajet entre deux villes',50,'km'],['Une course de marathon',42,'km']];
+const MOMENTS=[['L’école commence à 8 h 30.','le matin'],['Le goûter est à 16 h.','l’après-midi'],['La récré est à 10 h.','le matin'],['La sieste est à 14 h.','l’après-midi'],['Le dessin animé commence à 17 h.','l’après-midi'],['Le petit-déjeuner est à 7 h.','le matin'],['Le match commence à 15 h.','l’après-midi'],['Le réveil sonne à 7 h 15.','le matin'],['Le cours de sport est à 11 h.','le matin'],['La piscine ouvre à 13 h 30.','l’après-midi']];
+const CHARTS=[['Les fruits préférés de la classe',[['🍎','les pommes'],['🍌','les bananes'],['🍓','les fraises'],['🍊','les oranges']],'Quel fruit'],['Les animaux préférés de la classe',[['🐶','les chiens'],['🐱','les chats'],['🐰','les lapins'],['🐟','les poissons']],'Quel animal'],['Les sports préférés de la classe',[['⚽','le foot'],['🏀','le basket'],['🏊','la natation'],['🚲','le vélo']],'Quel sport']];
+const EQF=[[1,2,2,4],[1,2,3,6],[1,2,4,8],[1,2,5,10],[1,2,6,12],[1,3,2,6],[1,3,4,12],[1,4,2,8],[1,4,3,12],[1,5,2,10],[1,6,2,12],[2,3,4,6],[2,3,8,12],[3,4,6,8],[3,4,9,12],[2,5,4,10],[3,5,6,10],[4,5,8,10]];
+const ADDF=[[1,2,'+',1,4,3,4],[1,2,'+',1,8,5,8],[1,4,'+',1,8,3,8],[3,4,'−',1,2,1,4],[1,5,'+',1,10,3,10],[2,3,'+',1,6,5,6],[1,2,'+',1,12,7,12],[3,4,'+',1,8,7,8],[1,2,'+',3,8,7,8],[1,3,'+',1,12,5,12],[3,4,'−',1,8,5,8],[1,2,'−',1,8,3,8],[7,8,'−',1,2,3,8],[2,5,'+',3,10,7,10],[5,6,'−',2,3,1,6],[3,5,'+',1,10,7,10]];
+
+Object.assign(GM,{
+  M18(){const N={mm:'millimètres',cm:'centimètres',dm:'décimètres',m:'mètres',km:'kilomètres',g:'grammes',kg:'kilos',t:'tonnes',L:'litres',dL:'décilitres',cL:'centilitres'};
+    if(Math.random()<.55){const r=Math.random();
+      if(r<.45){const [t,a]=pick([['La longueur d’un crayon','cm'],['La hauteur d’une porte','m'],['Le trajet de Paris à Lyon','km'],['La longueur d’une fourmi','mm'],['La longueur d’un terrain de foot','m'],['La largeur d’un cahier','cm'],['La longueur d’une piscine','m'],['Le trajet des vacances en voiture','km']]);
+        return {p:'Choisis la bonne unité',q:`<div class="mid">${t} se mesure en…</div>`,type:'choice',choices:['mm','cm','m','km'],keep:true,answer:a,explain:`On dit en ${N[a]}. Petit → mm ou cm, moyen → m, très long → km.`};}
+      if(r<.75){const [t,a]=pick([['Le poids d’une pomme','g'],['Le poids d’un sac de pommes de terre','kg'],['Le poids d’un bonbon','g'],['Le poids d’un enfant','kg'],['Le poids d’une valise','kg'],['Le poids d’une gomme','g'],['Le poids d’un camion','t'],['Le poids d’un éléphant','t'],['Le poids d’une baleine','t']]);
+        return {p:'Choisis la bonne unité',q:`<div class="mid">${t} se mesure en…</div>`,type:'choice',choices:['g','kg','t'],keep:true,answer:a,explain:`On dit en ${N[a]}. Léger → g, lourd → kg, très lourd → t.`};}
+      const [t,a]=pick([['Une cuillère de sirop','cL'],['Une bouteille d’eau','L'],['Un verre de jus','cL'],['L’eau d’une baignoire','L'],['Un seau d’eau','L'],['Une canette de soda','cL'],['Un arrosoir plein','L'],['Une petite tasse de café','cL']]);
+      return {p:'Choisis la bonne unité',q:`<div class="mid">${t} se mesure en…</div>`,type:'choice',choices:['cL','L'],keep:true,answer:a,explain:`On dit en ${N[a]}. Petite quantité → cL, grande quantité → L.`};}
+    const [n,u1,u2,ans]=pick([[1,'m','cm',100],[2,'m','cm',200],[1,'km','m',1000],[1,'kg','g',1000],[300,'cm','m',3],[5,'m','cm',500],[2,'kg','g',2000],[1,'cm','mm',10],[3,'km','m',3000],[1,'L','cL',100],[1,'L','dL',10],[2,'L','cL',200],[5,'L','dL',50],[1,'dm','cm',10],[1,'m','dm',10],[3,'dm','cm',30],[1,'t','kg',1000],[2,'t','kg',2000]]);
+    const fam=['g','kg','t'].includes(u1)?'1 kg = 1 000 g, 1 t = 1 000 kg.':['L','dL','cL'].includes(u1)?'1 L = 10 dL = 100 cL.':'1 m = 10 dm = 100 cm, 1 cm = 10 mm, 1 km = 1 000 m.';
+    return {p:'Convertis',q:`<div class="big">${n} ${u1} = ${SLOT} ${u2}</div>`,say:`${n} ${N[u1]}, ça fait combien de ${N[u2]} ?`,type:'num',answer:String(ans),explain:`Rappel : ${fam}`};},
+
+  M37(){const k=R(0,5);
+    if(k===0){const n=R(11,98);return {p:'Quel nombre est entre les deux ?',q:`<div class="big">${n-1} &lt; ${SLOT} &lt; ${n+1}</div>`,say:`Quel nombre est entre ${n-1} et ${n+1} ?`,type:'num',answer:String(n),explain:`On compte : ${n-1}, ${n}, ${n+1}.`};}
+    if(k===1){const n=pick([R(2,10)*10,R(12,99)]);return {p:'Quel nombre vient juste avant ?',q:`<div class="big">${SLOT} → ${n}</div>`,say:`Quel nombre vient juste avant ${n} ?`,type:'num',answer:String(n-1),explain:`${n} − 1 = ${n-1}`};}
+    if(k===2){const ten=Math.random()<.35,st=ten?10:1,s=ten?R(0,3)*10:R(1,88),n=ten?8:11,vals=Array.from({length:n},(_,i)=>s+i*st),q=R(2,n-1),other=pick(vals.map((_,i)=>i).filter(i=>i>1&&Math.abs(i-q)>1));
+      return {p:'Quel nombre se cache sous le « ? »',q:numline(vals,q,[0,other]),say:'Regarde la droite graduée. Quel nombre se cache sous le point d’interrogation ?',type:'num',answer:String(vals[q]),explain:`Les nombres avancent de ${st} en ${st} : … ${vals[q-2]}, ${vals[q-1]}, ${vals[q]}.`};}
+    if(k===3){const set=new Set();while(set.size<4)set.add(R(10,99));const up=Math.random()<.6,asc=[...set].sort((x,y)=>x-y),good=up?asc:asc.slice().reverse(),sw=good.slice(),i=R(0,2),J=x=>x.join(' · ');[sw[i],sw[i+1]]=[sw[i+1],sw[i]];
+      const t=up?'Quelle liste va du plus petit au plus grand ?':'Quelle liste va du plus grand au plus petit ?';
+      return {p:t,q:'<div class="tag">Regarde d’abord les dizaines</div>',say:t,type:'choice',cls:'list',choices:[J(good),J(sw),J(good.slice().reverse())],answer:J(good),explain:`Dans l’ordre : ${J(good)}.`};}
+    const an=shuffle(['🐶','🐱','🐭','🐰','🐻','🦊','🐸','🐷']).slice(0,R(5,6)),r=R(2,an.length),row=`<div class="xrow"><span>🏁</span>${an.map(x=>`<span>${x}</span>`).join('')}</div><div class="tag">Le premier est à côté du drapeau</div>`;
+    if(k===4)return {p:`Qui est arrivé le ${ORD[r]} ?`,q:row,say:`C’est une course. Le premier est à côté du drapeau. Qui est arrivé le ${ORD[r]} ?`,type:'choice',cls:'grid2 emo',choices:uniqChoices(an[r-1],an.filter((_,i)=>i!==r-1)),answer:an[r-1],explain:`On compte à partir du drapeau : le ${ORD[r]}, c’est ${an[r-1]}.`};
+    return {p:`Combien d’animaux sont arrivés avant le ${ORD[r]} ?`,q:row,say:`C’est une course. Le premier est à côté du drapeau. Combien d’animaux sont arrivés avant le ${ORD[r]} ?`,type:'num',answer:String(r-1),explain:`Avant le ${ORD[r]}, il y a ${r-1} ${r-1>1?'animaux':'animal'}.`};},
+
+  M38(){const k=R(0,5);
+    if(k===3){const h=R(13,18);return {p:'Quelle heure est-ce, l’après-midi ?',q:`<div class="big">${h} h</div><div class="mid">= ${SLOT} h de l’après-midi</div>`,say:`${h} heures, c’est quelle heure de l’après-midi ?`,type:'num',answer:String(h-12),explain:`Après midi, on continue de compter : 13, 14, 15… ${h} − 12 = ${h-12}. ${h} h, c’est ${hw(h-12)} de l’après-midi.`};}
+    if(k===4){const [s,a]=pick(MOMENTS);return {p:'Le matin ou l’après-midi ?',q:`<div class="mid">${s}</div>`,say:`${s} C’est le matin ou l’après-midi ?`,type:'choice',cls:'list',choices:['le matin','l’après-midi'],keep:true,answer:a,explain:'Avant midi (12 h), c’est le matin. Après midi, c’est l’après-midi.'};}
+    const h=R(1,12),m=pick([15,45,15,45,30]),nx=h===12?1:h+1,pv=h===1?12:h-1,dig=hm(h,m);
+    const word=m===15?`${hw(h)} et quart`:m===30?`${hw(h)} et demie`:`${hw(nx)} moins le quart`;
+    const tip=m===15?'« Et quart » : la grande aiguille est sur le 3. Un quart d’heure, c’est 15 minutes.':m===30?'« Et demie » : la grande aiguille est sur le 6. Une demi-heure, c’est 30 minutes.':`« Moins le quart » : la grande aiguille est sur le 9. Il manque un quart d’heure pour arriver à ${hw(nx)}.`;
+    const wd=[hm(h,15),hm(h,30),hm(h,45),hm(nx,15),hm(nx,45),hm(pv,45),hm(nx,0)].filter(x=>x!==dig);
+    if(k===0||k===5)return {p:'Quelle heure est-il ?',q:clock(h,m),say:'Regarde l’horloge. Quelle heure est-il ?',type:'choice',choices:uniqChoices(dig,wd),answer:dig,explain:tip};
+    if(k===1)return {p:'Écris cette heure avec des chiffres',q:`<div class="mid">${word}</div>`,say:`${word}. Comment l’écrit-on avec des chiffres ?`,type:'choice',choices:uniqChoices(dig,wd),answer:dig,explain:`${cap(word)}, c’est ${dig}. ${tip}`};
+    const ww=[`${hw(h)} et quart`,`${hw(h)} et demie`,`${hw(nx)} moins le quart`,`${hw(h)} moins le quart`,`${hw(nx)} et quart`].filter(x=>x!==word);
+    return {p:'Comment dit-on cette heure ?',q:clock(h,m),say:'Regarde l’horloge. Comment dit-on cette heure ?',type:'choice',cls:'list',choices:uniqChoices(word,ww,3),answer:word,explain:tip};},
+
+  M39(){const k=R(0,9);
+    if(k<4){const n=R(2,12);return {p:'Combien mesure le trait orange ?',q:ruler(0,n),say:'Regarde la règle. Combien de centimètres mesure le trait orange ?',type:'num',answer:String(n),explain:`Le trait commence à 0 et finit à ${n} : il mesure ${n} cm.`};}
+    if(k<7){const a=R(1,4),n=R(2,8);return {p:'Attention, le trait ne commence pas à 0 !',q:ruler(a,a+n),say:'Regarde la règle. Attention, le trait ne commence pas à zéro. Combien de centimètres mesure-t-il ?',type:'num',answer:String(n),explain:`Le trait va de ${a} à ${a+n}. On compte les centimètres entre les deux : ${a+n} − ${a} = ${n} cm.`};}
+    const [o,n,u]=pick(REF_LEN);return {p:'Choisis la bonne mesure',q:`<div class="mid">${o} mesure environ…</div>`,say:`${o} mesure environ…`,type:'choice',cls:'list',choices:[`${n} cm`,`${n} m`,`${n} km`],keep:true,answer:`${n} ${u}`,explain:`${o} mesure environ ${n} ${u}.`};},
+
+  M40(){const k=R(0,3),names=Object.keys(SOL_TIP);
+    if(k===0){const t=pick(names);return {p:'Comment s’appelle ce solide ?',q:solid(t),say:'Comment s’appelle ce solide ?',type:'choice',cls:'grid2 sm',choices:uniqChoices(t,names.filter(x=>x!==t)),answer:t,explain:SOL_TIP[t]};}
+    if(k===1){const [e,o,t]=pick(SOL_OBJ);return {p:'Quelle est la forme de cet objet ?',q:`<div class="pic">${e}</div><div class="mid">${o}</div>`,say:`${o}. Quelle est sa forme ?`,type:'choice',cls:'grid2 sm',choices:uniqChoices(t,names.filter(x=>x!==t)),answer:t,explain:`${o} a la forme d’${solArt(t)}. ${SOL_TIP[t]}`};}
+    if(k===2){const t=pick(Object.keys(SOL_N)),i=R(0,2),what=['faces','sommets','arêtes'][i],[f,s,a]=SOL_N[t],tips=['Une face, c’est un côté plat.','Un sommet, c’est une pointe.','Une arête, c’est un bord entre deux faces.'];
+      return {p:`Combien de ${what} a ${solArt(t)} ?`,q:solid(t)+`<div class="tag">${tips[i]}</div>`,say:`Combien de ${what} a ${solArt(t)} ? ${tips[i]}`,type:'num',answer:String(SOL_N[t][i]),explain:`${cap(solArt(t))} a ${f} faces, ${s} sommets et ${a} arêtes.`};}
+    const [t,a,p]=pick([['cube','des carrés','Quelle est la forme des faces d’un cube ?'],['pavé','des rectangles','Quelle est la forme des faces d’un pavé ?'],['pyramide','des triangles','Quelle est la forme des faces qui montent vers la pointe ?']]);
+    return {p,q:solid(t),say:p,type:'choice',cls:'list',choices:['des carrés','des rectangles','des triangles','des ronds'],keep:true,answer:a,explain:SOL_TIP[t]};},
+
+  M41(){const k=R(0,3);
+    if(k===0){let c,s;do{c=Array.from({length:R(2,4)},()=>pick([50,20,10,10,5]));s=c.reduce((x,y)=>x+y,0);}while(s>95);c.sort((x,y)=>y-x);
+      return {p:'Combien de centimes en tout ?',q:coins(c),say:'Combien de centimes en tout ?',type:'num',answer:String(s),explain:`${c.join(' + ')} = ${s} centimes.`};}
+    if(k===1){const e=R(1,4),c=pick([5,10,20,25,50,75]);return {p:'Transforme en centimes',q:`<div class="mid">${e} € et ${c} centimes = ${SLOT} centimes</div>`,say:`${e} euro${e>1?'s':''} et ${c} centimes, ça fait combien de centimes ?`,type:'num',answer:String(e*100+c),explain:`1 € = 100 centimes. ${e} € = ${e*100} centimes, et ${e*100} + ${c} = ${e*100+c}.`};}
+    if(k===2){const e=R(1,9),d=R(1,9),ans=`${e},${d}0 €`;return {p:'Choisis la bonne écriture',q:`<div class="mid">${e} euro${e>1?'s':''} et ${d*10} centimes</div>`,say:`Comment écrit-on ${e} euro${e>1?'s':''} et ${d*10} centimes ?`,type:'choice',cls:'grid2 sm',choices:[ans,`${e},0${d} €`,`${e}${d} €`,`${e}${d}0 €`],answer:ans,explain:`Avant la virgule, les euros : ${e}. Après la virgule, les centimes : ${d}0. On écrit ${ans}.`};}
+    const c=R(2,18)*5,o=pick(['Un bonbon','Une sucette','Un chewing-gum','Un caramel','Une image']),t=`${o} coûte ${c} centimes. Tu paies avec une pièce de 1 €. Combien de centimes te rend-on ?`;
+    return {p:'Combien te rend-on ?',q:`<div class="story">${t}</div>${coins([100])}`,say:t,type:'num',answer:String(100-c),explain:`1 € = 100 centimes. 100 − ${c} = ${100-c} centimes.`};},
+
+  M42(){const k=R(0,3),n=pick(FD),kind=pick(['pie','bar']),un=`un ${FRN[n]}`,wr=FD.filter(d=>d!==n);
+    const tip=`${cap(un)} : on partage en ${n} parts égales et on en prend 1.${n===2?' On dit aussi « la moitié ».':''}`;
+    if(k===0)return {p:'Quelle fraction est coloriée ?',q:ffig(n,randK(n,1),kind),say:'Quelle fraction de la figure est coloriée ?',type:'choice',cls:'grid2 fracs',choices:uniqChoices(frac(1,n),wr.map(d=>frac(1,d))),answer:frac(1,n),explain:`La figure est partagée en ${n} parts égales et 1 part est coloriée : c’est ${un}.`};
+    if(k===1)return {p:`Comment écrit-on « ${un} » ?`,q:`<div class="mid">${un}</div>`,say:`Comment écrit-on ${un} ?`,type:'choice',cls:'grid2 fracs',choices:uniqChoices(frac(1,n),wr.map(d=>frac(1,d))),answer:frac(1,n),explain:tip};
+    if(k===2){const ds=shuffle([n,...shuffle(wr).slice(0,2)]),figs={};ds.forEach(d=>figs[d]=ffig(d,firstK(1),kind));
+      return {p:'Quelle figure montre cette fraction ?',q:`<div class="big">${frac(1,n)}</div>`,say:`Quelle figure montre ${un} ?`,type:'choice',cls:kind==='pie'?'row3 figs':'list figs',choices:ds.map(d=>figs[d]),keep:true,answer:figs[n],explain:tip};}
+    const [o,v]=pick([['Une pizza','partagée'],['Une tarte','partagée'],['Un gâteau','partagé'],['Une tablette de chocolat','partagée'],['Une galette','partagée']]),w=d=>`un ${FRN[d]}`;
+    return {p:'Comment s’appelle une part ?',q:`<div class="story">${o} est ${v} en <b>${n} parts égales</b>. Une part, c’est…</div>`,say:`${o} est ${v} en ${n} parts égales. Comment s’appelle une part ?`,type:'choice',cls:'list',choices:uniqChoices(w(n),wr.map(w)),answer:w(n),explain:tip};},
+
+  M43(){const k=R(0,4),n=pick(FD.filter(d=>d>2)),a=R(2,n-1),kind=pick(['pie','bar']),F=frac(a,n),name=fracSay(a,n);
+    const wr=[frac(n-a,n),frac(a+1,n),frac(a-1,n),...FD.filter(d=>d!==n&&d>a).map(d=>frac(a,d))];
+    const tip=`Le dénominateur (en bas) dit en combien de parts on partage : ${n}. Le numérateur (en haut) dit combien de parts on prend : ${a}.`;
+    if(k===0)return {p:'Quelle fraction est coloriée ?',q:ffig(n,kind==='pie'?firstK(a):randK(n,a),kind),say:'Quelle fraction de la figure est coloriée ?',type:'choice',cls:'grid2 fracs',choices:uniqChoices(F,wr),answer:F,explain:`${a} parts coloriées sur ${n} parts égales : ${name}. ${tip}`};
+    if(k===1){const den=Math.random()<.5;return {p:`Quel est le ${den?'dénominateur':'numérateur'} de cette fraction ?`,q:`<div class="big">${F}</div>`,say:`Dans la fraction ${name}, quel est le ${den?'dénominateur':'numérateur'} ?`,type:'num',answer:String(den?n:a),explain:tip};}
+    if(k===2)return {p:'Combien de parts faut-il colorier ?',q:`<div class="big">${F}</div>${fbar(n,new Set())}`,say:`Combien de parts faut-il colorier pour avoir ${name} ?`,type:'num',answer:String(a),explain:`${cap(name)} : on colorie ${a} parts sur ${n}.`};
+    if(k===3)return {p:`Comment écrit-on « ${name} » ?`,q:`<div class="mid">${name}</div>`,say:`Comment écrit-on ${name} ?`,type:'choice',cls:'grid2 fracs',choices:uniqChoices(F,wr),answer:F,explain:tip};
+    const d=pick(FD);return {p:`Combien de ${frPl(d)} faut-il pour faire 1 entier ?`,q:ffig(d,firstK(d),kind)+`<div class="big">${frac(SLOT,d)} = 1</div>`,say:`Combien de ${frPl(d)} faut-il pour faire un entier ?`,type:'num',answer:String(d),explain:`Quand on prend les ${d} parts, on a le tout entier : ${frac(d,d)} = 1.`};},
+
+  M44(){const k=R(0,3),signs={p:'Choisis le bon signe',type:'choice',choices:['<','=','>'],keep:true};
+    if(k===0){const n=pick(FD.filter(d=>d>2)),a=R(1,n-1),b=Math.random()<.12?a:R(1,n),s=a<b?'<':a>b?'>':'=',lo=Math.min(a,b),hi=Math.max(a,b);
+      return {...signs,q:`<div class="cmpf">${fbar(n,firstK(a))}${fbar(n,firstK(b))}</div><div class="big">${frac(a,n)} ${SLOT} ${frac(b,n)}</div>`,say:`Compare ${fracSay(a,n)} et ${fracSay(b,n)}.`,answer:s,explain:s==='='?'Les deux fractions sont égales.':`Les parts ont la même taille. ${lo} part${lo>1?'s':''}, c’est moins que ${hi} parts : ${frac(lo,n)} est plus petit que ${frac(hi,n)}.`};}
+    if(k===1){const [a,b]=shuffle(FD).slice(0,2);return {...signs,q:`<div class="cmpf">${fbar(a,firstK(1))}${fbar(b,firstK(1))}</div><div class="big">${frac(1,a)} ${SLOT} ${frac(1,b)}</div>`,say:`Compare ${fracSay(1,a)} et ${fracSay(1,b)}.`,answer:a>b?'<':'>',explain:`Plus on partage en beaucoup de parts, plus chaque part est petite : ${frac(1,Math.min(a,b))} est plus grand que ${frac(1,Math.max(a,b))}.`};}
+    const n=pick(FD.filter(d=>d>2)),plus=k===2;let a,b;if(plus){a=R(1,n-1);b=R(1,n-a);}else{a=R(2,n);b=R(1,a-1);}
+    const res=plus?a+b:a-b,F=frac(res,n),wr=[frac(res,2*n),frac(a,n),frac(b,n)];if(res+1<=n)wr.push(frac(res+1,n));if(res>1)wr.push(frac(res-1,n));
+    return {p:'Calcule',q:`<div class="big">${frac(a,n)} ${plus?'+':'−'} ${frac(b,n)} = ${SLOT}</div>`,say:`${fracSay(a,n)} ${plus?'plus':'moins'} ${fracSay(b,n)}, ça fait combien ?`,type:'choice',cls:'grid2 fracs',choices:uniqChoices(F,wr),answer:F,
+      explain:`On ${plus?'ajoute':'enlève'} les parts : ${a} ${plus?'+':'−'} ${b} = ${res}. Ce sont toujours des ${frPl(n)} : le dénominateur ne change pas.${res===n?` Et ${frac(n,n)} = 1.`:''}`};},
+
+  M45(){const cols=5,rows=4,{start,path,end}=randPath(cols,rows),arrows=p=>p.join(' '),key=c=>c[0]+','+c[1];
+    if(Math.random()<.55){const others=[];for(let y=0;y<rows;y++)for(let x=0;x<cols;x++)if(key([x,y])!==key(start)&&key([x,y])!==key(end))others.push([x,y]);
+      others.sort((p,q)=>Math.abs(p[0]-end[0])+Math.abs(p[1]-end[1])-Math.abs(q[0]-end[0])-Math.abs(q[1]-end[1]));
+      const spots=shuffle([end,...shuffle(others.slice(0,6)).slice(0,2)]),cells={[key(start)]:'🤖'};spots.forEach((c,i)=>cells[key(c)]='ABC'[i]);const a='ABC'[spots.indexOf(end)];
+      return {p:'Dans quelle case arrive le robot ?',q:gridFig(cols,rows,cells)+`<div class="arrows">${arrows(path)}</div>`,say:`Le robot suit les flèches : ${path.map(d=>DNAME[d]).join(', ')}. Dans quelle case arrive-t-il ?`,type:'choice',cls:'row3',choices:['A','B','C'],keep:true,answer:a,explain:`Le robot avance d’une case à chaque flèche : ${arrows(path)}. Il arrive sur la case ${a}.`};}
+    const wrong=[];let g=0;while(wrong.length<2&&g++<200){const p=path.slice(),i=R(0,p.length-1);p[i]=pick(Object.keys(DIRS).filter(d=>d!==p[i]));const e=walk(start,p,cols,rows);if(e&&key(e)!==key(end)&&!wrong.includes(arrows(p)))wrong.push(arrows(p));}
+    return {p:'Quel chemin mène le robot au trésor ?',q:gridFig(cols,rows,{[key(start)]:'🤖',[key(end)]:'💎'}),say:'Quel chemin mène le robot jusqu’au trésor ?',type:'choice',cls:'list arr',choices:[arrows(path),...wrong],answer:arrows(path),explain:`Le bon chemin : ${arrows(path)}. On avance d’une case à chaque flèche.`};},
+
+  M46(){const k=R(0,5);
+    if(k<3){const [title,items,quel]=pick(CHARTS),vals=shuffle([1,2,3,4,5,6,7,8,9,10]).slice(0,4),head=`<div class="tag">${title}</div>`+barChart(items.map(x=>x[0]),vals);
+      if(k===0){const i=R(0,3);return {p:`Combien d’enfants préfèrent ${items[i][1]} ${items[i][0]} ?`,q:head,say:`Regarde le graphique. Combien d’enfants préfèrent ${items[i][1]} ?`,type:'num',answer:String(vals[i]),explain:`La barre ${items[i][0]} monte jusqu’à ${vals[i]}.`};}
+      if(k===1){const most=Math.random()<.6,v=most?Math.max(...vals):Math.min(...vals),i=vals.indexOf(v),t=`${quel} est le ${most?'plus':'moins'} choisi ?`;
+        return {p:t,q:head,say:`Regarde le graphique. ${t}`,type:'choice',cls:'grid2 emo',choices:items.map(x=>x[0]),keep:true,answer:items[i][0],explain:`La barre la plus ${most?'haute':'basse'} est celle de ${items[i][0]} : ${v}.`};}
+      const [i,j]=shuffle([0,1,2,3]).slice(0,2),hi=vals[i]>vals[j]?i:j,lo=hi===i?j:i;
+      return {p:`Combien de voix de plus pour ${items[hi][0]} que pour ${items[lo][0]} ?`,q:head,say:`Regarde le graphique. Combien de voix de plus pour ${items[hi][1]} que pour ${items[lo][1]} ?`,type:'num',answer:String(vals[hi]-vals[lo]),explain:`${vals[hi]} − ${vals[lo]} = ${vals[hi]-vals[lo]}`};}
+    const kids=shuffle(['Willyam','Hailey','Tom','Léa','Nina','Sami']).slice(0,3),cols=[['🔴','rouges'],['🔵','bleues'],['🟢','vertes']],cv=cols.map(()=>shuffle([1,2,3,4,5,6,7,8,9]).slice(0,3)),v=kids.map((_,i)=>cols.map((_,j)=>cv[j][i]));
+    const T='<div class="tag">Les billes des enfants</div>'+tableFig(cols.map(c=>c[0]),kids.map((n,i)=>[n,...v[i]])),i=R(0,2),j=R(0,2);
+    if(k===3)return {p:`Combien de billes ${cols[j][1]} ${cols[j][0]} a ${kids[i]} ?`,q:T,say:`Regarde le tableau. Combien de billes ${cols[j][1]} a ${kids[i]} ?`,type:'num',answer:String(v[i][j]),explain:`On suit la ligne de ${kids[i]} et la colonne ${cols[j][0]} : ${v[i][j]}.`};
+    if(k===4){const s=v[i].reduce((x,y)=>x+y,0);return {p:`Combien de billes a ${kids[i]} en tout ?`,q:T,say:`Regarde le tableau. Combien de billes a ${kids[i]} en tout ?`,type:'num',answer:String(s),explain:`On ajoute sa ligne : ${v[i].join(' + ')} = ${s}.`};}
+    const col=v.map(r=>r[j]),best=kids[col.indexOf(Math.max(...col))];
+    return {p:`Qui a le plus de billes ${cols[j][1]} ${cols[j][0]} ?`,q:T,say:`Regarde le tableau. Qui a le plus de billes ${cols[j][1]} ?`,type:'choice',cls:'list',choices:kids,keep:true,answer:best,explain:`Dans la colonne ${cols[j][0]}, le plus grand nombre est ${Math.max(...col)} : c’est ${best}.`};},
+
+  M47(){const k=R(0,3);
+    if(k===0){const [a,b,c,d]=pick(EQF),up=Math.random()<.5,[n1,d1,d2,ans]=up?[a,b,d,c]:[c,d,b,a];
+      return {p:'Trouve la fraction égale',q:`<div class="cmpf">${fbar(d1,firstK(n1))}${fbar(d2,new Set())}</div><div class="big">${frac(n1,d1)} = ${frac(SLOT,d2)}</div>`,say:`${fracSay(n1,d1)}, ça fait combien de ${frPl(d2)} ?`,type:'num',answer:String(ans),explain:`${frac(a,b)} et ${frac(c,d)} prennent la même place : ce sont des fractions égales.`};}
+    if(k===1){const [a,b,c,d]=pick(EQF),wr=[];for(const y of [4,6,8,10,12])for(let x=1;x<y;x++)if(x*b!==a*y)wr.push(frac(x,y));
+      return {p:'Quelle fraction est égale ?',q:`<div class="big">${frac(a,b)}</div>${fbar(b,firstK(a))}`,say:`Quelle fraction est égale à ${fracSay(a,b)} ?`,type:'choice',cls:'grid2 fracs',choices:uniqChoices(frac(c,d),wr),answer:frac(c,d),explain:`${frac(a,b)} = ${frac(c,d)} : les deux fractions prennent la même place.`};}
+    if(k===2){const d=pick(FD),q=R(1,d-1),vals=Array.from({length:d+1},(_,i)=>i===d?'1':'0'),wr=[frac(d-q,d),...FD.filter(x=>x!==d&&x>q).map(x=>frac(q,x))];if(q+1<d)wr.push(frac(q+1,d));if(q>1)wr.push(frac(q-1,d));
+      return {p:'Quelle fraction se cache sous le « ? »',q:numline(vals,q,[0,d]),say:'Regarde la bande graduée entre zéro et un. Quelle fraction se cache sous le point d’interrogation ?',type:'choice',cls:'grid2 fracs',choices:uniqChoices(frac(q,d),wr),answer:frac(q,d),explain:`Entre 0 et 1, il y a ${d} parts égales. Le « ? » est à ${q} part${q>1?'s':''} du zéro : ${frac(q,d)}.`};}
+    const [a,b,op,c,d,e,f]=pick(ADDF),F=frac(e,f),wr=[frac(a+c,b+d),frac(a,b),frac(c,d)];if(e<f)wr.push(frac(e+1,f));if(e>1)wr.push(frac(e-1,f));
+    const conv=b<f?`${frac(a,b)} = ${frac(a*f/b,f)}. Puis ${a*f/b} ${op} ${c} = ${e}`:`${frac(c,d)} = ${frac(c*f/d,f)}. Puis ${a} ${op} ${c*f/d} = ${e}`;
+    return {p:'Calcule',q:`<div class="cmpf">${fbar(b,firstK(a))}${fbar(d,firstK(c))}</div><div class="big">${frac(a,b)} ${op} ${frac(c,d)} = ${SLOT}</div>`,say:`${fracSay(a,b)} ${op==='+'?'plus':'moins'} ${fracSay(c,d)}, ça fait combien ?`,type:'choice',cls:'grid2 fracs',choices:uniqChoices(F,wr),answer:F,explain:`On prend le même dénominateur : ${conv} : ${F}.`};},
+
+  M48(){const b=R(2,9),a=R(2,10),t=a*b,k=R(0,3),base={type:'num',answer:String(a),explain:`${b} × ${a} = ${t}, donc ${t} ÷ ${b} = ${a}. Diviser, c’est le contraire de multiplier.`};
+    if(k===0)return {p:'Calcule',q:`<div class="big">${t} ÷ ${b} = ${SLOT}</div>`,say:`${t} divisé par ${b}, ça fait combien ?`,...base};
+    if(k===1)return {p:'Sers-toi de la multiplication',q:`<div class="mid">${b} × ${a} = ${t}</div><div class="big">${t} ÷ ${b} = ${SLOT}</div>`,say:`${b} fois ${a} égale ${t}. Alors ${t} divisé par ${b}, ça fait combien ?`,...base};
+    if(k===2)return {p:'Calcule',q:`<div class="big">${t} ÷ ${a} = ${SLOT}</div><div class="tag">Pense à la table de ${a}</div>`,say:`${t} divisé par ${a}, ça fait combien ?`,type:'num',answer:String(b),explain:`${a} × ${b} = ${t}, donc ${t} ÷ ${a} = ${b}.`};
+    const [x,y]=pick([['œufs','boîtes'],['crayons','pots'],['images','enveloppes'],['gâteaux','assiettes']]),s=`On range ${t} ${x} dans des ${y} de ${b}. Combien de ${y} faut-il ?`;
+    return {p:'Lis le problème et trouve la réponse',q:`<div class="story">${s}</div>`,say:s,...base,explain:`${t} ÷ ${b} = ${a}, car ${b} × ${a} = ${t}.`};},
+
+  M49(){const k=R(0,4);
+    if(k===0){const a=R(11,49),b=R(5,40);return {p:'Calcule la somme',q:`<div class="mid">La <b>somme</b> de ${a} et de ${b}</div>`,say:`Quelle est la somme de ${a} et de ${b} ?`,type:'num',answer:String(a+b),explain:`La somme, c’est le résultat de l’addition : ${a} + ${b} = ${a+b}.`};}
+    if(k===1){const a=R(30,90),b=R(5,a-10);return {p:'Calcule la différence',q:`<div class="mid">La <b>différence</b> entre ${a} et ${b}</div>`,say:`Quelle est la différence entre ${a} et ${b} ?`,type:'num',answer:String(a-b),explain:`La différence, c’est le résultat de la soustraction : ${a} − ${b} = ${a-b}.`};}
+    if(k===2){const a=R(2,9),b=pick([2,3,4,5,10]);return {p:'Calcule le produit',q:`<div class="mid">Le <b>produit</b> de ${a} et de ${b}</div>`,say:`Quel est le produit de ${a} et de ${b} ?`,type:'num',answer:String(a*b),explain:`Le produit, c’est le résultat de la multiplication : ${a} × ${b} = ${a*b}.`};}
+    if(k===3){const m=pick([2,5,10,3]),good=m*R(2,10),wr=[];while(wr.length<3){const x=R(4,99);if(x%m!==0&&!wr.includes(x))wr.push(x);}
+      return {p:`Quel nombre est un multiple de ${m} ?`,q:`<div class="tag">Un multiple de ${m} est dans la table de ${m}</div>`,say:`Quel nombre est un multiple de ${m} ?`,type:'choice',choices:[good,...wr].map(String),answer:String(good),explain:`${good} = ${m} × ${good/m} : c’est un multiple de ${m}.`};}
+    const [eq,a,w]=pick([()=>{const x=R(11,40),y=R(5,30);return [`${x} + ${y} = ${x+y}`,'la somme',`${x} plus ${y}`];},()=>{const x=R(40,90),y=R(5,30);return [`${x} − ${y} = ${x-y}`,'la différence',`${x} moins ${y}`];},()=>{const x=R(2,9),y=R(2,9);return [`${x} × ${y} = ${x*y}`,'le produit',`${x} fois ${y}`];}])();
+    return {p:'Comment s’appelle le résultat de ce calcul ?',q:`<div class="big">${eq}</div>`,say:`Comment s’appelle le résultat du calcul ${w} ?`,type:'choice',cls:'list',choices:['la somme','la différence','le produit'],keep:true,answer:a,explain:'Le résultat d’une addition s’appelle la somme. Celui d’une soustraction, la différence. Celui d’une multiplication, le produit.'};},
+
+  M50(){const k=R(0,4),GT={carré:'Un carré a 4 côtés de même longueur et 4 angles droits.',rectangle:'Un rectangle a 4 angles droits, 2 grands côtés et 2 petits côtés.',losange:'Un losange a 4 côtés de même longueur, mais pas d’angle droit.','triangle rectangle':'Un triangle rectangle a 3 côtés et un angle droit : le petit carré dans le coin.'},names=Object.keys(GT);
+    if(k===0){const t=pick(names);return {p:'Comment s’appelle cette figure ?',q:geoFig(t)+'<div class="tag">Le petit carré montre un angle droit</div>',say:'Comment s’appelle cette figure ? Le petit carré montre un angle droit.',type:'choice',cls:'list',choices:names,keep:true,answer:t,explain:GT[t]};}
+    if(k===1){const [r,t]=pick([['J’ai 4 côtés de même longueur, mais pas d’angle droit.','losange'],['J’ai 4 côtés de même longueur et 4 angles droits.','carré'],['J’ai 4 angles droits, 2 grands côtés et 2 petits côtés.','rectangle'],['J’ai 3 côtés et un angle droit.','triangle rectangle']]);
+      return {p:'Qui suis-je ?',q:`<div class="mid">${r}</div>`,say:`${r} Qui suis-je ?`,type:'choice',cls:'list',choices:names,keep:true,answer:t,explain:GT[t]};}
+    const L=symPat(),M2=mirror(L);
+    if(k===2){const yes=Math.random()<.5,Rt=yes?M2:L;return {p:'La figure est-elle symétrique ?',q:symFig(L,Rt)+'<div class="tag">L’axe de symétrie est la ligne en pointillé</div>',say:'Regarde la ligne en pointillé. La figure est-elle symétrique ?',type:'choice',choices:['oui','non'],keep:true,answer:yes?'oui':'non',explain:yes?'Si on plie sur la ligne en pointillé, les deux moitiés se superposent exactement.':'Si on plie sur la ligne en pointillé, les deux moitiés ne se superposent pas.'};}
+    if(k===3){const bad=M2.map(r=>r.slice()),y=R(0,3),x=R(0,2);bad[y][x]=!bad[y][x];const good=halfFig(M2);
+      return {p:'Quelle moitié complète la figure ?',q:symFig(L,null)+'<div class="tag">La figure doit être symétrique</div>',say:'Quelle moitié complète la figure pour qu’elle soit symétrique ?',type:'choice',cls:'row3 figs',choices:[good,halfFig(L),halfFig(bad)],answer:good,explain:'De l’autre côté de l’axe, chaque case coloriée est à la même distance de la ligne : c’est comme dans un miroir.'};}
+    const a=pick(['A','H','M','T','U','V','W','Y']);return {p:'Quelle lettre a un axe de symétrie ?',q:'<div class="tag">On peut la plier en deux moitiés pareilles</div>',say:'Quelle lettre a un axe de symétrie ? On peut la plier en deux moitiés pareilles.',type:'choice',choices:uniqChoices(a,['F','G','J','L','N','P','R','S','Z']),answer:a,explain:`Si on plie la lettre ${a} en deux, les deux moitiés se superposent.`};},
+
+  M51(){return storyQ([
+    ()=>{const a=R(3,9),k=R(2,4);return [`Hailey a ${a} billes. Willyam en a ${k} fois plus. Combien de billes a Willyam ?`,a*k,`${k} fois plus, c’est ${k} × ${a} = ${a*k}`];},
+    ()=>{const a=R(2,8),k=R(2,4);return [`Tom a ${a*k} images. Léa en a ${k} fois moins. Combien d’images a Léa ?`,a,`${k} fois moins, c’est ${a*k} ÷ ${k} = ${a}`];},
+    ()=>{const a=R(2,5),b=R(2,4);return [`Willyam a ${a} tee-shirts et ${b} pantalons. Combien de tenues différentes peut-il faire avec un tee-shirt et un pantalon ?`,a*b,`Chaque tee-shirt va avec chaque pantalon : ${a} × ${b} = ${a*b}`];},
+    ()=>{const a=R(2,4),b=R(2,4);return [`À la cantine, il y a ${a} plats et ${b} desserts. Combien de repas différents peut-on choisir avec un plat et un dessert ?`,a*b,`Chaque plat va avec chaque dessert : ${a} × ${b} = ${a*b}`];},
+    ()=>{const a=R(4,9),k=R(2,3);return [`Un chat pèse ${a} kilos. Un chien pèse ${k} fois plus lourd. Combien de kilos pèse le chien ?`,a*k,`${k} × ${a} = ${a*k} kilos`];},
+    ()=>{const n=R(2,4),p=R(3,6),r=R(1,5);return [`Maman achète ${n} paquets de ${p} yaourts. On en mange ${r}. Combien de yaourts reste-t-il ?`,n*p-r,`${n} × ${p} = ${n*p}, puis ${n*p} − ${r} = ${n*p-r}`];},
+    ()=>{const a=R(2,3),b=R(2,3);return [`Chez le glacier, il y a ${a} sortes de cornets et ${b+1} parfums. Combien de glaces différentes à une boule peut-on choisir ?`,a*(b+1),`${a} × ${b+1} = ${a*(b+1)}`];}
+  ]);}
+});
+
+/* ----- Français ----- */
+const NPR=[['Paris','p'],['ville','c'],['Willyam','p'],['garçon','c'],['Hailey','p'],['fille','c'],['France','p'],['pays','c'],['Médor','p'],['chien','c'],['Marseille','p'],['école','c'],['Astérix','p'],['rivière','c'],['Espagne','p'],['montagne','c'],['Lyon','p'],['maîtresse','c']];
+const NPR_S=[['Mon cousin habite à Marseille.','Marseille'],['Le chat de Léa dort.','Léa'],['Nous partons en Espagne.','Espagne'],['La maîtresse parle à Sami.','Sami'],['Demain, je vais à Paris.','Paris'],['Le chien de Tom aboie.','Tom'],['Ma tante vit en Italie.','Italie'],['Le petit chat s’appelle Mistigri.','Mistigri'],['Ce soir, nous dormons chez Nina.','Nina']];
+const NPR_M=[['paris',['ville','maison','rue']],['hailey',['fille','sœur','enfant']],['france',['pays','région','carte']],['médor',['chien','niche','os']],['lyon',['train','gare','ville']],['willyam',['garçon','frère','ami']],['espagne',['plage','soleil','vacances']]];
+const TYP={d:['déclarative','Une phrase déclarative raconte ou dit quelque chose.',['Le chat dort sur le canapé.','Willyam joue au ballon.','Il pleut ce matin.','Hailey mange une pomme.','Nous allons à l’école.','Le train arrive à la gare.','Mamie prépare une tarte.']],
+  q:['interrogative','Une phrase interrogative pose une question. Elle finit par un point d’interrogation.',['Où vas-tu ?','Quelle heure est-il ?','Est-ce que tu viens ?','Comment t’appelles-tu ?','Qui a pris mon crayon ?','Veux-tu jouer avec moi ?','Pourquoi pleures-tu ?']],
+  i:['impérative','Une phrase impérative donne un ordre ou un conseil.',['Range ta chambre.','Ferme la porte.','Viens ici.','Mange ta soupe.','Écoutez bien.','Prends ton cartable.','Lave-toi les mains.']]};
+const PRO_GN=[['Le chat','dort sur le lit.','Il'],['Ma sœur','mange une pomme.','Elle'],['Les enfants','jouent dans la cour.','Ils'],['Les filles','chantent une chanson.','Elles'],['Papa','répare le vélo.','Il'],['Maman','lit un livre.','Elle'],['Willyam et Hailey','regardent un film.','Ils'],['Les fleurs','poussent au printemps.','Elles'],['Le train','arrive à la gare.','Il'],['La maîtresse','écrit au tableau.','Elle'],['Mes cousins','viennent demain.','Ils'],['Léa et Nina','font du vélo.','Elles'],['Tom et Léa','sont à la plage.','Ils']];
+const PRO_TXT=[['Léa a un chat. Il dort sur le canapé.','Qui dort sur le canapé ?','le chat',['Léa','le canapé']],['Tom appelle sa sœur. Elle joue dans le jardin.','Qui joue dans le jardin ?','la sœur de Tom',['Tom','le jardin']],['Les enfants regardent les oiseaux. Ils s’envolent.','Qui s’envole ?','les oiseaux',['les enfants','le vent']],['Maman prépare des crêpes pour Willyam. Il adore ça.','Qui adore les crêpes ?','Willyam',['Maman','les crêpes']],['Papa lave la voiture. Elle est toute sale.','Qu’est-ce qui est sale ?','la voiture',['Papa','le garage']],['Hailey cherche ses chaussures. Elles sont sous le lit.','Qu’est-ce qui est sous le lit ?','les chaussures',['Hailey','les chaussettes']],['Nina donne un os au chien. Il remue la queue.','Qui remue la queue ?','le chien',['Nina','l’os']]];
+const PRO_NV=[['Tom et moi','allons au parc.','Nous'],['Papa et toi','partez en voiture.','Vous'],['Hailey et moi','jouons aux cartes.','Nous'],['Ta sœur et toi','chantez bien.','Vous'],['Maman et moi','faisons un gâteau.','Nous']];
+const MUET=[['le chan_','t','chanter'],['gran_','d','grande'],['blan_','c','blanche'],['peti_','t','petite'],['lon_','g','longue'],['un sau_','t','sauter'],['le galo_','p','galoper'],['le bor_','d','la bordure'],['for_','t','forte'],['hau_','t','haute'],['ron_','d','ronde'],['gri_','s','grise'],['froi_','d','froide'],['le spor_','t','sportif'],['une den_','t','le dentiste'],['le ven_','t','le ventilateur'],['un cam_','p','camper'],['un cha_','t','un chaton'],['le lai_','t','le laitier'],['lour_','d','lourde'],['chau_','d','chaude'],['gro_','s','grosse'],['un tapi_','s','la tapisserie']];
+const ETIQ=[['fruit',['pomme','banane','fraise','poire','cerise']],['animal',['chien','chat','lion','vache','lapin']],['vêtement',['pantalon','robe','pull','manteau','jupe']],['meuble',['table','chaise','lit','armoire','canapé']],['légume',['carotte','poireau','courgette','haricot','radis']],['couleur',['rouge','bleu','vert','jaune','violet']],['véhicule',['voiture','camion','vélo','bus','moto']],['outil',['marteau','tournevis','scie','pince','râteau']],['jouet',['poupée','toupie','peluche','puzzle','cerf-volant']],['instrument de musique',['guitare','piano','violon','tambour','flûte']],['métier',['boulanger','pompier','docteur','facteur','coiffeur']],['fleur',['rose','tulipe','marguerite','coquelicot','muguet']],['insecte',['fourmi','abeille','mouche','coccinelle','papillon']]];
+const EA={être:{pres:ETRE,imp:['étais','étais','était','étions','étiez','étaient'],fut:['serai','seras','sera','serons','serez','seront'],pc:['ai été','as été','a été','avons été','avez été','ont été'],comp:['à l’école','en vacances','dans le jardin','en retard','à la maison','chez Mamie']},
+  avoir:{pres:AVOIR,imp:['avais','avais','avait','avions','aviez','avaient'],fut:['aurai','auras','aura','aurons','aurez','auront'],pc:['ai eu','as eu','a eu','avons eu','avez eu','ont eu'],comp:['un vélo','faim','un chat','soif','froid','peur','de la chance']}};
+const T_AU={imp:'à l’imparfait',fut:'au futur',pc:'au passé composé'},T_MARK={imp:['Avant','Autrefois','L’an dernier'],fut:['Demain','Bientôt','Plus tard'],pc:['Hier','Ce matin','Samedi dernier']};
+const elide=(p,form)=>p==='je'&&/^[aeiouéèêh]/i.test(form)?'j’':p+' ';
+const IRR2={faire:['fer','fais','fait'],aller:['ir','all'],dire:['dir','dis','dit'],venir:['viendr','ven'],pouvoir:['pourr','pouv','pu'],voir:['verr','voy','vu'],vouloir:['voudr','voul','voulu'],prendre:['prendr','pren','pris']};
+const ADV_S=[['Le chat court vite.','vite'],['Willyam parle doucement.','doucement'],['Nous irons demain à la piscine.','demain'],['Il pleut souvent en Bretagne.','souvent'],['La tortue avance lentement.','lentement'],['Papa conduit prudemment.','prudemment'],['Tu ranges toujours ta chambre.','toujours'],['Hier, nous avons mangé une glace.','Hier'],['Le bébé dort beaucoup.','beaucoup'],['Maman arrive bientôt.','bientôt'],['Les enfants jouent dehors.','dehors'],['Je lis rarement le soir.','rarement']];
+const ADV_M=[['lent','lentement',['lenteur','ralentir','lente']],['doux','doucement',['douceur','adoucir','douce']],['rapide','rapidement',['rapidité','rapides','vitesse']],['calme','calmement',['calmer','calmes','le calme']],['joyeux','joyeusement',['joie','joyeuse','se réjouir']],['gentil','gentiment',['gentille','gentillesse','gentils']],['triste','tristement',['tristesse','attrister','tristes']],['sage','sagement',['sagesse','sages','assagir']],['facile','facilement',['facilité','faciliter','faciles']]];
+const EXPR=[['Il pleut des cordes.','Il pleut très fort.',['Des cordes tombent du ciel.','Il fait très beau.']],['Avoir un chat dans la gorge','avoir la voix enrouée',['avoir avalé un chat','avoir très faim']],['Donner sa langue au chat','ne pas trouver la réponse',['nourrir son chat','parler très vite']],['Avoir la tête dans les nuages','être distrait',['être très grand','voyager en avion']],['Tomber dans les pommes','s’évanouir',['tomber d’un pommier','cueillir des fruits']],['Avoir une faim de loup','avoir très faim',['avoir peur du loup','manger très peu']],['Être dans la lune','rêver, ne pas écouter',['être astronaute','se coucher tard']],['Avoir un cœur d’or','être très gentil',['être très riche','porter un bijou']],['Dormir comme une marmotte','dormir très profondément',['dormir dehors','ne pas dormir']],['Prendre ses jambes à son cou','s’enfuir très vite',['se faire mal aux jambes','faire de la gymnastique']],['Avoir une peur bleue','avoir très peur',['avoir peur du bleu','avoir froid']]];
+const FAMI=[['une bagnole','une voiture'],['des godasses','des chaussures'],['bouffer','manger'],['un bouquin','un livre'],['un pote','un ami'],['rigoler','rire'],['le boulot','le travail'],['une baraque','une maison'],['un gamin','un enfant'],['moche','laid'],['des fringues','des vêtements'],['la flotte','l’eau'],['un toutou','un chien']];
+const LECT_DOC=[
+  {t:'<b>Recette du gâteau au yaourt.</b> Verse 1 pot de yaourt dans un saladier. Ajoute 2 pots de sucre, 3 pots de farine et 3 œufs. Mélange bien. Verse la pâte dans un moule. Fais cuire 30 minutes au four.',qs:[
+    ['Combien de pots de farine faut-il ?','3 pots',['2 pots','1 pot','4 pots']],['Combien de temps le gâteau cuit-il ?','30 minutes',['3 minutes','10 minutes','1 heure']],['Dans quoi verse-t-on le yaourt ?','dans un saladier',['dans un moule','dans une casserole','dans un verre']],['Que fait-on juste après avoir ajouté les œufs ?','On mélange.',['On mange le gâteau.','On ajoute du sel.','On lave le saladier.']]]},
+  {t:'<b>Le hérisson.</b> Le hérisson est un petit animal couvert de piquants. Il dort le jour et sort la nuit pour chercher sa nourriture. Il mange des insectes, des limaces et des vers. Quand il a peur, il se roule en boule. En hiver, il hiberne : il dort pendant plusieurs mois.',qs:[
+    ['Quand le hérisson sort-il ?','la nuit',['le matin','à midi','l’après-midi']],['Que fait-il quand il a peur ?','Il se roule en boule.',['Il court très vite.','Il grimpe aux arbres.','Il creuse un trou.']],['Que veut dire « hiberner » ?','dormir pendant l’hiver',['manger beaucoup','partir en voyage','changer de couleur']],['Que mange le hérisson ?','des insectes et des limaces',['de l’herbe','des noisettes','du poisson']]]},
+  {t:'<b>Règle du jeu des petits chevaux.</b> Chaque joueur lance le dé à son tour. Il faut faire un 6 pour sortir un cheval de l’écurie. Ensuite, on avance du nombre de cases indiqué par le dé. Le premier joueur qui amène tous ses chevaux au centre a gagné.',qs:[
+    ['Quel nombre faut-il faire pour sortir un cheval ?','un 6',['un 1','un 3','un 5']],['Qui gagne la partie ?','celui qui amène tous ses chevaux au centre',['celui qui fait le plus de 6','celui qui lance le dé le plus fort','celui qui joue en dernier']],['De combien de cases avance-t-on ?','du nombre indiqué par le dé',['toujours de 6 cases','d’une seule case','de 10 cases']]]},
+  {t:'<b>L’abeille.</b> L’abeille est un insecte. Elle vit dans une ruche avec des milliers d’autres abeilles. Elle butine les fleurs pour récolter le nectar. Avec le nectar, les abeilles fabriquent le miel. Une seule reine pond tous les œufs de la ruche.',qs:[
+    ['Où vit l’abeille ?','dans une ruche',['dans un nid','dans un terrier','dans une niche']],['Avec quoi les abeilles fabriquent-elles le miel ?','avec le nectar des fleurs',['avec de l’eau','avec des feuilles','avec du sucre']],['Qui pond les œufs de la ruche ?','la reine',['toutes les abeilles','le roi','les fleurs']]]}
+];
+
+Object.assign(GF,{
+  F38(){const k=R(0,2);
+    if(k===0){const [w,t]=pick(NPR),a=t==='p'?'nom propre':'nom commun';return {p:'Nom commun ou nom propre ?',q:`<div class="big">${w}</div>`,say:`${w}. Est-ce un nom commun ou un nom propre ?`,type:'choice',cls:'list',choices:['nom commun','nom propre'],keep:true,answer:a,explain:t==='p'?`« ${w} » est un nom propre : c’est le nom d’une personne, d’un animal ou d’un lieu précis. Il prend une majuscule.`:`« ${w} » est un nom commun : il désigne une personne, un animal ou une chose en général. On peut dire « un » ou « une » devant.`};}
+    if(k===1){const [s,a]=pick(NPR_S);return {p:'Touche le nom propre',q:`<div class="mid">${s}</div>`,say:`${s} Touche le nom propre.`,type:'choice',chips:true,keep:true,choices:s.replace(/[.,]/g,'').split(' '),answer:a,explain:`« ${a} » est un nom propre : il prend toujours une majuscule. Le premier mot de la phrase a aussi une majuscule, mais ce n’est pas un nom propre.`};}
+    const [w,o]=pick(NPR_M);return {p:'Quel mot doit prendre une majuscule ?',q:'<div class="tag">Un nom propre prend toujours une majuscule</div>',say:'Quel mot doit prendre une majuscule ?',type:'choice',cls:'list',choices:[w,...o],answer:w,explain:`C’est un nom propre : on écrit « ${cap(w)} » avec une majuscule.`};},
+  F39(){const ts=shuffle(['d','q','i']),t=ts[0];
+    if(Math.random()<.55){const s=pick(TYP[t][2]);return {p:'Quel est le type de cette phrase ?',q:`<div class="mid">${s}</div><div class="xhint">déclarative : elle raconte · interrogative : elle pose une question · impérative : elle donne un ordre</div>`,say:`${s} Quel est le type de cette phrase ?`,type:'choice',cls:'list',choices:['déclarative','interrogative','impérative'],keep:true,answer:TYP[t][0],explain:TYP[t][1]};}
+    const o={};ts.forEach(x=>o[x]=pick(TYP[x][2]));const p={q:'Quelle phrase pose une question ?',i:'Quelle phrase donne un ordre ?',d:'Quelle phrase raconte quelque chose ?'}[t];
+    return {p,q:'<div class="tag">Lis bien les trois phrases</div>',say:p,type:'choice',cls:'list',choices:[o.d,o.q,o.i],answer:o[t],explain:`C’est une phrase ${TYP[t][0]}. ${TYP[t][1]}`};},
+  F40(){const k=R(0,9),tip='« Il » et « elle » remplacent une seule personne ou une seule chose. « Ils » et « elles » en remplacent plusieurs.';
+    if(k<5){const [g,r,a]=pick(PRO_GN);return {p:'Remplace les mots en couleur par un pronom',q:`<div class="mid"><mark>${g}</mark> ${r}</div><div class="mid">${SLOT} ${r}</div>`,say:`${g} ${r} Par quel pronom peut-on remplacer : ${g} ?`,type:'choice',choices:['Il','Elle','Ils','Elles'],keep:true,answer:a,explain:`« ${g} » → « ${a} ». ${tip}`};}
+    if(k<8){const [t,qq,a,w]=pick(PRO_TXT);return {p:'Lis, puis réponds',q:`<div class="text">${t}</div><div class="qq">${qq}</div>`,say:`${t} ${qq}`,type:'choice',cls:'list',choices:[a,...w],answer:a,explain:`Le pronom remplace « ${a} » pour ne pas répéter.`};}
+    const [g,r,a]=pick(PRO_NV);return {p:'Remplace les mots en couleur par un pronom',q:`<div class="mid"><mark>${g}</mark> ${r}</div><div class="mid">${SLOT} ${r}</div>`,say:`${g} ${r} Par quel pronom peut-on remplacer : ${g} ?`,type:'choice',choices:['Nous','Vous','Ils','Elles'],keep:true,answer:a,explain:`« ${g} » → « ${a} ». Quand « moi » est dans le groupe, on dit « nous ». Quand « toi » est dans le groupe, on dit « vous ».`};},
+  F41(){const [w,a,fam]=pick(MUET),full=w.replace('_',a);return {p:'Quelle lettre muette faut-il à la fin ?',q:`<div class="big">${w.replace('_',SLOT)}</div><div class="tag">Cherche un mot de la même famille</div>`,say:`Quelle lettre muette faut-il à la fin du mot : ${full} ?`,type:'choice',choices:uniqChoices(a,['t','d','s','c','g','p','x'].filter(x=>x!==a)),answer:a,explain:`On écrit « ${full} ». On entend la lettre dans « ${fam} ».`};},
+  F42(){const k=R(0,2),[lab,mem]=pick(ETIQ),others=ETIQ.filter(e=>e[0]!==lab),art=/^[aeiou]/.test(lab)?'un':['fleur','couleur'].includes(lab)?'une':'un';
+    if(k===0){const three=shuffle(mem).slice(0,3);return {p:'Quel mot regroupe tous les autres ?',q:`<div class="mid">${three.join(' · ')}</div>`,say:`${three.join(', ')}. Quel mot regroupe tous ces mots ?`,type:'choice',cls:'list',choices:uniqChoices(lab,others.map(e=>e[0])),answer:lab,explain:`« ${cap(lab)} » est le mot-étiquette : il regroupe ${three.join(', ')}.`};}
+    if(k===1){const a=pick(mem);return {p:`Quel mot va avec le mot-étiquette « ${lab} » ?`,q:`<div class="big">${lab}</div>`,say:`Quel mot va avec le mot-étiquette : ${lab} ?`,type:'choice',cls:'list',choices:uniqChoices(a,shuffle(others).slice(0,3).map(e=>pick(e[1]))),answer:a,explain:`${cap(a)} : c’est ${art} ${lab}.`};}
+    const odd=pick(pick(others)[1]);return {p:'Trouve l’intrus',q:`<div class="mid">Quel mot ne va pas avec le mot-étiquette <b>${lab}</b> ?</div>`,say:`Quel mot ne va pas avec le mot-étiquette : ${lab} ?`,type:'choice',cls:'list',choices:[...shuffle(mem).slice(0,3),odd],answer:odd,explain:`« ${cap(odd)} » n’est pas ${art} ${lab}.`};},
+  F43(){const v=pick(['être','avoir']),t=pick(['imp','fut','pc']),[,p,i]=pick(PRON),T=EA[v],a=T[t][i],m=pick(T_MARK[t]),c=pick(T.comp),subj=`${m}, ${elide(p,a)}`;
+    const wr=[...T[t].filter(f=>f!==a),...['imp','fut','pc','pres'].filter(x=>x!==t).map(x=>T[x][i])];
+    return {p:`Conjugue le verbe ${v} ${T_AU[t]}`,q:`<div class="mid">${subj}${SLOT} ${c}.</div><div class="tag">verbe ${v} · ${T_AU[t]}</div>`,say:`${subj}… ${c}. Verbe ${v}, ${T_AU[t]}.`,type:'choice',cls:'list',choices:uniqChoices(a,wr),answer:a,explain:`${subj}${a} ${c}.`};},
+  F44(){const v=pick(Object.keys(IRR2)),[fu,im,pp]=IRR2[v],[forms,comp]=IRREG[v],t=pick(pp?['fut','imp','pc']:['fut','imp']),[,p,i]=pick(PRON);
+    const f={fut:fu+END.fut[i],imp:im+END.imp[i],pres:forms[i]};if(pp)f.pc=`${AVOIR[i]} ${pp}`;
+    const a=f[t],m=pick(T_MARK[t]),subj=`${m}, ${elide(p,a)}`,same=[0,1,2,3,4,5].filter(x=>x!==i).map(x=>t==='pc'?`${AVOIR[x]} ${pp}`:(t==='fut'?fu+END.fut[x]:im+END.imp[x]));
+    const wr=[...Object.keys(f).filter(x=>x!==t).map(x=>f[x]),...shuffle(same).slice(0,2)];if(t==='pc')wr.unshift(`${AVOIR[i]} ${v}`);
+    return {p:`Conjugue le verbe ${v} ${T_AU[t]}`,q:`<div class="mid">${subj}${SLOT} ${comp}.</div><div class="tag">verbe ${v} · ${T_AU[t]}</div>`,say:`${subj}… ${comp}. Verbe ${v}, ${T_AU[t]}.`,type:'choice',cls:'list',choices:uniqChoices(a,wr),answer:a,explain:`${subj}${a} ${comp}.`};},
+  F45(){const k=R(0,2);
+    if(k===0){const [s,a]=pick(ADV_S);return {p:'Touche l’adverbe',q:`<div class="mid">${s}</div><div class="xhint">L’adverbe dit comment, quand, où ou combien. Il ne change jamais.</div>`,say:`${s} Touche l’adverbe.`,type:'choice',chips:true,keep:true,choices:s.replace(/[.,]/g,'').split(' '),answer:a,explain:`L’adverbe est « ${a} ». Il précise le verbe et il est invariable.`};}
+    if(k===1){const [b,a,w]=pick(ADV_M);return {p:'Trouve l’adverbe',q:`<div class="mid"><b>${b}</b> → ${SLOT}</div><div class="tag">Beaucoup d’adverbes finissent par -ment</div>`,say:`Quel adverbe vient du mot : ${b} ?`,type:'choice',cls:'list',choices:[a,...w],answer:a,explain:`${b} → ${a}. L’adverbe dit comment on fait quelque chose.`};}
+    const a=pick(['souvent','vite','demain','toujours','lentement','beaucoup','bientôt','doucement','jamais','dehors']);
+    return {p:'Quel mot est un adverbe ?',q:'<div class="tag">Un adverbe ne change jamais : il est invariable</div>',say:'Quel mot est un adverbe ?',type:'choice',cls:'list',choices:[a,pick(['maison','jardin','ballon','fleur']),pick(['manger','courir','chanter','dessiner']),pick(['petit','rouge','joli','grand'])],answer:a,explain:`« ${a} » est un adverbe : il ne change jamais.`};},
+  F46(){const k=R(0,2);
+    if(k===0){const [e,a,w]=pick(EXPR);return {p:'Que veut dire cette expression ?',q:`<div class="mid">${e}</div>`,say:`${e} Que veut dire cette expression ?`,type:'choice',cls:'list',choices:[a,...w],answer:a,explain:`C’est une expression : on ne la prend pas au pied de la lettre. Elle veut dire : ${a}`};}
+    const it=pick(FAMI),[f,c]=it,others=FAMI.filter(x=>x!==it&&x[1]!==c);
+    if(k===1)return {p:'Dis-le en langage courant',q:`<div class="mid">${f}</div><div class="tag">mot familier</div>`,say:`${f}. C’est un mot familier. Comment le dit-on en langage courant ?`,type:'choice',cls:'list',choices:uniqChoices(c,others.map(x=>x[1])),answer:c,explain:`« ${f} » est un mot familier. En langage courant, on dit « ${c} ».`};
+    return {p:'Quel mot est familier ?',q:'<div class="tag">Un mot familier se dit entre copains, pas dans un devoir</div>',say:'Quel mot est familier ?',type:'choice',cls:'list',choices:uniqChoices(f,others.map(x=>x[1]).filter(x=>x!==c)),answer:f,explain:`« ${f} » est familier. En langage courant, on dit « ${c} ».`};},
+  F47(){return lectQ(LECT_DOC);}
+});
+
 /* ---------- Niveaux ---------- */
 const STAGES=[{n:'CE1',d:'Les bases de l’année'},{n:'Vers le CE2',d:'On monte d’un cran'},{n:'CE2',d:'Comme les grands'}];
 // L'anglais a ses propres étapes : il ne suit pas les classes.
@@ -716,6 +1057,7 @@ const LEVELS={
   maths:[
     ['M1',0,'Comparer jusqu’à 100','Sur ta feuille, écris deux nombres et mets le bon signe entre eux : < ou >.'],
     ['M2',0,'Dizaines et unités','Écris sur ta feuille le nombre qui a 7 dizaines et 3 unités.'],
+    ['M37',0,'Ranger les nombres','Écris ces nombres du plus petit au plus grand : 52, 25, 87, 48.'],
     ['M20',0,'Les amis de 10 et de 20','Écris toutes les façons de faire 10 : 1 + 9, 2 + 8…'],
     ['M3',0,'Additions','Écris une addition dont le résultat est 50.'],
     ['M4',0,'Soustractions','Écris une soustraction dont le résultat est 12.'],
@@ -726,7 +1068,10 @@ const LEVELS={
     ['M7',0,'Petits problèmes','Invente un petit problème avec des billes et écris la réponse.'],
     ['M24',0,'Le calendrier','Écris les 7 jours de la semaine dans l’ordre.'],
     ['M8',0,'L’heure pile et la demie','Dessine une horloge qui montre 4 h 30.'],
+    ['M38',0,'Et quart, moins le quart','Dessine deux horloges : une à 3 h 15, une à 6 h 45.'],
     ['M25',0,'Les figures','Avec ta règle, trace un carré, un rectangle et un triangle.'],
+    ['M39',0,'Mesurer avec la règle','Avec ta règle, trace un trait de 8 cm, puis un trait de 12 cm.'],
+    ['M40',0,'Les solides','Trouve dans la maison un cube, une boule et un cylindre. Écris leurs noms.'],
     ['M9',0,'La monnaie','Dessine les pièces et les billets pour faire 17 €.'],
     ['M10',1,'Les nombres jusqu’à 1 000','Écris en chiffres : trois cent quarante-deux.'],
     ['M23',1,'Pair ou impair','Écris 3 nombres pairs et 3 nombres impairs.'],
@@ -735,21 +1080,32 @@ const LEVELS={
     ['M12',1,'Tables de 3 et 4','Écris la table de 3, de 3 × 1 jusqu’à 3 × 10.'],
     ['M30',1,'Problèmes de multiplication','Dessine 3 paquets de 4 bonbons et écris la multiplication.'],
     ['M13',1,'Double et moitié','Écris le double de 25 et la moitié de 30.'],
+    ['M42',1,'Les fractions : une part','Dessine une pizza, partage-la en 4 parts égales et colorie un quart.'],
+    ['M43',1,'Lire une fraction','Dessine une bande de 8 cases et colorie 3 huitièmes. Écris la fraction.'],
+    ['M44',1,'Comparer et ajouter des fractions','Dessine deux bandes de 6 cases. Colorie 2 sixièmes sur l’une et 5 sixièmes sur l’autre. Entoure la plus grande.'],
     ['M27',1,'Multiplier par 10 et par 100','Écris : 7 × 10, 12 × 10 et 5 × 100.'],
     ['M26',1,'Additions à 3 chiffres','Pose 256 + 137 en colonnes, puis calcule.'],
     ['M29',1,'Suites de grands nombres','Écris les nombres de 100 en 100, de 100 jusqu’à 1 000.'],
+    ['M41',1,'Les centimes','Dessine les pièces pour faire 85 centimes.'],
+    ['M45',1,'Se déplacer sur un quadrillage','Sur une feuille quadrillée, dessine un chemin et écris ses flèches.'],
+    ['M46',1,'Tableaux et graphiques','Trace un tableau avec 3 prénoms de la famille et l’âge de chacun.'],
     ['M14',2,'Les nombres jusqu’à 10 000','Écris en chiffres : deux mille cinq cent six.'],
     ['M15',2,'Tables de 6 à 9','Écris la table de 7, de 7 × 1 jusqu’à 7 × 5.'],
     ['M32',2,'Tables à trous','Écris 3 multiplications dont le résultat est 24.'],
+    ['M48',2,'La division','Écris deux divisions avec la table de 6. Exemple : 18 ÷ 6 = 3.'],
     ['M31',2,'Soustractions à 3 chiffres','Pose 432 − 157 en colonnes, puis calcule.'],
     ['M16',2,'L’heure et les minutes','Dessine une horloge qui montre 8 h 15.'],
     ['M34',2,'Les durées','Écris à quelle heure tu te lèves et à quelle heure tu te couches.'],
     ['M17',2,'Partager','Dessine 15 ronds et entoure des groupes de 3. Combien de groupes ?'],
     ['M33',2,'Multiplier un grand nombre','Calcule 24 × 3 en écrivant d’abord 20 × 3, puis 4 × 3.'],
+    ['M49',2,'Somme, différence, produit','Écris la somme, la différence et le produit de 8 et 5.'],
+    ['M47',2,'Les fractions égales','Dessine deux bandes pareilles. Montre que 2 quarts, c’est comme 1 demi.'],
     ['M18',2,'Les mesures','Écris 3 objets de la maison qu’on mesure en centimètres.'],
     ['M35',2,'Le périmètre','Trace un rectangle de 6 cm sur 3 cm, puis calcule son périmètre.'],
+    ['M50',2,'Angle droit, losange et symétrie','Plie une feuille en deux, dessine la moitié d’un papillon et complète l’autre moitié.'],
     ['M36',2,'Rendre la monnaie','Un livre coûte 13 €. Tu donnes 20 €. Écris le calcul de la monnaie.'],
-    ['M19',2,'Problèmes en 2 étapes','Écris les deux calculs du dernier problème de la mission.']
+    ['M19',2,'Problèmes en 2 étapes','Écris les deux calculs du dernier problème de la mission.'],
+    ['M51',2,'Fois plus, combinaisons','Invente un problème avec « 3 fois plus » et écris la réponse.']
   ],
   fr:[
     ['F1',0,'Les sons ou, on, an, oi','Écris 3 mots avec le son « on ».'],
@@ -758,6 +1114,7 @@ const LEVELS={
     ['F3',0,'Un ou plusieurs ?','Écris au pluriel : le chat, la fleur, le gâteau.'],
     ['F4',0,'L’ordre alphabétique','Range dans l’ordre alphabétique : vélo, arbre, maison.'],
     ['F21',0,'La majuscule et le point','Écris une phrase sur ton animal préféré. N’oublie pas la majuscule et le point.'],
+    ['F38',0,'Nom commun ou nom propre','Écris 3 noms propres : un prénom, une ville et un pays.'],
     ['F5',0,'Trouve le verbe','Écris une phrase, puis souligne le verbe.'],
     ['F19',0,'m devant m, b, p','Écris : une chambre, une lampe, un tambour.'],
     ['F6',0,'Être et avoir','Écris : je suis, tu es, il est, j’ai, tu as, il a.'],
@@ -769,11 +1126,16 @@ const LEVELS={
     ['F23',1,'c ou ç ?','Écris : un garçon, un citron, une leçon.'],
     ['F10',1,'et ou est ?','Écris une phrase avec « et » et une phrase avec « est ».'],
     ['F24',1,'g ou gu ?','Écris : une guitare, un gâteau, une bague.'],
+    ['F41',1,'La lettre muette','Écris : grand, petit, long, chaud. Entoure la lettre muette.'],
     ['F26',1,'Le point, ? ou !','Écris une question que tu aimerais poser à un astronaute.'],
+    ['F39',1,'Les types de phrases','Écris une question, puis une phrase qui donne un ordre.'],
     ['F25',1,'Les synonymes','Écris un autre mot pour dire « content » et « joli ».'],
+    ['F42',1,'Le mot-étiquette','Écris 4 noms de fruits, puis 4 noms d’animaux.'],
     ['F27',1,'Le verbe s’accorde','Écris : le chat joue, les chats jouent.'],
+    ['F40',1,'Les pronoms il, elle, ils, elles','Écris : « Le chat dort. » Puis récris la phrase avec « Il ».'],
     ['F11',1,'Lire entre les lignes','Écris ce que tu ferais s’il neigeait demain.'],
     ['F12',2,'Nom, verbe ou adjectif ?','Écris un nom, un verbe et un adjectif.'],
+    ['F45',2,'L’adverbe','Écris une phrase avec « souvent » et une phrase avec « doucement ».'],
     ['F13',2,'Le sujet du verbe','Écris une phrase et entoure le sujet.'],
     ['F35',2,'L’infinitif du verbe','Écris l’infinitif de : nous jouons, tu finis, il va.'],
     ['F31',2,'Aller, faire, dire, venir…','Écris : je vais, tu fais, il dit, nous venons.'],
@@ -783,11 +1145,15 @@ const LEVELS={
     ['F14',2,'Le futur','Écris ce que tu feras demain : « Demain, je… »'],
     ['F15',2,'L’imparfait','Termine la phrase : « Quand j’étais bébé, je… »'],
     ['F16',2,'Le passé composé','Écris ce que tu as fait hier : « Hier, j’ai… »'],
+    ['F43',2,'Être et avoir : passé et futur','Écris : « Hier, j’étais… » et « Demain, je serai… »'],
+    ['F44',2,'Faire, aller, dire… au passé et au futur','Écris ce que tu feras demain avec « faire » et « aller ».'],
     ['F36',2,'La phrase négative','Écris à la forme négative : « J’aime la pluie. »'],
     ['F17',2,'Les accords','Écris : une petite fille, des petites filles.'],
     ['F32',2,'Le féminin des noms','Écris le féminin de : un boulanger, un lion, un acteur.'],
     ['F33',2,'Les pluriels difficiles','Écris au pluriel : un cheval, un bijou, un trou.'],
     ['F34',2,'Les familles de mots','Écris 3 mots de la famille de « jardin ».'],
+    ['F46',2,'Expressions et mots familiers','Dessine l’expression « avoir la tête dans les nuages ».'],
+    ['F47',2,'Lire pour s’informer','Écris la recette de ton goûter préféré en 3 étapes.'],
     ['F37',2,'Lire un texte plus long','Écris deux phrases pour raconter l’histoire que tu as préférée.']
   ],
   en:[
@@ -826,6 +1192,7 @@ if(typeof S.wallet!=='number')S.wallet=Object.values(S.stars).reduce((a,b)=>a+b,
 if(!Array.isArray(S.rewards))S.rewards=DEFAULT_REWARDS();
 if(!Array.isArray(S.claimed))S.claimed=[];
 // Nouveaux champs : initialisés ici pour ne pas casser une sauvegarde existante (rappelé après un import).
+const OLD_ORDER=['M1 M2 M20 M3 M4 M21 M5 M22 M6 M7 M24 M8 M25 M9 M10 M23 M11 M28 M12 M30 M13 M27 M26 M29 M14 M15 M32 M31 M16 M34 M17 M33 M18 M35 M36 M19'.split(' '),'F1 F2 F18 F3 F4 F21 F5 F19 F6 F20 F7 F8 F22 F9 F23 F10 F24 F26 F25 F27 F11 F12 F13 F35 F31 F28 F29 F30 F14 F15 F16 F36 F17 F32 F33 F34 F37'.split(' ')];   // ordre des missions avant l'ajout du programme 2025
 function ensureFields(){
   if(typeof S.pin!=='string')S.pin='';
   if(typeof S.lastExport!=='string')S.lastExport='';
@@ -834,7 +1201,10 @@ function ensureFields(){
   S.usage={day:typeof u.day==='string'?u.day:'',sec:Math.max(0,+u.sec||0),bonus:Math.max(0,+u.bonus||0)};
   if(!Array.isArray(S.moveBag))S.moveBag=[];                              // mouvements pas encore tirés
   if(typeof S.lastMove!=='number')S.lastMove=-1;
-  if(![5,8,10].includes(S.qCount))S.qCount=5;                              // questions par mission
+  if(![5,8,10].includes(S.qCount))S.qCount=5;
+  // Carte agrandie : la mission qui était « à faire » avant l'ajout de nouvelles missions reste ouverte.
+  if(!S.open||typeof S.open!=='object')S.open={};
+  if(S.mapV!==2){for(const o of OLD_ORDER){let last=-1;o.forEach((id,i)=>{if((S.stars[id]||0)>=1)last=i;});if(o[last+1])S.open[o[last+1]]=true;}S.mapV=2;}                              // questions par mission
 }
 ensureFields();
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -870,6 +1240,8 @@ function cleanState(d){
   o.pin=typeof d.pin==='string'&&/^\d{4}$/.test(d.pin)?d.pin:S.pin;
   o.limitMin=int(d.limitMin,0,240,S.limitMin);
   o.qCount=[5,8,10].includes(+d.qCount)?+d.qCount:S.qCount;
+  o.open={};if(d.open&&typeof d.open==='object')for(const k of Object.keys(d.open))if(ids.has(k)&&d.open[k]===true)o.open[k]=true;
+  if(d.mapV===2)o.mapV=2;
   return o;
 }
 let track='maths',M=null,sessionCount=0,lastPause=0,resetArmed=false,curView='home';
@@ -905,7 +1277,7 @@ const findLvl=id=>Object.keys(LEVELS).flatMap(lvls).find(l=>l.id===id);
 // Une mission s'ouvre quand la précédente a au moins 1 étoile. Tout ce qui se trouve avant la mission réussie
 // la plus avancée reste ouvert : ajouter de nouvelles missions au milieu ne reverrouille donc rien.
 const lastDone=t=>{let m=-1;lvls(t).forEach(l=>{if((S.stars[l.id]||0)>=1)m=l.i;});return m;};
-const unlocked=l=>S.unlockAll||l.i===0||l.i<=lastDone(l.track)||(S.stars[lvls(l.track)[l.i-1].id]||0)>=1;
+const unlocked=l=>S.unlockAll||l.i===0||!!S.open[l.id]||l.i<=lastDone(l.track)||(S.stars[lvls(l.track)[l.i-1].id]||0)>=1;
 const QN=()=>S.qCount||5;
 // Mission surprise : un mélange de questions tirées des missions déjà réussies de la matière.
 const MIX_MIN=3;
@@ -1200,7 +1572,7 @@ function renderParent(){
   $('#limSel').onchange=e=>{S.limitMin=parseInt(e.target.value,10)||0;save();renderParent();};
   if(S.limitMin){$('#addT').onclick=()=>{usage().bonus+=10;save();renderParent();};$('#rstT').onclick=()=>{const u=usage();u.sec=0;u.bonus=0;save();renderParent();};}
   $('#unl').onclick=()=>{S.unlockAll=!S.unlockAll;save();renderParent();};
-  $('#rst').onclick=e=>{if(!resetArmed){resetArmed=true;e.target.textContent='Sûr ? Touche encore pour tout effacer';e.target.style.background='var(--bad-soft)';return;}S={stars:{},crayon:{},crayonN:0,missions:0,unlockAll:false,wallet:0,rewards:S.rewards,claimed:[],pin:S.pin,lastExport:S.lastExport,limitMin:S.limitMin,qCount:S.qCount,usage:S.usage,moveBag:S.moveBag,lastMove:S.lastMove};save();renderParent();};
+  $('#rst').onclick=e=>{if(!resetArmed){resetArmed=true;e.target.textContent='Sûr ? Touche encore pour tout effacer';e.target.style.background='var(--bad-soft)';return;}S={stars:{},crayon:{},crayonN:0,open:{},mapV:2,missions:0,unlockAll:false,wallet:0,rewards:S.rewards,claimed:[],pin:S.pin,lastExport:S.lastExport,limitMin:S.limitMin,qCount:S.qCount,usage:S.usage,moveBag:S.moveBag,lastMove:S.lastMove};save();renderParent();};
   $('#back').onclick=renderHome;
   bindBackup();
 }
