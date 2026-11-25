@@ -40,10 +40,13 @@ button:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-vis
 
 /* En-tête : la date du jour, l'heure, et l'entrée de l'espace parent */
 .top{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
-.top h1{font-family:var(--display);font-weight:700;font-size:clamp(24px,4.6vw,36px);line-height:1.1;flex:1;min-width:0}
+.top h1{font-family:var(--display);font-weight:700;font-size:clamp(24px,4.6vw,36px);line-height:1.1;flex:1 1 260px;min-width:0}
 .top h1 small{display:block;font-family:var(--body);font-weight:400;font-size:16px;color:var(--muted);margin-top:2px}
 .clock{font-family:var(--display);font-weight:700;font-size:clamp(22px,4vw,30px);font-variant-numeric:tabular-nums;padding:4px 14px;border-radius:999px;border:3px solid var(--ink);background:var(--paper)}
 .gear{width:48px;height:48px;padding:0;font-size:22px}
+/* Étiquette du type de journée : jour d'école, jour sans école ou vacances. Se touche pour changer. */
+.daytype{font-size:clamp(16px,2.4vw,20px);padding:8px 14px;border-radius:999px;background:var(--star-soft)}
+.daytype.home{background:var(--ok-soft)}
 
 /* Sur un petit écran, un seul enfant à la fois : ces deux boutons changent de côté */
 .switch{display:none;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
@@ -128,11 +131,12 @@ button:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-vis
 .days{display:flex;gap:6px;flex-wrap:wrap}
 .day{width:42px;height:42px;border:3px solid var(--ink);border-radius:50%;background:var(--paper);font-family:var(--display);font-weight:700;font-size:16px;padding:0}
 .day[aria-pressed="true"]{background:var(--c);color:var(--on-c)}
-.edit{display:grid;grid-template-columns:70px 1fr auto auto auto auto 210px;gap:6px;align-items:center}
+.edit{display:grid;grid-template-columns:70px 1fr auto auto auto auto auto 210px;gap:6px;align-items:center}
 input,select,textarea{font:inherit;font-size:18px;border:3px solid var(--ink);border-radius:12px;padding:8px;background:var(--paper);color:var(--ink);min-width:0;width:100%}
 .edit .btn{width:42px;height:42px;padding:0}
-.edit .lk[aria-pressed="true"]{background:var(--star)}
-.edit .lk[aria-pressed="false"]{opacity:.4}
+.edit .lk[aria-pressed="true"],.edit .sc[aria-pressed="true"],.asc[aria-pressed="true"]{background:var(--star)}
+.edit .lk[aria-pressed="false"],.edit .sc[aria-pressed="false"]{opacity:.4}
+.asc[aria-pressed="false"]{opacity:.6}
 .abox{border:3px solid var(--ink);border-radius:16px;padding:12px;display:grid;gap:10px;background:var(--star-soft)}
 .aedit{display:grid;grid-template-columns:130px 70px 1fr 200px auto auto;gap:6px;align-items:center}
 .aedit .adel{width:42px;height:42px;padding:0}
@@ -150,6 +154,9 @@ td.fullc{color:var(--ok);font-weight:700}
 .overlay{position:fixed;inset:0;background:rgba(27,38,50,.55);display:grid;place-items:center;padding:16px;z-index:30}
 .modal{padding:22px 18px;display:grid;gap:14px;justify-items:center;width:min(360px,100%)}
 .modal h2{font-family:var(--display);font-size:24px;text-align:center}
+.modal .wide{width:100%;font-size:20px}
+.modal .wide[aria-pressed="true"]{background:var(--star)}
+.modal .hint{text-align:center}
 .pad{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;width:100%}
 .pad .btn{font-size:26px;min-height:58px}
 
@@ -157,7 +164,7 @@ td.fullc{color:var(--ok);font-weight:700}
   .switch{display:grid}
   .kids{grid-template-columns:1fr}
   body[data-show="w"] .kid[data-kid="h"],body[data-show="h"] .kid[data-kid="w"]{display:none}
-  .edit{grid-template-columns:64px 1fr auto auto auto auto}
+  .edit{grid-template-columns:64px 1fr auto auto auto auto auto}
   .edit .ef{grid-column:1/-1}
   .aedit{grid-template-columns:130px 70px 1fr auto}
   .aedit .an{grid-column:1/-1;grid-row:2}
@@ -166,6 +173,13 @@ td.fullc{color:var(--ok);font-weight:700}
   .aedit .adel{grid-column:4;grid-row:1;justify-self:end}
 }
 @media (max-width:430px){.tbtn{gap:8px;padding:10px}.ti{font-size:32px;width:36px}.chk{width:38px;height:38px}.chk svg{width:22px;height:22px}.say{width:44px}}
+/* Petit écran : l'image et le nom sur une ligne, les cinq boutons sur la suivante, la fréquence en dessous */
+@media (max-width:640px){
+  .edit{grid-template-columns:repeat(10,1fr)}
+  .edit .ei{grid-column:span 3}
+  .edit .en{grid-column:span 7}
+  .edit .btn{grid-column:span 2;width:100%}
+}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
@@ -199,24 +213,32 @@ const KIDS=['w','h'];
 const DAY_LETTERS=['L','M','M','J','V','S','D'],DAY_NAMES=['lundi','mardi','mercredi','jeudi','vendredi','samedi','dimanche'];
 const ICONS=['🛏️','🥣','🥐','🥛','🍽️','🍎','🧃','👕','👗','👖','🧦','👟','🧥','🪥','🧼','🚿','🛁','🚽','💇','👓','💊','🎒','📚','✏️','📖','📝','🧹','🧺','🧸','🗑️','🌱','🐶','🐱','🎹','⚽','🎨','📺','🎮','🤗','😴','🌙','⭐','⏰','🔔','🚌','🚗','🏫'];
 const T=(icon,name,alt,lock)=>{const t={id:uid(),icon,name};if(alt)t.alt=alt;if(lock)t.lock=true;return t;};
+// Tâche « jour d'école » : elle ne s'affiche pas les jours sans école (mercredi, week-end, vacances…).
+const E=(icon,name)=>Object.assign(T(icon,name),{school:true});
 const ALL=[true,true,true,true,true,true,true],SCHOOL=[true,true,false,true,true,false,false];
 // Alertes : une heure (en minutes depuis minuit), des jours, et un rappel facultatif quelques minutes avant. Communes aux deux enfants.
 const LEADS=[0,5,10,15];
-function defaults(){return {v:1,cut:[720,1110],pin:'',awake:false,lastExport:'',log:{},alerts:[{id:uid(),t:500,icon:'🚌',name:'Départ à l’école',lead:5,days:SCHOOL.slice()}],kids:{
+function defaults(){return {v:1,cut:[720,1110],pin:'',awake:false,lastExport:'',log:{},school:SCHOOL.slice(),holiday:false,alerts:[{id:uid(),t:500,icon:'🚌',name:'Départ à l’école',lead:5,days:SCHOOL.slice(),school:true}],kids:{
   w:{name:'Willyam',avatar:'🧒',routines:{
-    matin:{days:ALL.slice(),tasks:[T('🛏️','Je fais mon lit'),T('🥣','Je prends mon petit-déjeuner'),T('👕','Je m’habille'),T('🪥','Je me brosse les dents'),T('🎒','Je prépare mon cartable'),T('👟','Je mets mes chaussures')]},
+    matin:{days:ALL.slice(),tasks:[E('🛏️','Je fais mon lit'),T('🥣','Je prends mon petit-déjeuner'),E('👕','Je m’habille'),T('🪥','Je me brosse les dents'),E('🎒','Je prépare mon cartable'),E('👟','Je mets mes chaussures')]},
     ecole:{days:SCHOOL.slice(),tasks:[T('🧼','Je me lave les mains'),T('🍎','Je prends mon goûter'),T('🎒','Je vide mon cartable'),T('📚','Je fais mes devoirs'),T('🧸','Je range mes affaires')]},
     soir:{days:ALL.slice(),tasks:[T('🚿','Je prends ma douche'),T('👕','Je mets mon pyjama'),T('🍽️','Je mets la table','a'),T('🧹','Je débarrasse la table','b'),T('🪥','Je me brosse les dents'),T('🎒','Je prépare mes affaires pour demain'),T('📖','Je lis une histoire','',true),T('🌙','Au lit !')]}}},
   h:{name:'Hailey',avatar:'👧',routines:{
-    matin:{days:ALL.slice(),tasks:[T('🥣','Je prends mon petit-déjeuner'),T('👗','Je m’habille'),T('🪥','Je me brosse les dents'),T('🚽','Je vais aux toilettes'),T('👟','Je mets mes chaussures')]},
+    matin:{days:ALL.slice(),tasks:[T('🥣','Je prends mon petit-déjeuner'),E('👗','Je m’habille'),T('🪥','Je me brosse les dents'),T('🚽','Je vais aux toilettes'),E('👟','Je mets mes chaussures')]},
     ecole:{days:SCHOOL.slice(),tasks:[T('🧼','Je me lave les mains'),T('🍎','Je prends mon goûter'),T('🧸','Je range mes jouets')]},
     soir:{days:ALL.slice(),tasks:[T('🛁','Je prends mon bain'),T('👗','Je mets mon pyjama'),T('🍽️','Je mange'),T('🧹','Je débarrasse la table','a'),T('🍽️','Je mets la table','b'),T('🪥','Je me brosse les dents'),T('🚽','Je vais aux toilettes'),T('📖','On lit une histoire','',true),T('🌙','Au lit !')]}}}}};}
 
 const STORE='planning-famille-v1';
 // Remet un état lu (mémoire de l'appareil ou sauvegarde importée) dans une forme sûre : tout ce qui manque reprend la valeur par défaut.
 function clean(d){
-  const def=defaults(),o={v:1,cut:def.cut.slice(),pin:'',awake:false,lastExport:'',log:{},alerts:def.alerts,kids:{}};
+  const def=defaults(),o={v:1,cut:def.cut.slice(),pin:'',awake:false,lastExport:'',log:{},school:def.school,holiday:false,alerts:def.alerts,kids:{}};
   if(!d||typeof d!=='object')return def;
+  // Planning enregistré avant l'arrivée des « jours d'école » : les jours d'école sont ceux où la routine d'après l'école
+  // s'affichait, et on marque une fois pour toutes le départ à l'école et, le matin, les tâches de départ qui servent à partir.
+  const old=!Array.isArray(d.school),OLD_SCHOOL=['Je fais mon lit','Je m’habille','Je prépare mon cartable','Je mets mes chaussures'];
+  const was=old&&d.kids&&d.kids.w&&d.kids.w.routines&&d.kids.w.routines.ecole&&d.kids.w.routines.ecole.days,from=old?was:d.school;
+  if(Array.isArray(from)&&(!old||from.some(x=>x===true)))o.school=Array.from({length:7},(_,i)=>from[i]===true);
+  o.holiday=d.holiday===true;
   const int=(v,a,b,dv)=>Number.isFinite(+v)&&v!==null&&v!==''?clamp(Math.round(+v),a,b):dv;
   const str=(v,n,dv)=>typeof v==='string'&&v.trim()?v.trim().slice(0,n):dv;
   if(Array.isArray(d.cut)){o.cut[0]=int(d.cut[0],600,960,720);o.cut[1]=int(d.cut[1],o.cut[0]+60,1320,Math.max(1110,o.cut[0]+60));}
@@ -224,7 +246,7 @@ function clean(d){
   o.awake=d.awake===true;o.lastExport=typeof d.lastExport==='string'?d.lastExport:'';
   // Pas de liste d'alertes (planning enregistré avant leur arrivée) : on garde celle de départ. Une liste vide reste vide.
   if(Array.isArray(d.alerts)){const seen=new Set();o.alerts=d.alerts.filter(a=>a&&typeof a==='object').slice(0,10).map(a=>{let id=str(a.id,24,uid());if(seen.has(id))id=uid();seen.add(id);
-    return {id,t:int(a.t,0,1439,480),icon:str(a.icon,8,'⏰'),name:str(a.name,40,'Alerte'),lead:LEADS.includes(a.lead)?a.lead:0,days:Array.from({length:7},(_,i)=>Array.isArray(a.days)?a.days[i]===true:true)};});}
+    return {id,t:int(a.t,0,1439,480),icon:str(a.icon,8,'⏰'),name:str(a.name,40,'Alerte'),lead:LEADS.includes(a.lead)?a.lead:0,days:Array.from({length:7},(_,i)=>Array.isArray(a.days)?a.days[i]===true:true),school:a.school===true||(old&&a.name==='Départ à l’école')};});}
   for(const k of KIDS){
     const src=d.kids&&d.kids[k]&&typeof d.kids[k]==='object'?d.kids[k]:{},kd={name:str(src.name,20,def.kids[k].name),avatar:str(src.avatar,8,def.kids[k].avatar),routines:{}};
     for(const r of ROUTINES){
@@ -232,12 +254,12 @@ function clean(d){
       if(!rs||typeof rs!=='object'||!Array.isArray(rs.tasks)){kd.routines[r.id]=def.kids[k].routines[r.id];continue;}
       const seen=new Set();
       kd.routines[r.id]={days:Array.from({length:7},(_,i)=>Array.isArray(rs.days)?rs.days[i]===true:true),
-        tasks:rs.tasks.filter(t=>t&&typeof t==='object').slice(0,20).map(t=>{let id=str(t.id,24,uid());if(seen.has(id))id=uid();seen.add(id);const x={id,icon:str(t.icon,8,'⭐'),name:str(t.name,48,'Nouvelle tâche')};if(t.alt==='a'||t.alt==='b')x.alt=t.alt;if(t.lock===true)x.lock=true;return x;})};
+        tasks:rs.tasks.filter(t=>t&&typeof t==='object').slice(0,20).map(t=>{let id=str(t.id,24,uid());if(seen.has(id))id=uid();seen.add(id);const x={id,icon:str(t.icon,8,'⭐'),name:str(t.name,48,'Nouvelle tâche')};if(t.alt==='a'||t.alt==='b')x.alt=t.alt;if(t.lock===true)x.lock=true;if(t.school===true||(old&&r.id==='matin'&&OLD_SCHOOL.includes(x.name)))x.school=true;return x;})};
     }
     o.kids[k]=kd;
   }
   if(d.log&&typeof d.log==='object')for(const day of Object.keys(d.log).filter(x=>/^\d{4}-\d{2}-\d{2}$/.test(x)).sort().slice(-40)){
-    const e={};
+    const e={},ty=d.log[day]&&d.log[day].type;if(ty==='e'||ty==='m')e.type=ty;
     for(const k of KIDS){
       const s=d.log[day]&&d.log[day][k],done={},sum={};
       if(s&&s.done&&typeof s.done==='object')for(const id of Object.keys(s.done).slice(0,80))if(s.done[id])done[String(id).slice(0,24)]=1;
@@ -260,9 +282,12 @@ function today(){
   return S.log[k];
 }
 const routine=(kid,r)=>S.kids[kid].routines[r];
-// Les tâches du jour : toutes, sauf celles « un jour sur deux » dont ce n'est pas le tour.
-const due=(kid,r)=>routine(kid,r).tasks.filter(t=>!t.alt||t.alt===dayAlt());
-const active=kid=>ROUTINES.filter(r=>routine(kid,r.id).days[dayIdx()]&&due(kid,r.id).length);
+// Les tâches du jour : toutes, sauf celles « un jour sur deux » dont ce n'est pas le tour, et sauf les tâches « jour d'école » un jour sans école.
+// Jour d'école ou pas : d'abord le choix fait à la main pour ce jour-là, sinon les vacances, sinon les jours d'école de la semaine.
+function isSchool(d=new Date()){const e=S.log[dayKey(d)];if(e&&(e.type==='e'||e.type==='m'))return e.type==='e';return !S.holiday&&S.school[dayIdx(d)];}
+const due=(kid,r)=>routine(kid,r).tasks.filter(t=>(!t.alt||t.alt===dayAlt())&&(!t.school||isSchool()));
+// La routine d'après l'école s'affiche les jours d'école ; les deux autres, les jours choisis dans l'espace parent.
+const active=kid=>ROUTINES.filter(r=>(r.id==='ecole'?isSchool():routine(kid,r.id).days[dayIdx()])&&due(kid,r.id).length);
 // Une tâche verrouillée ne se coche pas tant qu'une tâche placée avant elle, dans la même routine, n'est pas faite.
 function locked(kid,r,id){const done=today()[kid].done,ts=due(kid,r),i=ts.findIndex(t=>t.id===id);return i>0&&!!ts[i].lock&&!done[id]&&ts.slice(0,i).some(t=>!done[t.id]);}
 function tally(kid,r){const done=today()[kid].done,ts=due(kid,r);return [ts.filter(t=>done[t.id]).length,ts.length];}
@@ -294,14 +319,33 @@ function kidHtml(kid){
   return h;
 }
 function stamp(){return dayKey()+slotNow();}
+const dayLabel=()=>{const e=S.log[dayKey()];return S.holiday&&!(e&&e.type)?'🏖️ Vacances':isSchool()?'🎒 Jour d’école':'🏠 Jour sans école';};
+// Changer le type de la journée : pour aujourd'hui seulement (jour férié, enfant malade…), ou les vacances jusqu'à nouvel ordre.
+function dayDialog(){
+  const layer=$('#layer'),e=today(),sch=isSchool();
+  layer.innerHTML=`<div class="overlay" role="dialog" aria-modal="true" aria-labelledby="dt"><div class="modal sticker"><h2 id="dt">Aujourd’hui, c’est…</h2>
+    <button class="btn wide" id="dE" aria-pressed="${sch}">🎒 Un jour d’école</button>
+    <button class="btn wide" id="dM" aria-pressed="${!sch}">🏠 Un jour sans école</button>
+    <p class="hint">Un jour sans école, il n’y a pas de routine « Après l’école » ni de tâches marquées 🎒. Ce choix vaut pour aujourd’hui seulement.</p>
+    <button class="btn wide" id="dV" aria-pressed="${S.holiday}">🏖️ Vacances : ${S.holiday?'activées ✓':'désactivées'}</button>
+    <p class="hint">Pendant les vacances, tous les jours sont sans école, jusqu’à ce que tu les désactives ici.</p>
+    <button class="btn go" id="dX">Fermer</button></div></div>`;
+  const done=()=>{KIDS.forEach(snapshot);save();layer.innerHTML='';renderHome();};
+  // Si le choix est celui que le planning aurait fait tout seul, on ne garde rien de particulier pour ce jour.
+  const set=v=>{if(v===(!S.holiday&&S.school[dayIdx()]))delete e.type;else e.type=v?'e':'m';done();};
+  $('#dE').onclick=()=>set(true);$('#dM').onclick=()=>set(false);
+  $('#dV').onclick=()=>{S.holiday=!S.holiday;delete e.type;done();};
+  $('#dX').onclick=()=>{layer.innerHTML='';};$('#dX').focus({preventScroll:true});
+}
 function renderHome(){
   view='home';lastStamp=stamp();
   const d=new Date(),date=d.toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'});
-  $('#view').innerHTML=`<header class="top"><h1>${date.charAt(0).toUpperCase()+date.slice(1)}<small>Le planning de la journée</small></h1><span class="clock" id="clock" aria-label="Il est ${hhmm(nowMin())}">${hhmm(nowMin())}</span><button class="btn gear" id="gear" aria-label="Espace parent">⚙️</button></header>
+  $('#view').innerHTML=`<header class="top"><h1>${date.charAt(0).toUpperCase()+date.slice(1)}<small>Le planning de la journée</small></h1><button class="btn daytype ${isSchool()?'':'home'}" id="dayType" aria-label="${dayLabel()}. Toucher pour changer.">${dayLabel()}</button><span class="clock" id="clock" aria-label="Il est ${hhmm(nowMin())}">${hhmm(nowMin())}</span><button class="btn gear" id="gear" aria-label="Espace parent">⚙️</button></header>
   <div id="next">${nextHtml()}</div>
   <div class="switch">${KIDS.map(k=>`<button class="btn" data-kid="${k}" data-show="${k}" aria-pressed="${document.body.dataset.show===k}">${esc(S.kids[k].avatar)} ${esc(S.kids[k].name)}</button>`).join('')}</div>
   <div class="kids">${KIDS.map(kidHtml).join('')}</div>`;
   $('#gear').onclick=()=>askPin(renderParent);
+  $('#dayType').onclick=()=>askPin(dayDialog,'Code parent');
   document.querySelectorAll('.switch .btn').forEach(b=>b.onclick=()=>{document.body.dataset.show=b.dataset.show;renderHome();});
   document.querySelectorAll('.kid').forEach(sec=>{
     const kid=sec.dataset.kid;
@@ -340,7 +384,7 @@ function tick(){
 /* ---------- Alertes ---------- */
 // Vérifiées en même temps que l'heure (toutes les 20 secondes). Elles ne sonnent que si le planning est affiché :
 // une page web ne peut pas réveiller une tablette en veille.
-const todayAlerts=()=>S.alerts.filter(a=>a.days[dayIdx()]).sort((x,y)=>x.t-y.t);
+const todayAlerts=()=>S.alerts.filter(a=>a.days[dayIdx()]&&(!a.school||isSchool())).sort((x,y)=>x.t-y.t);
 function nextHtml(){
   const m=nowMin(),a=todayAlerts().find(x=>x.t>=m);if(!a)return '';
   const left=a.t-m;
@@ -418,14 +462,19 @@ function renderParent(){
     <p class="hint">Chaque enfant a son propre planning. Pour chaque routine, choisis les jours où elle s’affiche et la liste des tâches. Les changements sont enregistrés tout de suite.</p>
     <p class="hint">Pour une tâche à tour de rôle (un jour l’un, un jour l’autre) : mets la même tâche chez les deux enfants, en « 1 jour sur 2 : aujourd’hui » chez l’un et « 1 jour sur 2 : demain » chez l’autre.</p>
     <p class="hint">Le cadenas 🔒 verrouille une tâche : elle reste grisée tant que toutes les tâches placées au-dessus d’elle, dans la même routine, ne sont pas cochées. Pratique pour l’histoire du soir.</p>
+    <p class="hint">Le cartable 🎒 marque une tâche « jour d’école » : elle ne s’affiche pas les jours sans école ni pendant les vacances. Toute la routine « Après l’école » fonctionne ainsi. Les jours d’école se règlent plus bas.</p>
     <div class="row"><label for="kname" class="hint">Prénom</label><input id="kname" value="${esc(K.name)}" maxlength="20" style="width:200px"></div>
     ${ROUTINES.map(r=>{const ro=routine(kid,r.id);return `<div class="rbox" data-r="${r.id}"><h4>${r.icon} ${r.name}</h4>
-      <div class="days" role="group" aria-label="Jours de la routine ${r.name}">${DAY_LETTERS.map((l,i)=>`<button class="day" data-d="${i}" aria-pressed="${ro.days[i]}" aria-label="${DAY_NAMES[i]}">${l}</button>`).join('')}</div>
-      ${ro.tasks.map((x,i)=>`<div class="edit" data-i="${i}"><select class="ei" aria-label="Image de la tâche">${opts(x.icon)}</select><input class="en" value="${esc(x.name)}" maxlength="48" aria-label="Nom de la tâche"><button class="btn small up" aria-label="Monter ${esc(x.name)}" ${i===0?'disabled':''}>↑</button><button class="btn small down" aria-label="Descendre ${esc(x.name)}" ${i===ro.tasks.length-1?'disabled':''}>↓</button><button class="btn small del" aria-label="Supprimer ${esc(x.name)}">✕</button><button class="btn small lk" aria-pressed="${!!x.lock}" aria-label="Verrouiller ${esc(x.name)} tant que les tâches d’avant ne sont pas faites">🔒</button><select class="ef" aria-label="Fréquence de ${esc(x.name)}">${freq(x.alt)}</select></div>`).join('')}
+      ${r.id==='ecole'?'<p class="hint">S’affiche les jours d’école, réglés plus bas dans « Jours d’école ».</p>':`<div class="days" role="group" aria-label="Jours de la routine ${r.name}">${DAY_LETTERS.map((l,i)=>`<button class="day" data-d="${i}" aria-pressed="${ro.days[i]}" aria-label="${DAY_NAMES[i]}">${l}</button>`).join('')}</div>`}
+      ${ro.tasks.map((x,i)=>`<div class="edit" data-i="${i}"><select class="ei" aria-label="Image de la tâche">${opts(x.icon)}</select><input class="en" value="${esc(x.name)}" maxlength="48" aria-label="Nom de la tâche"><button class="btn small up" aria-label="Monter ${esc(x.name)}" ${i===0?'disabled':''}>↑</button><button class="btn small down" aria-label="Descendre ${esc(x.name)}" ${i===ro.tasks.length-1?'disabled':''}>↓</button><button class="btn small del" aria-label="Supprimer ${esc(x.name)}">✕</button><button class="btn small lk" aria-pressed="${!!x.lock}" aria-label="Verrouiller ${esc(x.name)} tant que les tâches d’avant ne sont pas faites">🔒</button><button class="btn small sc" aria-pressed="${r.id==='ecole'||!!x.school}" ${r.id==='ecole'?'disabled':''} aria-label="Afficher ${esc(x.name)} seulement les jours d’école">🎒</button><select class="ef" aria-label="Fréquence de ${esc(x.name)}">${freq(x.alt)}</select></div>`).join('')}
       <div class="row"><button class="btn small add" ${ro.tasks.length>=20?'disabled':''}>+ Ajouter une tâche</button></div></div>`;}).join('')}
     <div class="row"><button class="btn small" id="uncheck">Tout décocher aujourd’hui pour ${esc(K.name)}</button><button class="btn small" id="defTasks">Remettre les tâches de départ de ${esc(K.name)}</button></div>
     <h3>Les 7 derniers jours de ${esc(K.name)}</h3>
     <table><thead><tr><th>Jour</th>${ROUTINES.map(r=>`<th>${r.icon} ${r.name}</th>`).join('')}</tr></thead><tbody>${hist()}</tbody></table>
+    <h3>Jours d’école</h3>
+    <p class="hint">Les jours colorés sont des jours d’école. Les autres jours, et pendant les vacances, la routine « Après l’école » et les tâches et alertes marquées 🎒 ne s’affichent pas : la journée est plus légère. Pour un jour particulier (jour férié, enfant malade), touche l’étiquette « Jour d’école » en haut du planning.</p>
+    <div class="days" id="schoolDays" role="group" aria-label="Jours d’école">${DAY_LETTERS.map((l,i)=>`<button class="day" data-d="${i}" aria-pressed="${S.school[i]}" aria-label="${DAY_NAMES[i]}">${l}</button>`).join('')}</div>
+    <div class="row"><button class="btn small" id="holiday">${S.holiday?'🏖️ Vacances : activées ✓':'🏖️ Vacances : désactivées'}</button></div>
     <h3>Horaires</h3>
     <p class="hint">Le planning ouvre tout seul la routine du moment. Les enfants peuvent quand même toucher une autre routine pour la voir.</p>
     <div class="row pinrow"><span>« Après l’école » à partir de</span><select id="cut0" aria-label="Début de l’après-midi">${times(600,960,S.cut[0])}</select><span>« Soir » à partir de</span><select id="cut1" aria-label="Début du soir">${times(Math.max(960,S.cut[0]+60),1320,S.cut[1])}</select></div>
@@ -433,7 +482,7 @@ function renderParent(){
     <p class="hint">À l’heure choisie, le planning affiche un grand message, sonne et le lit à voix haute. Les alertes sont les mêmes pour les deux enfants. Avec un rappel, il y a un premier message quelques minutes avant.</p>
     <p class="hint">Elles ne sonnent que si le planning est affiché, écran allumé : active « Écran toujours allumé » juste en dessous et laisse la tablette branchée. Pour le son, il faut que l’écran ait été touché au moins une fois depuis l’ouverture du planning.</p>
     ${S.alerts.map((a,i)=>`<div class="abox" data-a="${i}"><div class="aedit"><input type="time" class="at" value="${pad2(Math.floor(a.t/60))}:${pad2(a.t%60)}" aria-label="Heure de l’alerte ${esc(a.name)}"><select class="ai" aria-label="Image de l’alerte">${opts(a.icon)}</select><input class="an" value="${esc(a.name)}" maxlength="40" aria-label="Nom de l’alerte"><select class="al" aria-label="Rappel avant ${esc(a.name)}">${LEADS.map(l=>`<option value="${l}" ${l===a.lead?'selected':''}>${l?`Rappel ${l} min avant`:'Sans rappel'}</option>`).join('')}</select><button class="btn small atry">🔔 Essayer</button><button class="btn small adel" aria-label="Supprimer l’alerte ${esc(a.name)}">✕</button></div>
-      <div class="days" role="group" aria-label="Jours de l’alerte ${esc(a.name)}">${DAY_LETTERS.map((l,j)=>`<button class="day" data-d="${j}" aria-pressed="${a.days[j]}" aria-label="${DAY_NAMES[j]}">${l}</button>`).join('')}</div></div>`).join('')}
+      <div class="days" role="group" aria-label="Jours de l’alerte ${esc(a.name)}">${DAY_LETTERS.map((l,j)=>`<button class="day" data-d="${j}" aria-pressed="${a.days[j]}" aria-label="${DAY_NAMES[j]}">${l}</button>`).join('')}<button class="btn small asc" aria-pressed="${!!a.school}">🎒 Jours d’école seulement</button></div></div>`).join('')}
     <div class="row"><button class="btn small" id="aadd" ${S.alerts.length>=10?'disabled':''}>+ Ajouter une alerte</button></div>
     <h3>Écran</h3>
     <p class="hint">Pour laisser la tablette posée comme un tableau : l’écran reste allumé tant que le planning est affiché. Ne marche pas sur tous les appareils, et consomme de la batterie.</p>
@@ -453,6 +502,7 @@ function renderParent(){
     <ul class="hint"><li>Sur la tablette : ouvre la page dans Chrome, touche ⋮ puis « Ajouter à l’écran d’accueil ». L’icône ouvre le planning en plein écran, même sans Internet.</li>
     <li>Pour qu’un enfant ne sorte pas du planning : épingle l’application (Paramètres → Sécurité → Épinglage d’application).</li>
     <li>Une tâche se coche en la touchant, et se décoche en la touchant encore. Le haut-parleur lit la tâche à voix haute.</li>
+    <li>Les jours sans école, le planning est plus court : seules les tâches sans cartable 🎒 s’affichent. L’étiquette en haut du planning dit quel jour on est.</li>
     <li>Tout repart de zéro chaque matin. Peu de tâches, toujours dans le même ordre : c’est ce qui marche le mieux.</li></ul>
     <div class="row"><button class="btn go" id="back">← Retour au planning</button></div></div>`;
   window.scrollTo(0,0);
@@ -468,6 +518,7 @@ function renderParent(){
       row.querySelector('.en').onchange=e=>{x.name=e.target.value.trim().slice(0,48)||'Nouvelle tâche';e.target.value=x.name;touch();};
       row.querySelector('.ef').onchange=e=>{if(e.target.value)x.alt=e.target.value;else delete x.alt;touch();};
       row.querySelector('.lk').onclick=e=>{if(x.lock)delete x.lock;else x.lock=true;e.currentTarget.setAttribute('aria-pressed',!!x.lock);touch();};
+      row.querySelector('.sc').onclick=e=>{if(x.school)delete x.school;else x.school=true;e.currentTarget.setAttribute('aria-pressed',!!x.school);touch();};
       row.querySelector('.up').onclick=()=>{if(i>0){[ro.tasks[i-1],ro.tasks[i]]=[ro.tasks[i],ro.tasks[i-1]];touch();again(true);}};
       row.querySelector('.down').onclick=()=>{if(i<ro.tasks.length-1){[ro.tasks[i+1],ro.tasks[i]]=[ro.tasks[i],ro.tasks[i+1]];touch();again(true);}};
       row.querySelector('.del').onclick=()=>{ro.tasks.splice(i,1);touch();again(true);};
@@ -477,6 +528,8 @@ function renderParent(){
   const arm=(btn,key,label,fn)=>{btn.onclick=()=>{if(resetArmed!==key){resetArmed=key;btn.textContent=label;btn.style.background='var(--bad-soft)';return;}fn();};};
   arm($('#uncheck'),'u','Sûr ? Touche encore pour tout décocher',()=>{today()[kid].done={};snapshot(kid);save();again(true);});
   arm($('#defTasks'),'d','Sûr ? Touche encore pour remplacer ses tâches',()=>{K.routines=defaults().kids[kid].routines;snapshot(kid);save();again(true);});
+  document.querySelectorAll('#schoolDays .day').forEach(b=>b.onclick=()=>{const i=+b.dataset.d;S.school[i]=!S.school[i];b.setAttribute('aria-pressed',S.school[i]);KIDS.forEach(snapshot);save();});
+  $('#holiday').onclick=()=>{S.holiday=!S.holiday;delete today().type;KIDS.forEach(snapshot);save();again(true);};
   $('#cut0').onchange=e=>{S.cut[0]=+e.target.value;if(S.cut[1]<S.cut[0]+60)S.cut[1]=S.cut[0]+60;if(S.cut[1]<960)S.cut[1]=960;save();again(true);};
   $('#cut1').onchange=e=>{S.cut[1]=+e.target.value;save();};
   document.querySelectorAll('.abox').forEach(box=>{
@@ -487,6 +540,7 @@ function renderParent(){
     box.querySelector('.al').onchange=e=>{a.lead=+e.target.value;save();};
     box.querySelectorAll('.day').forEach(b=>b.onclick=()=>{const j=+b.dataset.d;a.days[j]=!a.days[j];b.setAttribute('aria-pressed',a.days[j]);save();});
     box.querySelector('.atry').onclick=()=>{unlock();ring(a,0);};
+    box.querySelector('.asc').onclick=e=>{a.school=!a.school;e.currentTarget.setAttribute('aria-pressed',a.school);save();};
     box.querySelector('.adel').onclick=()=>{S.alerts.splice(i,1);save();again(true);};
   });
   // Une nouvelle alerte est posée à la prochaine heure pleine, pour ne pas sonner tout de suite.
