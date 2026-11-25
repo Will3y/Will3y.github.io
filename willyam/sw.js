@@ -1,7 +1,7 @@
 // Hors ligne : on répond tout de suite avec la copie en cache, puis on la met à jour
 // en arrière-plan. Une nouvelle version du jeu apparaît donc à l'ouverture suivante.
 // La progression n'est pas ici : elle reste dans le localStorage de l'appareil.
-const CACHE = 'willyam-v5';
+const CACHE = 'willyam-v6';
 const FILES = ['./', './index.html', './manifest.webmanifest', './img/icon-192.png', './img/icon-512.png', './img/apple-touch-icon.png'];
 const FONTS = ['fonts.googleapis.com', 'fonts.gstatic.com'];
 

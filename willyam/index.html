@@ -20,7 +20,7 @@
 :root{
   /* Monde "cahier d'aventure" : autocollants épais, une couleur par matière. Colonne unique, carte des niveaux par étape CE1 → CE2. */
   --bg:#e4f1ec; --paper:#ffffff; --ink:#1b2632; --muted:#56636f;
-  --maths:#ff7a3d; --maths-soft:#ffe4d6; --fr:#4c5ff5; --fr-soft:#e0e4ff; --en:#8e5bd9; --en-soft:#ece2fb;
+  --maths:#ff7a3d; --maths-soft:#ffe4d6; --fr:#4c5ff5; --fr-soft:#e0e4ff; --en:#8e5bd9; --en-soft:#ece2fb; --logique:#16a6b6; --logique-soft:#d3f2f5;
   --star:#ffc226; --star-soft:#fff1c7; --ok:#1c9e61; --ok-soft:#d5f2e3; --bad:#d93b45; --bad-soft:#fde1e2;
   --display:"Fredoka","Trebuchet MS",system-ui,sans-serif;
   --body:"Andika","Comic Sans MS",system-ui,sans-serif;
@@ -29,6 +29,7 @@
 }
 body[data-track="fr"]{--accent:var(--fr);--accent-soft:var(--fr-soft);--on-accent:#fff}
 body[data-track="en"]{--accent:var(--en);--accent-soft:var(--en-soft);--on-accent:#fff}
+body[data-track="logique"]{--accent:var(--logique);--accent-soft:var(--logique-soft);--on-accent:var(--ink)}
 *{box-sizing:border-box}
 html,body{margin:0;min-height:100%}
 body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:18px;line-height:1.45;-webkit-tap-highlight-color:transparent}
@@ -49,15 +50,17 @@ h1,h2,h3{font-family:var(--display);text-wrap:balance;margin:0}
 .top h1 small{display:block;font-family:var(--body);font-weight:400;font-size:16px;color:var(--muted);margin-top:4px}
 .total{display:flex;align-items:center;gap:6px;padding:6px 14px;font-family:var(--display);font-weight:700;font-size:24px;font-variant-numeric:tabular-nums}
 .total svg{width:28px;height:28px}
-.tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:20px}
+.tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:20px}
 .tab{display:flex;align-items:center;justify-content:center;gap:10px;padding:14px 10px;font-size:22px}
 .tab .ic{width:44px;height:44px;border-radius:12px;border:3px solid var(--ink);display:grid;place-items:center;font-family:var(--display);font-weight:700;font-size:20px}
 .tab.maths .ic{background:var(--maths)}
 .tab.fr .ic{background:var(--fr);color:#fff}
 .tab.en .ic{background:var(--en);color:#fff}
+.tab.logique .ic{background:var(--logique)}
 .tab[aria-selected="true"].maths{background:var(--maths-soft)}
 .tab[aria-selected="true"].fr{background:var(--fr-soft)}
 .tab[aria-selected="true"].en{background:var(--en-soft)}
+.tab[aria-selected="true"].logique{background:var(--logique-soft)}
 .tab[aria-selected="false"]{box-shadow:0 2px 0 var(--ink);transform:translateY(2px);opacity:.8}
 .intro{margin:16px 2px 0;color:var(--muted)}
 .stage-h{display:flex;align-items:center;gap:12px;margin:28px 0 12px;flex-wrap:wrap}
@@ -281,6 +284,37 @@ mark{background:var(--accent-soft);color:inherit;border-bottom:4px solid var(--a
 .tbl th{background:var(--accent-soft);font-family:var(--display);font-weight:600}.tbl td{font-family:var(--display);font-weight:600;font-size:24px}
 .xrow{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;font-size:38px;line-height:1.2}
 .xhint{font-size:16px;color:var(--muted);text-align:center;max-width:34ch}
+/* Parcours Logique : formes en SVG, grilles, balances, codes, sudoku */
+@media (max-width:560px){.tabs{grid-template-columns:repeat(2,1fr)}.tab{flex-direction:row;gap:8px;font-size:19px}}
+.lf{width:46px;height:46px;display:block;flex:none}
+.lrow{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;align-items:center}
+.lrow.sm .lf,.lrow.sm .lq{width:34px;height:34px}.lrow.sm .lq{font-size:20px;border-width:2px}
+.lq{display:grid;place-items:center;width:46px;height:46px;border:3px dashed var(--accent);border-radius:10px;font-family:var(--display);font-weight:700;font-size:26px;background:var(--accent-soft)}
+.answers.lfs{grid-template-columns:repeat(auto-fit,minmax(70px,1fr))}
+.answers.lfs .choice{min-height:84px;padding:8px}
+.answers.lfs .lf{width:60px;height:60px}
+.fb .lf{display:inline-block;width:44px;height:44px;vertical-align:middle}
+.lmat{display:grid;gap:6px;justify-content:center}
+.lmat.n2{grid-template-columns:repeat(2,88px)}.lmat.n3{grid-template-columns:repeat(3,74px)}
+.lmat>span{aspect-ratio:1;display:grid;place-items:center;border:3px solid var(--ink);border-radius:12px;background:#fff}
+.lmat>span.lq{width:auto;height:auto;border-style:dashed;border-color:var(--accent);background:var(--accent-soft)}
+.lmat .lf{width:78%;height:78%}
+.lscale{width:min(300px,80vw);display:block}
+.lscale .ft{fill:var(--accent-soft);stroke:var(--ink);stroke-width:3;stroke-linejoin:round}
+.lscale .bm,.lscale .pl{stroke:var(--ink);stroke-width:5;stroke-linecap:round;fill:none}
+.lscale .st{stroke:var(--ink);stroke-width:1.6;fill:none}
+.lscale .qb{fill:var(--accent-soft);stroke:var(--accent);stroke-width:2.5;stroke-dasharray:5 4}
+.lscale text{font-family:var(--display);font-weight:700;font-size:24px;fill:var(--ink)}
+.leq{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:8px;font-family:var(--display);font-weight:600;font-size:32px;line-height:1}
+.leq .lf{width:40px;height:40px}
+.lleg{display:flex;flex-wrap:wrap;gap:6px 22px;justify-content:center;padding:8px 12px;border:2px dashed var(--muted);border-radius:14px}
+.lsud{display:grid;grid-template-columns:repeat(4,58px);gap:2px;border:3px solid var(--ink);border-radius:10px;overflow:hidden;background:var(--ink)}
+.lsud>span{aspect-ratio:1;display:grid;place-items:center;background:#fff;font-family:var(--display);font-weight:700;font-size:30px}
+.lsud>span:nth-child(4n+2){margin-right:3px}
+.lsud>span:nth-child(n+5):nth-child(-n+8){margin-bottom:3px}
+.lsud>span.t{background:var(--accent-soft);box-shadow:inset 0 0 0 3px var(--accent)}
+.lsud .lf{width:74%;height:74%}
+.lwords{font-family:var(--display);font-weight:600;font-size:clamp(26px,7.4vw,38px);text-align:center;line-height:1.25}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
@@ -1049,10 +1083,229 @@ Object.assign(GF,{
   F47(){return lectQ(LECT_DOC);}
 });
 
+/* ---------- Questions de logique ---------- */
+// Tout est dessiné en SVG (pas d'emoji) pour un rendu identique sur tous les appareils.
+// Chaque question porte « hint » (le coup de pouce après une première erreur) et « _m » : la description
+// de l'énigme, relue par les tests pour vérifier qu'une seule réponse est possible.
+const LC={rouge:'#e5484d',bleu:'#3b82f6',jaune:'#ffc226',vert:'#2fa56a'},LCN=Object.keys(LC);
+const LSH={rond:'<circle r="40"/>',carré:'<rect x="-36" y="-36" width="72" height="72" rx="5"/>',triangle:'<polygon points="0,-42 42,34 -42,34"/>',
+  étoile:`<polygon points="${Array.from({length:10},(_,i)=>{const a=i*Math.PI/5-Math.PI/2,r=i%2?19:45;return (r*Math.cos(a)).toFixed(1)+','+(r*Math.sin(a)).toFixed(1);}).join(' ')}"/>`},LSN=Object.keys(LSH);
+const LDIR={0:'vers le haut',90:'vers la droite',180:'vers le bas',270:'vers la gauche'};
+const LPOS={1:[[50,50]],2:[[27,50],[73,50]],3:[[50,27],[26,73],[74,73]],4:[[27,27],[73,27],[27,73],[73,73]]};
+// Un élément = {s: forme, c: couleur, n: combien (1 à 4), r: rotation en degrés, z: 'p' pour petit}
+const lkey=it=>[it.s,it.c,it.n||1,it.r||0,it.z||'g'].join('|');
+function lname(it){const n=it.n||1,f=it.s==='étoile',pl=n>1?'s':'',col=it.c+(f&&(it.c==='bleu'||it.c==='vert')?'e':'')+pl;
+  return `${n>1?n:f?'une':'un'} ${it.z==='p'?(f?'petite':'petit')+pl+' ':''}${it.s}${pl} ${col}${'r' in it?' '+LDIR[it.r]:''}`;}
+function lsvg(it,cls){const n=it.n||1,k=(n===1?1:n===2?.5:.42)*(it.z==='p'?.55:1);
+  return `<svg viewBox="0 0 100 100" class="lf${cls?' '+cls:''}" role="img" aria-label="${lname(it)}">${LPOS[n].map(([x,y])=>`<g transform="translate(${x} ${y}) scale(${k}) rotate(${it.r||0})" fill="${LC[it.c]}" stroke="#1b2632" stroke-width="${(5/k).toFixed(1)}" stroke-linejoin="round">${LSH[it.s]}</g>`).join('')}</svg>`;}
+const lrow=(items,sm)=>`<div class="lrow${sm?' sm':''}">${items.map(it=>lsvg(it)).join('')}<span class="lq">?</span></div>`;
+const lde=s=>(s==='étoile'?'d’':'de ')+s+'s';
+const lle=s=>s==='étoile'?'l’étoile':'le '+s;
+const lcomma=a=>a.length<2?a.join(''):a.slice(0,-1).join(', ')+' et '+a[a.length-1];
+// Dans les balances, les codes et le sudoku, chaque forme garde toujours la même couleur.
+const LBC={rond:'rouge',carré:'bleu',triangle:'jaune',étoile:'vert'},lb=s=>({s,c:LBC[s]});
+
+// Suite qui se répète : formes et couleurs suivent chacune leur propre motif.
+function lcycQ(seq,ans,opts,explain,hint){return {p:'Quelle forme vient après ?',q:lrow(seq,seq.length>5),say:'Regarde bien la suite. Quelle forme vient après ?',type:'choice',cls:'lfs',choices:opts.map(o=>lsvg(o)),answer:lsvg(ans),hint,explain,
+  _m:{t:'cyc',seqs:[seq.map(x=>x.s),seq.map(x=>x.c)],opts:opts.map(o=>o.s+'|'+o.c),ans:ans.s+'|'+ans.c}};}
+function lnumQ(terms,ans,explain,hint){return {p:'Quel nombre vient après ?',q:`<div class="seqn">${terms.map(nf).join(' · ')} · ${SLOT}</div>`,say:`Quel nombre vient après ? ${terms.join(', ')}…`,type:'num',answer:String(ans),hint:hint||'Regarde comment on passe d’un nombre au suivant.',explain,_m:{t:'num',terms,ans}};}
+
+// Mots rangés par point commun. Un mot peut avoir plusieurs points communs (rose : une couleur et une fleur).
+const LGRP={
+  'des fruits':'pomme banane fraise poire cerise raisin citron orange',
+  'des légumes':'carotte poireau courgette radis salade chou',
+  'des animaux':'vache cochon poule mouton cheval canard lion tigre éléphant girafe zèbre singe requin baleine dauphin aigle hibou pigeon fourmi abeille mouche papillon',
+  'des animaux de la ferme':'vache cochon poule mouton cheval canard',
+  'des animaux sauvages':'lion tigre éléphant girafe zèbre singe',
+  'des animaux de la mer':'requin baleine dauphin',
+  'des oiseaux':'poule canard aigle hibou pigeon',
+  'des insectes':'fourmi abeille mouche papillon',
+  'des animaux à 4 pattes':'vache cochon mouton cheval lion tigre éléphant girafe zèbre',
+  'des vêtements':'pantalon robe pull manteau jupe chaussette',
+  'des meubles':'table chaise lit armoire canapé bureau',
+  'des véhicules':'voiture camion vélo bus moto train avion bateau hélicoptère trottinette',
+  'des instruments de musique':'guitare piano violon tambour flûte trompette',
+  'des jouets':'poupée toupie peluche puzzle',
+  'des couleurs':'rouge bleu vert jaune violet rose orange',
+  'des outils':'marteau tournevis scie pince hache ciseaux',
+  'des fleurs':'rose tulipe marguerite coquelicot',
+  'des métiers':'boulanger pompier docteur facteur',
+  'des sports':'football tennis natation judo',
+  'des parties du corps':'bras jambe tête main',
+  'des boissons':'eau lait jus thé',
+  'des émotions':'joie colère peur tristesse',
+  'des saisons':'hiver printemps été automne',
+  'des jours de la semaine':'lundi mardi jeudi samedi dimanche',
+  'des mois de l’année':'janvier avril juillet octobre',
+  'des unités de mesure':'mètre kilo litre gramme',
+  'des planètes':'Mars Jupiter Saturne Vénus',
+  'des pays':'France Espagne Italie Japon',
+  'des formes':'carré rond triangle rectangle',
+  'des animaux ou des objets qui volent':'avion hélicoptère aigle hibou pigeon abeille mouche papillon fusée cerf-volant',
+  'des choses qui éclairent':'lampe bougie soleil phare',
+  'des choses qui coupent':'ciseaux couteau scie hache',
+  'des choses pour écrire':'crayon stylo craie feutre',
+  'des choses qui donnent l’heure':'montre horloge réveil',
+  'des choses qui roulent':'voiture camion vélo bus moto trottinette'
+};
+const LW={};Object.keys(LGRP).forEach(k=>{LGRP[k]=LGRP[k].split(' ');LGRP[k].forEach(w=>(LW[w]=LW[w]||[]).push(k));});
+const lin=(w,lab)=>LGRP[lab].includes(w);
+// Intrus possibles : un mot est un intrus si les trois autres partagent un point commun qu'il n'a pas.
+const loddW=ws=>ws.filter(w=>Object.keys(LGRP).some(lab=>!lin(w,lab)&&ws.every(x=>x===w||lin(x,lab))));
+const L_EASY=['des fruits','des légumes','des animaux','des vêtements','des meubles','des véhicules','des instruments de musique','des jouets','des couleurs','des fleurs','des outils','des métiers','des sports','des parties du corps','des boissons'];
+const L_FOOD=['des fruits','des légumes','des boissons'];
+const L_NEAR=[['des fruits','des légumes'],['des animaux de la ferme','des animaux sauvages'],['des animaux de la ferme','des animaux de la mer'],['des animaux sauvages','des insectes'],['des jours de la semaine','des mois de l’année'],['des saisons','des mois de l’année'],['des planètes','des pays'],['des instruments de musique','des jouets'],['des choses pour écrire','des choses qui éclairent'],['des vêtements','des parties du corps']];
+const L_ABS=['des émotions','des saisons','des jours de la semaine','des mois de l’année','des unités de mesure','des planètes','des pays','des formes','des animaux ou des objets qui volent','des choses qui éclairent','des choses qui coupent','des choses pour écrire','des choses qui donnent l’heure','des choses qui roulent','des insectes','des oiseaux','des animaux de la mer','des métiers','des sports'];
+function loddWordsQ(near){for(;;){let T,U;if(near){[T,U]=shuffle(pick(L_NEAR));}else{[T,U]=shuffle(L_EASY);if(L_FOOD.includes(T)&&L_FOOD.includes(U))continue;}
+    const three=shuffle(LGRP[T]).slice(0,3),odd=pick(LGRP[U]),ws=[...three,odd],c=loddW(ws);if(new Set(ws).size<4||c.length!==1||c[0]!==odd)continue;
+    return {p:'Trouve l’intrus',q:'<div class="tag">Trois mots vont ensemble</div>',say:'Trouve l’intrus. Trois mots vont ensemble.',type:'choice',cls:'list',choices:ws,answer:odd,hint:'Cherche ce que trois mots ont en commun.',
+      explain:`« ${three[0]} », « ${three[1]} » et « ${three[2]} » sont ${T}. Pas « ${odd} ».`,_m:{t:'oddw',words:ws,ans:odd}};}}
+function lcommonQ(pool){for(;;){const T=pick(pool),[a,b]=shuffle(LGRP[T]),wrong=shuffle(pool.filter(l=>l!==T&&!(lin(a,l)&&lin(b,l)))).slice(0,3),labels=[T,...wrong];
+    if(Object.keys(LGRP).filter(l=>lin(a,l)&&lin(b,l)&&labels.includes(l)).length!==1)continue;
+    return {p:'Quel est leur point commun ?',q:`<div class="lwords">${a} · ${b}</div>`,say:`${a}, ${b}. Quel est leur point commun ?`,type:'choice',cls:'list',choices:labels.map(l=>'Ce sont '+l),answer:'Ce sont '+T,hint:'Cherche ce qui est vrai pour les deux mots.',
+      explain:`« ${a} » et « ${b} » : ce sont ${T}.`,_m:{t:'common',pair:[a,b],labels,ans:T}};}}
+// Intrus parmi des nombres : une seule propriété doit désigner un seul intrus.
+const LNP=[[x=>x%2===0,'pairs'],[x=>x%2===1,'impairs'],[x=>x%5===0,'dans la table de 5'],[x=>x%10===0,'des dizaines entières'],[x=>x<10,'plus petits que 10'],[x=>x>=10&&x<100,'des nombres à 2 chiffres'],[x=>x>=100,'des nombres à 3 chiffres']];
+const loddN=ns=>ns.filter(x=>LNP.some(([f])=>!f(x)&&ns.every(y=>y===x||f(y))));
+function loddNumQ(){for(;;){const [f,lab]=pick(LNP.slice(0,6)),ns=[];let g=0;while(ns.length<3&&g++<200){const x=R(1,120);if(f(x)&&!ns.includes(x))ns.push(x);}
+    let odd=0;g=0;do{odd=R(1,120);}while(f(odd)&&g++<200);const all=[...ns,odd],c=loddN(all);if(ns.length<3||f(odd)||c.length!==1||c[0]!==odd)continue;
+    return {p:'Trouve l’intrus',q:'<div class="tag">Trois nombres vont ensemble</div>',say:'Trouve l’intrus. Trois nombres vont ensemble.',type:'choice',choices:all.map(String),answer:String(odd),hint:'Pair ou impair ? Petit ou grand ? Cherche ce que trois nombres ont en commun.',
+      explain:`${ns.join(', ')} sont ${lab}. Pas ${odd}.`,_m:{t:'oddn',nums:all,ans:odd}};}}
+// Intrus parmi des formes : trois partagent une valeur (forme, couleur, taille ou nombre), les autres critères sont tous différents.
+function loddShapeQ(attrs){const A=pick(attrs),ss=shuffle(LSN),cs=shuffle(LCN),k=R(1,2);
+  const items=[0,1,2,3].map(i=>{const odd=i===3,it={s:ss[i],c:cs[0]};
+    if(A==='s'){it.s=ss[odd?1:0];it.c=cs[i];}if(A==='c')it.c=cs[odd?1:0];if(A==='z'&&odd)it.z='p';if(A==='n')it.n=odd?k+1:k;return it;}),odd=items[3],PL={rouge:'rouges',bleu:'bleues',jaune:'jaunes',vert:'vertes'};
+  const ex={s:`Il y a trois ${items[0].s}s.`,c:`Trois formes sont ${PL[items[0].c]}.`,z:'Trois formes sont grandes.',n:`Trois cases ont ${k} forme${k>1?'s':''}.`}[A];
+  return {p:'Trouve l’intrus',q:'<div class="tag">Trois dessins vont ensemble</div>',say:'Trouve l’intrus. Trois dessins vont ensemble.',type:'choice',cls:'lfs',choices:items.map(o=>lsvg(o)),answer:lsvg(odd),
+    hint:{s:'Regarde bien la forme.',c:'Regarde bien la couleur.',z:'Regarde bien la taille.',n:'Compte les formes dans chaque case.'}[A],explain:`${ex} L’intrus, c’est ${lname(odd)}.`,_m:{t:'odd',items,ans:lkey(odd)}};}
+
+// Grilles (matrices) : chaque critère est soit pareil partout, soit réglé par la ligne, soit par la colonne,
+// soit « une fois par ligne et par colonne » (lat). plan = {s, c, n, r} → 'row' | 'col' | 'lat'.
+function lmatQ(n,plan,last){const V={s:plan.r?['triangle']:shuffle(LSN).slice(0,n),c:shuffle(LCN).slice(0,n),n:n===2?pick([[1,2],[2,3],[1,3]]):[1,2,3],r:shuffle([0,90,180,270]).slice(0,n).sort((a,b)=>a-b)};
+  const val=(a,r,c)=>{const p=plan[a];return p==='row'?V[a][r]:p==='col'?V[a][c]:p==='lat'?V[a][(r+c)%n]:V[a][0];};
+  const cell=(r,c)=>{const it={s:val('s',r,c),c:val('c',r,c)};if(plan.n)it.n=val('n',r,c);if(plan.r)it.r=val('r',r,c);return it;};
+  const hr=last?n-1:R(0,n-1),hc=last?n-1:R(0,n-1),ans=cell(hr,hc),vary=Object.keys(plan),opts=[ans],push=o=>{if(!opts.some(x=>lkey(x)===lkey(o)))opts.push(o);};
+  vary.forEach(a=>push({...ans,[a]:pick(V[a].filter(v=>v!==ans[a]))}));
+  if(vary.length>1){const o={...ans};vary.forEach(a=>o[a]=pick(V[a].filter(v=>v!==ans[a])));push(o);}
+  let g=0;while(opts.length<4&&g++<60){const a=pick(vary.concat(plan.r?['c']:['s','c'])),o={...pick(opts)},pool=(vary.includes(a)?V[a]:a==='s'?LSN:LCN).filter(v=>v!==o[a]);if(pool.length){o[a]=pick(pool);push(o);}}
+  const grid=[],cells=[];for(let r=0;r<n;r++){grid.push([]);for(let c=0;c<n;c++){const h=r===hr&&c===hc;grid[r].push(h?null:cell(r,c));cells.push(h?'<span class="lq">?</span>':`<span>${lsvg(cell(r,c))}</span>`);}}
+  const W={s:'la forme',c:'la couleur',n:'le nombre de formes',r:'le sens du triangle'},W2={s:'chaque forme',c:'chaque couleur',n:'chaque nombre',r:'chaque sens'};
+  const ex=vary.map(a=>plan[a]==='row'?`Sur chaque ligne, ${W[a]} ne change pas.`:plan[a]==='col'?`Dans chaque colonne, ${W[a]} ne change pas.`:`Sur chaque ligne et dans chaque colonne, il y a une fois ${W2[a]}.`).join(' ');
+  return {p:'Quel dessin va dans la case vide ?',q:`<div class="lmat n${n}">${cells.join('')}</div>`,say:'Regarde la grille. Quel dessin va dans la case vide ?',type:'choice',cls:'lfs',choices:opts.map(o=>lsvg(o)),answer:lsvg(ans),hint:'Regarde chaque ligne, puis chaque colonne.',
+    explain:`${ex} Il manque ${lname(ans)}.`,_m:{t:'mat',n,grid,opts,ans:lkey(ans)}};}
+
+// Balance en équilibre. L et Rt : listes de formes ; Rt = null pour le plateau à trouver.
+function lscale(L,Rt){const pan=(items,cx)=>{const n=items.length,per=n>4?Math.ceil(n/2):n;return items.map((s,i)=>{const row=Math.floor(i/per),cnt=row===0?per:n-per,x=cx+((i%per)-(cnt-1)/2)*23;
+      return `<g transform="translate(${x.toFixed(1)} ${58-row*22}) scale(.25)" fill="${LC[LBC[s]]}" stroke="#1b2632" stroke-width="14" stroke-linejoin="round">${LSH[s]}</g>`;}).join('');};
+  return `<svg viewBox="0 0 260 112" class="lscale" role="img" aria-label="Balance en équilibre"><path d="M130 12L112 104H148Z" class="ft"/><path d="M40 12L16 70M40 12L104 70M220 12L156 70M220 12L244 70" class="st"/><line x1="40" y1="12" x2="220" y2="12" class="bm"/><path d="M12 70H108M152 70H248" class="pl"/>${pan(L,60)}${Rt?pan(Rt,200):'<rect x="182" y="32" width="36" height="34" rx="8" class="qb"/><text x="200" y="58" text-anchor="middle">?</text>'}</svg>`;}
+const lrep=(s,n)=>Array(n).fill(s);
+function lbalQ(eqs,final,ans,explain){const [FL,unit]=final;return {p:`Combien ${lde(unit)} pour équilibrer la dernière balance ?`,q:eqs.map(([l,r])=>lscale(l,r)).join('')+lscale(FL,null),say:`Les balances sont en équilibre. Combien ${lde(unit)} faut-il pour équilibrer la dernière balance ?`,type:'num',answer:String(ans),
+  hint:'Regarde ce que pèse chaque forme sur les premières balances.',explain,_m:{t:'bal',eqs,final,ans}};}
+// Codes : chaque forme vaut un nombre.
+const leq=parts=>`<div class="leq">${parts.map(x=>LSH[x]?lsvg(lb(x)):`<span>${x}</span>`).join('')}</div>`;
+const lsum=ts=>ts.flatMap((t,i)=>i?['+',t]:[t]);
+
+// Mini-sudoku 4 × 4.
+function lsudGrid(){let g=[[0,1,2,3],[2,3,0,1],[1,0,3,2],[3,2,1,0]];const sym=shuffle([0,1,2,3]);g=g.map(r=>r.map(v=>sym[v]));
+  const ord=()=>{const o=[...shuffle([0,1]),...shuffle([2,3])];return Math.random()<.5?o:[o[2],o[3],o[0],o[1]];},ro=ord(),co=ord();return ro.map(i=>co.map(j=>g[i][j]));}
+function lcands(g,r,c){const seen=new Set();for(let i=0;i<4;i++){seen.add(g[r][i]);seen.add(g[i][c]);}const br=r-r%2,bc=c-c%2;for(let i=0;i<2;i++)for(let j=0;j<2;j++)seen.add(g[br+i][bc+j]);return [0,1,2,3].filter(v=>!seen.has(v));}
+function lsudSolve(P,tr,tc){const res=new Set(),g=P.map(r=>r.slice());(function rec(){let br=-1,bc=-1;for(let r=0;r<4&&br<0;r++)for(let c=0;c<4;c++)if(g[r][c]==null){br=r;bc=c;break;}
+    if(br<0){res.add(g[tr][tc]);return;}for(const v of lcands(g,br,bc)){g[br][bc]=v;rec();g[br][bc]=null;}})();return res;}
+function lsudQ(hard){for(;;){const full=lsudGrid(),tr=R(0,3),tc=R(0,3),P=full.map(r=>r.slice()),cellsIdx=shuffle(Array.from({length:16},(_,i)=>i).filter(i=>i!==tr*4+tc)).slice(0,hard?R(8,9):R(4,5));
+    P[tr][tc]=null;cellsIdx.forEach(i=>P[Math.floor(i/4)][i%4]=null);const cd=lcands(P,tr,tc);
+    if(hard?(cd.length<2||lsudSolve(P,tr,tc).size!==1):cd.length!==1)continue;
+    const a=full[tr][tc],show=v=>hard?String(v+1):lsvg(lb(LSN[v])),seen=[0,1,2,3].filter(v=>v!==a&&!cd.includes(v));
+    const cells=P.map((row,r)=>row.map((v,c)=>r===tr&&c===tc?'<span class="t">?</span>':`<span>${v==null?'':show(v)}</span>`).join('')).join('');
+    return {p:'Que mettre dans la case « ? »',q:`<div class="lsud">${cells}</div><div class="xhint">Chaque ligne, chaque colonne et chaque carré contient les 4 ${hard?'nombres':'formes'}, une seule fois.</div>`,say:`Chaque ligne, chaque colonne et chaque carré contient les 4 ${hard?'nombres':'formes'}, une seule fois. Que faut-il mettre dans la case avec le point d’interrogation ?`,
+      type:'choice',cls:hard?'grid2':'lfs',keep:true,choices:[0,1,2,3].map(show),answer:show(a),hint:'Regarde la ligne, la colonne et le petit carré de la case.',
+      explain:hard?`Remplis d’abord les cases les plus faciles. À la fin, la seule possibilité pour la case « ? » est ${a+1}.`:`Dans sa ligne, sa colonne et son carré, il y a déjà ${lcomma(seen.map(v=>lle(LSN[v])))}. Il ne manque que ${lle(LSN[a])}.`,_m:{t:'sud',grid:P,target:[tr,tc],ans:a}};}}
+
+// Énigmes : qui est le plus… ?
+const LPEOPLE=[['Léo','m'],['Zoé','f'],['Tom','m'],['Lina','f'],['Sami','m'],['Nina','f'],['Max','m'],['Emma','f'],['Willyam','m'],['Hailey','f']];
+const LREL=[['grand','grande','petit','petite'],['âgé','âgée','jeune','jeune'],['rapide','rapide','lent','lente'],['fort','forte','léger','légère']].slice(0,3);
+function lorderQ(n,extra){const ppl=shuffle(LPEOPLE).slice(0,n),[hm_,hf,lm,lf]=pick(LREL),G={};ppl.forEach(([nm,g])=>G[nm]=g);const o=ppl.map(x=>x[0]);
+  const pairs=[];for(let i=0;i<n-1;i++)pairs.push([o[i],o[i+1]]);if(extra&&n>3)pairs.push(pick([[o[0],o[2]],[o[1],o[3]],[o[0],o[3]]]));
+  const que=x=>/^[AEIOUÉ]/.test(x)?'qu’'+x:'que '+x,say=([hi,lo])=>Math.random()<.5?`${hi} est plus ${G[hi]==='f'?hf:hm_} ${que(lo)}.`:`${lo} est plus ${G[lo]==='f'?lf:lm} ${que(hi)}.`;
+  const clues=shuffle(pairs),lines=clues.map(say),max=Math.random()<.5,ans=max?o[0]:o[n-1],qq=`Qui est le plus ${max?hm_:lm} ?`;
+  return {p:qq,q:`<div class="story">${lines.join('<br>')}</div>`,say:`${lines.join(' ')} ${qq}`,type:'choice',choices:shuffle(o),answer:ans,hint:'Range les prénoms dans l’ordre, un indice après l’autre.',
+    explain:`Du plus ${hm_} au plus ${lm} : ${o.join(', ')}.`,_m:{t:'order',names:o.slice().sort(),clues,ask:max?'max':'min',ans}};}
+// Énigmes : qui a quoi ?
+function lassignQ(){const perms=[[0,1,2],[0,2,1],[1,0,2],[1,2,0],[2,0,1],[2,1,0]];for(;;){const kids=shuffle(LPEOPLE).slice(0,3),[intro,set]=pick([['Chaque enfant a un seul animal.',['le chat','le chien','le lapin']],['Chaque enfant a un seul jouet.',['le ballon','le vélo','le robot']],['Chaque enfant a un seul fruit.',['la pomme','la poire','la banane']],['Chaque enfant a un seul bonnet.',['le bonnet rouge','le bonnet bleu','le bonnet vert']]]),items=shuffle(set);
+    // kids[i] a items[i]. Indices : un « a » au plus, et des « n'a pas ».
+    const pos=Math.random()<.6?[[R(0,2)]].map(([i])=>[i,i,true]):[],neg=shuffle([[0,1],[0,2],[1,0],[1,2],[2,0],[2,1]]).slice(0,pos.length?R(1,2):R(2,3)).map(([i,j])=>[i,j,false]),clues=shuffle([...pos,...neg]),ask=R(0,2);
+    if(pos.length&&pos[0][0]===ask)continue;
+    const ok=perms.filter(p=>clues.every(([i,j,yes])=>(p[i]===j)===yes));if(ok.length!==1)continue;
+    const nm=i=>kids[i][0],lines=clues.map(([i,j,yes])=>`${nm(i)} ${yes?'a':'n’a pas'} ${items[j]}.`),qq=`Qui a ${items[ask]} ?`;
+    return {p:qq,q:`<div class="story">${intro}<br>${lines.join('<br>')}</div>`,say:`${intro} ${lines.join(' ')} ${qq}`,type:'choice',choices:shuffle(kids.map(k=>k[0])),answer:nm(ask),hint:'Barre dans ta tête ce qui est impossible. Regarde ce qui reste.',
+      explain:`La seule solution : ${lcomma([0,1,2].map(i=>`${nm(i)} a ${items[i]}`))}.`,_m:{t:'assign',kids:kids.map(k=>k[0]),items,clues:clues.map(([i,j,yes])=>[nm(i),items[j],yes]),ask:items[ask],ans:nm(ask)}};}}
+
+const GL={
+  // ----- Apprenti -----
+  L1(){const u=pick([[0,1],[0,1],[0,1,2],[0,0,1],[0,1,1]]),k=Math.max(...u)+1,byC=Math.random()<.5,ss=shuffle(LSN),cs=shuffle(LCN),item=i=>byC?{s:ss[0],c:cs[i]}:{s:ss[i],c:cs[0]};
+    const len=u.length*2+R(0,u.length-1),seq=Array.from({length:len},(_,i)=>item(u[i%u.length])),ans=item(u[len%u.length]),names=u.map(i=>byC?cs[i]:ss[i]).join(', ');
+    return lcycQ(seq,ans,Array.from({length:k+1},(_,i)=>item(i)),`${byC?'La couleur':'La forme'} se répète : ${names}, ${names}… Ensuite, c’est ${lname(ans)}.`,`Regarde bien ${byC?'la couleur':'la forme'}.`);},
+  L2(){const d=pick([2,5,10,3,-1,-2,-5]),a=d>0?R(1,30):R(25,60),t=[0,1,2,3].map(i=>a+i*d);return lnumQ(t,a+4*d,`On ${d>0?'ajoute':'enlève'} ${Math.abs(d)} à chaque fois : ${t[3]} ${d>0?'+':'−'} ${Math.abs(d)} = ${a+4*d}.`);},
+  L3(){return Math.random()<.55?loddShapeQ(['s','c']):loddWordsQ(false);},
+  L4(){return lcommonQ(L_EASY);},
+  L5(){const plan=pick([{s:'row'},{c:'col'},{s:'row',c:'col'},{s:'col',c:'row'},{s:'col',c:'row'},{s:'row',n:'col'}]);return lmatQ(2,plan,Math.random()<.6);},
+  L6(){const sh=shuffle(LSN).slice(0,R(2,3)),vs=shuffle([1,2,3,4,5,6,7,8,9]),v={};sh.forEach((s,i)=>v[s]=vs[i]);const ts=Array.from({length:R(2,3)},()=>pick(sh)),sum=ts.reduce((a,t)=>a+v[t],0);
+    return {p:'Chaque forme vaut un nombre. Calcule !',q:`<div class="lleg">${sh.map(s=>leq([s,'=',v[s]])).join('')}</div>${leq([...lsum(ts),'=',SLOT])}`,say:`Chaque forme vaut un nombre. ${sh.map(s=>`${lle(s)} vaut ${v[s]}`).join(', ')}. Calcule : ${ts.map(lle).join(' plus ')}.`,type:'num',answer:String(sum),
+      hint:'Remplace chaque forme par son nombre.',explain:`${ts.map(t=>v[t]).join(' + ')} = ${sum}.`,_m:{t:'code',vals:v,terms:ts,ans:sum}};},
+  // ----- Détective -----
+  L7(){const ps=pick([2,3]),pc=ps===2?3:2,ss=shuffle(LSN),cs=shuffle(LCN),len=R(6,8),it=i=>({s:ss[i%ps],c:cs[i%pc]}),seq=Array.from({length:len},(_,i)=>it(i)),ans=it(len),s2=ss[(len+1)%ps],c2=cs[(len+1)%pc];
+    return lcycQ(seq,ans,[ans,{s:ans.s,c:c2},{s:s2,c:ans.c},{s:s2,c:c2}],`La forme se répète : ${ss.slice(0,ps).join(', ')}… La couleur se répète : ${cs.slice(0,pc).join(', ')}… Ensuite, c’est ${lname(ans)}.`,'Regarde la forme, puis la couleur.');},
+  L8(){const k=R(0,3);
+    if(k===0){const d=pick([3,4,6,7]),a=R(40,90),t=[0,1,2,3].map(i=>a-i*d);return lnumQ(t,a-4*d,`On enlève ${d} à chaque fois : ${t[3]} − ${d} = ${a-4*d}.`);}
+    if(k===1){const a=R(1,6),t=[a,2*a,4*a,8*a];return lnumQ(t,16*a,`On double à chaque fois : ${8*a} × 2 = ${16*a}.`,'Est-ce qu’on ajoute, ou est-ce qu’on multiplie ?');}
+    if(k===2){const m=pick([3,10]),a=m===3?R(1,3):R(1,5),t=[a,a*m,a*m*m,a*m*m*m];return lnumQ(t,t[3]*m,`On multiplie par ${m} à chaque fois : ${nf(t[3])} × ${m} = ${nf(t[3]*m)}.`,'Est-ce qu’on ajoute, ou est-ce qu’on multiplie ?');}
+    const p=R(4,9),q=R(1,3),a=R(2,20),t=[a,a+p,a+p-q,a+2*p-q,a+2*p-2*q];return lnumQ(t,a+3*p-2*q,`Il y a deux règles qui alternent : + ${p}, puis − ${q}. Ici, c’est + ${p} : ${t[4]} + ${p} = ${a+3*p-2*q}.`,'Il y a deux règles : une fois on ajoute, une fois on enlève.');},
+  L9(){const [a,b]=shuffle(LSN),k=R(2,4);
+    if(Math.random()<.65){const m=k===4?2:R(2,3);return lbalQ([[[a],lrep(b,k)]],[lrep(a,m),b],m*k,`1 ${a} pèse comme ${k} ${b}s. Donc ${m} ${a}s pèsent comme ${m} × ${k} = ${m*k} ${b}s.`);}
+    const m=k===2?R(2,4):2;return lbalQ([[[a],lrep(b,k)]],[lrep(b,m*k),a],m,`Il faut ${k} ${b}s pour 1 ${a}. Avec ${m*k} ${b}s, on équilibre ${m} ${a}s.`);},
+  L10(){return lsudQ(false);},
+  L11(){return lorderQ(3,false);},
+  L12(){const r=Math.random();return r<.35?loddNumQ():r<.7?loddShapeQ(['z','n','s','c']):loddWordsQ(true);},
+  L13(){return lmatQ(3,pick([{s:'row',c:'col'},{s:'col',c:'row'},{s:'row',n:'col'},{c:'row',n:'col'},{s:'col',n:'row'}]),Math.random()<.4);},
+  // ----- Génie -----
+  L14(){const k=R(0,2),ss=shuffle(LSN),cs=shuffle(LCN);
+    if(k===0){const A={s:ss[0],c:cs[0]},B=Math.random()<.5?{s:ss[1],c:cs[0]}:{s:ss[0],c:cs[1]},C={s:ss[2],c:cs[2]},full=[];for(let g=1;g<=5;g++){for(let i=0;i<g;i++)full.push(A);full.push(B);}
+      const len=pick([8,8,9,10,12,13,13]),ans=full[len];
+      return {p:'Quelle forme vient après ?',q:lrow(full.slice(0,len),true),say:'Regarde bien la suite : elle grandit. Quelle forme vient après ?',type:'choice',cls:'lfs',choices:[A,B,C].map(o=>lsvg(o)),answer:lsvg(ans),hint:'Compte les formes de chaque groupe : 1, puis 2, puis 3…',
+        explain:`Le groupe grandit à chaque fois : 1, puis 2, puis 3, puis 4. Entre deux groupes, il y a ${lname(B)}. Ensuite, c’est ${lname(ans)}.`,_m:{t:'grow',a:lkey(A),b:lkey(B),len,opts:[A,B,C].map(lkey),ans:lkey(ans)}};}
+    if(k===1){const up=Math.random()<.6,ns=up?[1,2,3]:[4,3,2],nx=up?4:1,base={s:ss[0],c:cs[0]},ans={...base,n:nx},opts=[ans,{...base,n:ns[2]},{...base,n:ns[1]},{s:ss[1],c:cs[0],n:nx}];
+      return {p:'Quel dessin vient après ?',q:lrow(ns.map(n=>({...base,n}))),say:'Regarde bien la suite. Quel dessin vient après ?',type:'choice',cls:'lfs',choices:opts.map(o=>lsvg(o)),answer:lsvg(ans),hint:'Compte les formes dans chaque case.',
+        explain:`Il y a une forme de ${up?'plus':'moins'} à chaque fois : ${ns.join(', ')}, puis ${nx}. La forme et la couleur ne changent pas.`,_m:{t:'count',ns,items:opts,base:lkey(base),ans:lkey(ans)}};}
+    const st=pick([90,270]),r0=pick([0,90,180,270]),len=R(4,5),rs=Array.from({length:len},(_,i)=>(r0+i*st)%360),nr=(r0+len*st)%360,T=r=>({s:'triangle',c:cs[0],r});
+    return {p:'Dans quel sens sera le triangle ?',q:lrow(rs.map(T)),say:'Le triangle tourne. Dans quel sens sera le suivant ?',type:'choice',cls:'lfs',keep:true,choices:[0,90,180,270].map(r=>lsvg(T(r))),answer:lsvg(T(nr)),hint:'Regarde vers où pointe le triangle à chaque fois.',
+      explain:`Le triangle fait un quart de tour à chaque fois, toujours dans le même sens. Ensuite, il pointe ${LDIR[nr]}.`,_m:{t:'rot',rs,ans:nr}};},
+  L15(){const k=R(0,4);
+    if(k===0){const s=pick([1,1,2,3]),a=R(1,9),t=[a];for(let i=1;i<5;i++)t.push(t[i-1]+i*s);return lnumQ(t,t[4]+5*s,`On ajoute de plus en plus : + ${s}, + ${2*s}, + ${3*s}, + ${4*s}. Ensuite, c’est + ${5*s} : ${t[4]} + ${5*s} = ${t[4]+5*s}.`,'Calcule l’écart entre deux nombres qui se suivent. Est-il toujours le même ?');}
+    if(k===1){const a=R(1,4),b=R(a,5),t=[a,b];for(let i=2;i<6;i++)t.push(t[i-1]+t[i-2]);return lnumQ(t.slice(0,5),t[5],`Chaque nombre est la somme des deux d’avant : ${t[3]} + ${t[4]} = ${t[5]}.`,'Additionne deux nombres qui se suivent. Que remarques-tu ?');}
+    if(k===2){const m=pick([1,-1]),a=m===1?R(1,4):R(2,5),t=[a];for(let i=1;i<5;i++)t.push(2*t[i-1]+m);return lnumQ(t.slice(0,4),t[4],`On double, puis on ${m===1?'ajoute':'enlève'} 1 : ${t[3]} × 2 = ${2*t[3]}, et ${2*t[3]} ${m===1?'+':'−'} 1 = ${t[4]}.`,'Essaie de doubler le nombre. Que faut-il faire ensuite ?');}
+    if(k===3){const c=R(0,3),n0=R(1,2),t=[0,1,2,3,4].map(i=>(n0+i)*(n0+i)+c);return lnumQ(t.slice(0,4),t[4],`L’écart grandit de 2 à chaque fois : + ${t[1]-t[0]}, + ${t[2]-t[1]}, + ${t[3]-t[2]}. Ensuite, c’est + ${t[4]-t[3]} : ${t[3]} + ${t[4]-t[3]} = ${t[4]}.`,'Calcule l’écart entre deux nombres qui se suivent. Est-il toujours le même ?');}
+    const a0=R(1,5),da=pick([1,2]),b0=pick([10,20,50]),db=pick([5,10]),t=[0,1,2].flatMap(i=>[a0+i*da,b0+i*db]);
+    return lnumQ(t,a0+3*da,`Deux suites sont mélangées : ${[0,1,2].map(i=>a0+i*da).join(', ')}… et ${[0,1,2].map(i=>b0+i*db).join(', ')}… C’est au tour de la première : ${a0+2*da} + ${da} = ${a0+3*da}.`,'Regarde un nombre sur deux.');},
+  L16(){return lmatQ(3,pick([{s:'lat',c:'row'},{c:'lat',s:'col'},{c:'lat',n:'col'},{s:'lat',n:'row',c:'col'},{r:'col',c:'row'},{r:'lat',c:'col'},{s:'row',c:'col',n:'lat'}]),false);},
+  L17(){const [a,b,c]=shuffle(LSN),k=R(0,3);
+    if(k===0){const x=R(2,3),y=R(2,3);return lbalQ([[[a],lrep(b,x)],[[b],lrep(c,y)]],[[a],c],x*y,`1 ${a} = ${x} ${b}s, et chaque ${b} = ${y} ${c}s. Donc 1 ${a} = ${x} × ${y} = ${x*y} ${c}s.`);}
+    if(k===1){const x=R(2,4);return lbalQ([[[a],lrep(b,x)],[[c],[a,b]]],[[c],b],x+1,`1 ${a} = ${x} ${b}s. Et 1 ${c} = 1 ${a} + 1 ${b}, donc ${x} + 1 = ${x+1} ${b}s.`);}
+    if(k===2){const [m,x]=pick([[2,2],[2,3],[3,2],[2,4]]);return lbalQ([[lrep(a,m),lrep(b,m*x)]],[[a],b],x,`${m} ${a}s pèsent comme ${m*x} ${b}s. On partage en ${m} : 1 ${a} = ${x} ${b}s.`);}
+    const j=R(1,2),x=R(2,3);return lbalQ([[[a,...lrep(b,j)],lrep(b,j+x)]],[[a],b],x,`On enlève ${j} ${b}${j>1?'s':''} de chaque côté : il reste 1 ${a} d’un côté et ${x} ${b}s de l’autre.`);},
+  L18(){const [a,b,c]=shuffle(LSN),vs=shuffle([1,2,3,4,5,6,7,8,9]),[x,y,z]=vs,k=R(0,2);let eqs,ask,ans,ex;
+    if(k===0){eqs=[[[a,a],2*x],[[a,b],x+y]];ask=b;ans=y;ex=`Deux ${a}s font ${2*x} : 1 ${a} vaut ${x}. Puis ${x} + ? = ${x+y} : ${lle(b)} vaut ${y}.`;}
+    else if(k===1){eqs=[[[a,a],2*x],[[a,b],x+y],[[b,c],y+z]];ask=c;ans=z;ex=`1 ${a} vaut ${x}. Donc ${lle(b)} vaut ${y}. Puis ${y} + ? = ${y+z} : ${lle(c)} vaut ${z}.`;}
+    else{eqs=[[[a,a,a],3*x],[[a,b,b],x+2*y]];ask=b;ans=y;ex=`Trois ${a}s font ${3*x} : 1 ${a} vaut ${x}. Il reste ${2*y} pour deux ${b}s : ${lle(b)} vaut ${y}.`;}
+    return {p:'Casse le code : trouve le nombre caché',q:eqs.map(([ts,s])=>leq([...lsum(ts),'=',s])).join('')+leq([ask,'=',SLOT]),say:`Chaque forme cache un nombre. Combien vaut ${lle(ask)} ?`,type:'num',answer:String(ans),hint:'Commence par la ligne où il n’y a qu’une seule sorte de forme.',explain:ex,_m:{t:'solve',eqs,ask,ans}};},
+  L19(){return lcommonQ(L_ABS);},
+  L20(){return Math.random()<.5?lorderQ(4,Math.random()<.5):lassignQ();},
+  L21(){return lsudQ(true);}
+};
+
 /* ---------- Niveaux ---------- */
 const STAGES=[{n:'CE1',d:'Les bases de l’année'},{n:'Vers le CE2',d:'On monte d’un cran'},{n:'CE2',d:'Comme les grands'}];
 // L'anglais a ses propres étapes : il ne suit pas les classes.
-const STAGES_T={en:[{n:'Niveau 1',d:'Les premiers mots'},{n:'Niveau 2',d:'De plus en plus de mots'},{n:'Niveau 3',d:'Les petites phrases'}]};
+// La logique aussi : Apprenti, Détective, Génie. La dernière étape dépasse largement le CE2.
+const STAGES_T={logique:[{n:'Apprenti',d:'Pour s’échauffer'},{n:'Détective',d:'Ça se corse'},{n:'Génie',d:'Pour les très forts'}],en:[{n:'Niveau 1',d:'Les premiers mots'},{n:'Niveau 2',d:'De plus en plus de mots'},{n:'Niveau 3',d:'Les petites phrases'}]};
 const LEVELS={
   maths:[
     ['M1',0,'Comparer jusqu’à 100','Sur ta feuille, écris deux nombres et mets le bon signe entre eux : < ou >.'],
@@ -1176,9 +1429,32 @@ const LEVELS={
     ['E17',2,'L’heure en anglais','Dessine une horloge qui montre « four o’clock ».'],
     ['E18',2,'Questions et réponses','Écris ta réponse en anglais à la question : « What’s your name? »'],
     ['E19',2,'Lire en anglais','Écris deux phrases en anglais pour te présenter.']
+  ],
+  logique:[
+    ['L1',0,'Suites de formes','Dessine une suite avec 2 formes. Fais-la continuer par Papa ou Maman.'],
+    ['L2',0,'Suites de nombres','Invente une suite de nombres et écris sa règle.'],
+    ['L3',0,'L’intrus','Dessine 3 choses qui vont ensemble et 1 intrus.'],
+    ['L4',0,'Le point commun','Écris 2 mots qui ont un point commun, puis écris ce point commun.'],
+    ['L5',0,'Les petites grilles','Dessine une grille de 4 cases avec des formes. Laisse une case vide pour Papa ou Maman.'],
+    ['L6',0,'Codes secrets','Invente un code : choisis un nombre pour le rond et un pour le carré. Écris 2 calculs.'],
+    ['L7',1,'Suites à deux secrets','Dessine une suite où la forme et la couleur changent.'],
+    ['L8',1,'Suites de nombres malines','Écris une suite où on double à chaque fois, en partant de 3.'],
+    ['L9',1,'Les balances','Dessine une balance : 1 carré d’un côté, 3 ronds de l’autre.'],
+    ['L10',1,'Mini-sudoku','Trace une grille de 4 sur 4 et remplis la première ligne avec 4 formes différentes.'],
+    ['L11',1,'Qui est le plus grand ?','Écris 3 prénoms de la famille, du plus grand au plus petit.'],
+    ['L12',1,'L’intrus caché','Écris 4 nombres : 3 qui vont ensemble et 1 intrus. Explique pourquoi.'],
+    ['L13',1,'Les grandes grilles','Dessine une grille de 9 cases où chaque ligne a sa forme.'],
+    ['L14',2,'Suites qui grandissent','Dessine une suite qui grandit : 1 rond, 2 ronds, 3 ronds…'],
+    ['L15',2,'Suites de nombres de génie','Écris la suite 1, 2, 4, 7… jusqu’à dépasser 30.'],
+    ['L16',2,'Grilles de génie','Invente une grille de 9 cases avec une règle secrète. Fais-la deviner.'],
+    ['L17',2,'Balances de génie','Dessine deux balances qui donnent un indice, puis pose une question à Papa ou Maman.'],
+    ['L18',2,'Casser le code','Invente un code secret avec 3 formes et écris 3 indices pour le casser.'],
+    ['L19',2,'Le point commun caché','Trouve le point commun entre « lundi » et « dimanche », puis invente une autre paire.'],
+    ['L20',2,'Les enquêtes','Invente une énigme avec 3 personnes et 2 indices.'],
+    ['L21',2,'Sudoku de génie','Trace une grille de sudoku 4 sur 4 et remplis-la en entier.']
   ]
 };
-const GEN=Object.assign({},GM,GF,GE);
+const GEN=Object.assign({},GM,GF,GE,GL);
 const MOVES=['Fais 10 sauts de grenouille.','Marche comme un ours jusqu’à la porte et reviens.','Fais 5 grands cercles avec tes bras.','Saute 10 fois sur un pied, puis sur l’autre.','Étire-toi comme un chat, le plus haut possible.','Fais 8 flexions comme un robot.','Tape 10 fois dans tes mains au-dessus de ta tête.','Cours sur place en comptant jusqu’à 20.','Fais l’avion : bras écartés, tiens sur un pied jusqu’à 10.','Touche tes pieds, puis tends les bras vers le ciel. Fais-le 5 fois.','Fais 5 sauts d’étoile : bras et jambes écartés.','Fais 5 pompes contre le mur.','Fais le flamant rose : tiens sur une jambe, puis sur l’autre.','Monte les genoux très haut, 10 fois.','Fais la chaise contre le mur et compte jusqu’à 10.','Boxe dans le vide : 10 coups avec chaque bras.'];
 const PRAISE=['Bravo !','Super !','Génial !','Exact !','Trop fort !','Bien joué !','Oui !'];
 
@@ -1294,6 +1570,7 @@ function renderHome(){
     <button class="tab sticker maths" role="tab" aria-selected="${track==='maths'}" data-track="maths"><span class="ic">12</span>Maths</button>
     <button class="tab sticker fr" role="tab" aria-selected="${track==='fr'}" data-track="fr"><span class="ic">Aa</span>Français</button>
     <button class="tab sticker en" role="tab" aria-selected="${track==='en'}" data-track="en"><span class="ic">Hi!</span>Anglais</button>
+    <button class="tab sticker logique" role="tab" aria-selected="${track==='logique'}" data-track="logique"><span class="ic"><svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true" fill="#1b2632"><circle cx="7" cy="7" r="5"/><rect x="13.5" y="2" width="9" height="9" rx="1.5"/><path d="M12 13.5l7.5 8.5h-15z"/></svg></span>Logique</button>
   </div>
   <p class="intro">Choisis une mission : ${QN()} questions, puis un défi crayon. Gagne au moins 1 étoile pour ouvrir la suivante. Tes étoiles vont dans ta tirelire pour gagner des récompenses.</p>`;
   if(mixPool(track).length>=MIX_MIN)html+=`<button class="mix sticker" id="mixBtn"><span class="mixic" aria-hidden="true">🎲</span><span><b>Mission surprise</b><small>Un mélange de ce que tu sais déjà faire</small></span></button>`;
@@ -1393,7 +1670,7 @@ function answer(v,btn){
     M.attempt=2;if(btn){btn.classList.add('wrong');btn.disabled=true;}
     else{M.entry='';key('');}
     const c=$('#qcard');c.classList.remove('shake');void c.offsetWidth;c.classList.add('shake');
-    feedback('<b>Presque !</b> Essaie encore une fois.','try',false);
+    feedback(`<b>Presque !</b> ${q.hint||'Essaie encore une fois.'}`,'try',false);   // hint : un coup de pouce propre à la question
   }else{
     M.locked=true;M.results[M.i]='ko';
     if(btn){btn.classList.add('wrong');view().querySelectorAll('.choice').forEach(b=>{if(b.dataset.v===q.answer)b.classList.add('reveal');b.disabled=true;});}
@@ -1512,7 +1789,7 @@ function renderParent(){
   const crayons=S.crayonN||Object.values(S.crayon).filter(Boolean).length;
   const opts=sel=>ICONS.map(i=>`<option ${i===sel?'selected':''}>${i}</option>`).join('');
   view().innerHTML=`<div class="parent sticker"><h2>Espace parent</h2>
-    <div class="stats"><div class="stat"><b>${S.missions}</b>missions jouées</div><div class="stat"><b>${count('maths')}/${max('maths')}</b>étoiles en maths</div><div class="stat"><b>${count('fr')}/${max('fr')}</b>étoiles en français</div><div class="stat"><b>${count('en')}/${max('en')}</b>étoiles en anglais</div><div class="stat"><b>${crayons}</b>défis crayon validés</div></div>
+    <div class="stats"><div class="stat"><b>${S.missions}</b>missions jouées</div><div class="stat"><b>${count('maths')}/${max('maths')}</b>étoiles en maths</div><div class="stat"><b>${count('fr')}/${max('fr')}</b>étoiles en français</div><div class="stat"><b>${count('en')}/${max('en')}</b>étoiles en anglais</div><div class="stat"><b>${count('logique')}/${max('logique')}</b>étoiles en logique</div><div class="stat"><b>${crayons}</b>défis crayon validés</div></div>
     <h3>Récompenses</h3>
     <p class="hint2">Choisis ce qu’il peut gagner et combien d’étoiles ça coûte. Une mission rapporte 0 à 3 étoiles, un défi crayon 1 étoile. Les changements sont enregistrés tout de suite.</p>
     ${S.rewards.length?`<div class="rhead"><span>Image</span><span>Récompense</span><span>Étoiles</span><span></span></div>`:''}
@@ -1551,6 +1828,7 @@ function renderParent(){
     <li>Une bonne réponse au premier essai vaut 2 points, au deuxième essai 1 point. Avec 5 questions : 9-10 points = 3 étoiles, 7-8 = 2, 5-6 = 1.</li>
     <li>La mission surprise 🎲 apparaît dès que 3 missions sont réussies dans une matière. Elle mélange des questions déjà vues : c’est la révision.</li>
     <li>Chaque partie remplit la tirelire, même quand il rejoue une mission. S’il gagne trop vite, augmente simplement le prix des récompenses.</li>
+    <li>Le parcours Logique ne suit pas les classes : Apprenti, Détective, Génie. Il monte bien plus haut que le CE2. Tout y est dessiné et la question reste à l’écran : il peut prendre son temps. Après une erreur, un petit coup de pouce lui dit où regarder.</li>
     <li>Sur iPhone : ouvre la page dans Safari, touche Partager, puis « Sur l’écran d’accueil ». L’icône marche ensuite sans Internet. Attention : elle a sa propre mémoire, séparée de Safari. Si des étoiles ont déjà été gagnées dans Safari, exporte-les puis importe-les dans l’icône.</li></ul>
     <p class="score">La progression est gardée sur cet appareil, dans ce navigateur. « Remettre à zéro » efface les étoiles et la tirelire, mais garde tes récompenses et ton code.</p>
     <div class="row"><button class="btn small" id="unl">${S.unlockAll?'Reverrouiller la progression':'Débloquer toutes les missions'}</button><button class="btn small" id="rst">Remettre à zéro</button></div>
