@@ -20,7 +20,7 @@
 :root{
   /* Même monde d'autocollants que le jeu de Willyam, en rose (nombres) et violet (lettres). Pour une enfant qui ne lit pas encore : tout est lu à voix haute, gros boutons, réponses en images. */
   --bg:#f3ecfa; --paper:#ffffff; --ink:#1b2632; --muted:#56636f;
-  --maths:#ff5fa2; --maths-soft:#ffe0ee; --fr:#7c4dff; --fr-soft:#ece5ff;
+  --maths:#ff5fa2; --maths-soft:#ffe0ee; --fr:#7c4dff; --fr-soft:#ece5ff; --monde:#3aa0ff; --monde-soft:#dcefff;
   --star:#ffc226; --star-soft:#fff1c7; --ok:#1c9e61; --ok-soft:#d5f2e3; --bad:#d93b45; --bad-soft:#fde1e2;
   --display:"Fredoka","Trebuchet MS",system-ui,sans-serif;
   --body:"Andika","Comic Sans MS",system-ui,sans-serif;
@@ -28,6 +28,7 @@
   color-scheme:light;
 }
 body[data-track="fr"]{--accent:var(--fr);--accent-soft:var(--fr-soft);--on-accent:#fff}
+body[data-track="monde"]{--accent:var(--monde);--accent-soft:var(--monde-soft);--on-accent:var(--ink)}
 *{box-sizing:border-box}
 html,body{margin:0;min-height:100%}
 body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:18px;line-height:1.45;-webkit-tap-highlight-color:transparent}
@@ -48,13 +49,15 @@ h1,h2,h3{font-family:var(--display);text-wrap:balance;margin:0}
 .top h1 small{display:block;font-family:var(--body);font-weight:400;font-size:16px;color:var(--muted);margin-top:4px}
 .total{display:flex;align-items:center;gap:6px;padding:6px 14px;font-family:var(--display);font-weight:700;font-size:24px;font-variant-numeric:tabular-nums}
 .total svg{width:28px;height:28px}
-.tabs{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:20px}
+.tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:20px}
 .tab{display:flex;align-items:center;justify-content:center;gap:10px;padding:14px 10px;font-size:22px}
 .tab .ic{width:44px;height:44px;border-radius:12px;border:3px solid var(--ink);display:grid;place-items:center;font-family:var(--display);font-weight:700;font-size:20px}
 .tab.maths .ic{background:var(--maths)}
 .tab.fr .ic{background:var(--fr);color:#fff}
+.tab.monde .ic{background:var(--monde)}
 .tab[aria-selected="true"].maths{background:var(--maths-soft)}
 .tab[aria-selected="true"].fr{background:var(--fr-soft)}
+.tab[aria-selected="true"].monde{background:var(--monde-soft)}
 .tab[aria-selected="false"]{box-shadow:0 2px 0 var(--ink);transform:translateY(2px);opacity:.8}
 .intro{margin:16px 2px 0;color:var(--muted)}
 .stage-h{display:flex;align-items:center;gap:12px;margin:28px 0 12px;flex-wrap:wrap}
@@ -260,6 +263,25 @@ mark{background:var(--accent-soft);color:inherit;border-bottom:4px solid var(--a
 .dots{flex-wrap:wrap;justify-content:center}
 .dots.many{gap:5px}
 .dots.many .dot{width:13px;height:13px;border-width:2px}
+/* Programme de maternelle : solides, balance, piste, partage, parcours « Le monde » */
+@media (max-width:560px){.tab{flex-direction:column;gap:4px;padding:10px 4px;font-size:18px}.tab .ic{width:40px;height:40px;font-size:18px}}
+.solid{width:92px;height:auto;display:block}
+.solid polygon,.solid path,.solid circle,.solid ellipse{stroke:#1b2632;stroke-width:3.5;stroke-linejoin:round}
+.solid .f1{fill:#fff1c7}.solid .f2{fill:#ffc226}.solid .f3{fill:#eaa800}.solid .hid{fill:none;stroke-width:2}
+.tilt{width:min(280px,78vw);display:block}
+.tilt .ft{fill:var(--accent-soft);stroke:var(--ink);stroke-width:3;stroke-linejoin:round}
+.tilt .bm{stroke:var(--ink);stroke-width:5;stroke-linecap:round;fill:none}
+.tilt .st{stroke:var(--ink);stroke-width:2;fill:none}
+.tilt text{font-size:34px}
+.stack{display:grid;gap:6px;width:100%;justify-items:start}
+.piste{display:grid;grid-template-columns:repeat(10,1fr);gap:3px;width:100%;margin-top:30px}
+.piste span{position:relative;border:3px solid var(--ink);border-radius:8px;background:#fff;text-align:center;font-family:var(--display);font-weight:700;font-size:17px;padding:6px 0}
+.piste .on{background:var(--star-soft)}
+.piste i{position:absolute;left:50%;top:-32px;transform:translateX(-50%);font-style:normal;font-size:24px}
+.plates{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+.plate{border:3px solid var(--ink);border-radius:999px;padding:6px 14px;background:#fff;font-size:32px;line-height:1.1}
+.seq.sm{font-size:32px;gap:5px}
+.wd{display:inline-block;margin:0 6px;border-bottom:4px solid var(--accent)}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
@@ -509,6 +531,105 @@ const GF={
     return {p:'Lis le mot, puis montre la bonne image',q:`<div class="big">${t[0]}</div>`,say:'Lis le mot, puis montre la bonne image.',type:'choice',cls:'pics',keep:true,choices:shuffle(r.map(im)),answer:im(t),explain:`Ce mot, c’est « ${t[0]} ».`};}
 };
 
+/* ---------- Programme de maternelle (BO du 31 octobre 2024) : missions ajoutées ---------- */
+// Solides, décomposer un nombre, lourd ou léger, ranger des longueurs, piste numérotée, partager, compter jusqu'à 30,
+// suites qui grandissent ; coller des syllabes, mots proches, compter les mots, contraires, les écrits ;
+// et un parcours « Le monde » : moments de la journée, animaux, ordre d'une histoire, jours, saisons.
+function solid(k){const P=(pts,c)=>`<polygon points="${pts}" class="${c}"/>`;let s;
+  if(k==='cube')s=P('20,38 76,38 76,94 20,94','f1')+P('20,38 44,16 100,16 76,38','f2')+P('76,38 100,16 100,72 76,94','f3');
+  else if(k==='pyramide')s=P('14,88 78,88 60,10','f1')+P('78,88 106,66 60,10','f3');
+  else if(k==='cylindre')s='<path d="M22 26V82A38 12 0 0 0 98 82V26" class="f1"/><ellipse cx="60" cy="26" rx="38" ry="12" class="f2"/>';
+  else s='<circle cx="60" cy="52" r="42" class="f1"/><path d="M18 52A42 13 0 0 0 102 52" class="hid"/>';
+  return `<svg viewBox="0 0 120 104" class="solid" role="img" aria-label="${k}">${s}</svg>`;}
+const SOLN={cube:['le cube','Le cube a 6 faces carrées, comme un dé.'],boule:['la boule','La boule est ronde de partout : elle roule.'],pyramide:['la pyramide','La pyramide a une pointe en haut.'],cylindre:['le cylindre','Le cylindre roule comme une boîte de conserve.']};
+const SOLOBJ=[['🎲','le dé','cube'],['🧊','le glaçon','cube'],['⚽','le ballon','boule'],['🍊','l’orange','boule'],['🥫','la boîte de conserve','cylindre'],['🧻','le rouleau de papier','cylindre'],['🕯️','la bougie','cylindre'],['⛺','la tente','pyramide']];
+const solCh=t=>{const ks=shuffle([t,...shuffle(Object.keys(SOLN).filter(k=>k!==t)).slice(0,2)]),sv={};ks.forEach(k=>sv[k]=solid(k));return {choices:ks.map(k=>sv[k]),answer:sv[t]};};
+// Balance qui penche : le côté le plus lourd descend.
+function tilt(l,r,leftHeavy){const y1=leftHeavy?52:22,y2=leftHeavy?22:52;
+  return `<svg viewBox="0 0 260 130" class="tilt" role="img" aria-label="Balance qui penche"><path d="M130 37L112 124H148Z" class="ft"/><line x1="40" y1="${y1}" x2="220" y2="${y2}" class="bm"/><path d="M40 ${y1}V${y1+50}M220 ${y2}V${y2+50}" class="st"/><path d="M8 ${y1+50}H72M188 ${y2+50}H252" class="bm"/><text x="40" y="${y1+46}" text-anchor="middle">${l}</text><text x="220" y="${y2+46}" text-anchor="middle">${r}</text></svg>`;}
+const LOURD=[['🐘','l’éléphant','🐭','la souris'],['🚗','la voiture','🚲','le vélo'],['🍉','la pastèque','🍓','la fraise'],['🐻','l’ours','🐥','le poussin'],['🚌','le bus','🛴','la trottinette'],['🐄','la vache','🐱','le chat'],['🏠','la maison','🎈','le ballon'],['🚚','le camion','⚽','le ballon de foot']];
+const PESEE=[['🍎','la pomme','🍐','la poire'],['🎁','le cadeau','📦','le carton'],['🧸','le nounours','🤖','le robot'],['🍊','l’orange','🍋','le citron'],['📕','le livre rouge','📘','le livre bleu'],['🥕','la carotte','🍌','la banane']];
+const piste=k=>`<div class="piste">${Array.from({length:10},(_,i)=>`<span class="${i+1===k?'on':''}">${i+1===k?'<i>🐸</i>':''}${i+1}</span>`).join('')}</div>`;
+const NB30={21:'vingt et un',22:'vingt-deux',23:'vingt-trois',24:'vingt-quatre',25:'vingt-cinq',26:'vingt-six',27:'vingt-sept',28:'vingt-huit',29:'vingt-neuf',30:'trente'};
+
+Object.assign(GM,{
+  N29(){const k=R(0,2);
+    if(k===0){const t=pick(Object.keys(SOLN)),c=solCh(t);return {p:heard('Montre le solide que tu entends',`Montre ${SOLN[t][0]}`),q:LISTEN,say:`Montre ${SOLN[t][0]}.`,type:'choice',cls:'pics',keep:true,...c,explain:SOLN[t][1]};}
+    if(k===1){const [e,n,t]=pick(SOLOBJ),c=solCh(t);return {p:'Ça ressemble à quel solide ?',q:`<div class="pic">${e}</div>`,say:`À quel solide ressemble ${n} ?`,type:'choice',cls:'pics',keep:true,...c,explain:`${cap(n)} ressemble à ${SOLN[t][0].replace(/^le |^la /,m=>m==='le '?'un ':'une ')}. ${SOLN[t][1]}`};}
+    const t=pick(['boule','cylindre']),ks=shuffle([t,'cube','pyramide']),sv={};ks.forEach(x=>sv[x]=solid(x));
+    return {p:'Lequel peut rouler ?',q:'<div class="pic" aria-hidden="true">🤔</div>',say:'Lequel de ces solides peut rouler ?',type:'choice',cls:'pics',keep:true,choices:ks.map(x=>sv[x]),answer:sv[t],explain:`${SOLN[t][1]} Le cube et la pyramide ne roulent pas : ils ont des faces plates.`};},
+  N30(){if(Math.random()<.5){const n=R(3,7),a=R(1,n-1);return {p:'Combien sont cachés ?',q:`<div class="mid">${grp('🔴',a)} 🎁</div><div class="tag">${n} jetons en tout</div>`,say:`Il y a ${n} jetons en tout. Tu en vois ${a}. Les autres sont cachés dans le cadeau. Combien de jetons sont cachés ?`,type:'choice',cls:'nums',keep:true,choices:numCh(n-a,1,6,4),answer:String(n-a),explain:`${a} et encore ${n-a}, ça fait ${n}.`};}
+    const n=R(4,8),a=R(1,n-1),b=n-a,mk=(x,y)=>`${grp('🔴',x)} ${grp('🔵',y)}`,good=mk(a,b),w1=b>1?mk(a,b-1):mk(a+2,b),w2=mk(a+1,b);
+    return {p:`Montre la case où il y a ${n} jetons en tout`,q:`<div class="big">${n}</div>`,say:`Montre la case où il y a ${n} jetons en tout. Compte les rouges et les bleus.`,type:'choice',cls:'groups',keep:true,choices:shuffle([good,w1,w2]),answer:good,explain:`${a} rouge${a>1?'s':''} et ${b} bleu${b>1?'s':''}, ça fait ${n}.`};},
+  N31(){const heavy=Math.random()<.6,w=heavy?'le plus lourd':'le plus léger';
+    if(Math.random()<.5){const [e1,n1,e2,n2]=pick(LOURD),c=picCh(heavy?[e1,n1]:[e2,n2],[heavy?[e2,n2]:[e1,n1]]);
+      return {p:`Qu’est-ce qui est ${w} ?`,q:'<div class="pic" aria-hidden="true">🤔</div>',say:`Qu’est-ce qui est ${w} ? ${cap(orList(c.names))} ?`,type:'choice',cls:'groups two',keep:true,choices:c.choices,answer:c.answer,explain:`${cap(n1)} est bien plus lourd que ${n2}.`};}
+    const [e1,n1,e2,n2]=pick(PESEE),left=Math.random()<.5,hv=left?[e1,n1]:[e2,n2],lt=left?[e2,n2]:[e1,n1],c=picCh(heavy?hv:lt,[heavy?lt:hv]);
+    return {p:`Regarde la balance : qu’est-ce qui est ${w} ?`,q:tilt(e1,e2,left),say:`Regarde la balance. Qu’est-ce qui est ${w} ? ${cap(orList(c.names))} ?`,type:'choice',cls:'groups two',keep:true,choices:c.choices,answer:c.answer,explain:`Le côté le plus lourd descend : ${hv[1]} est plus lourd que ${lt[1]}.`};},
+  N32(){const up=Math.random()<.6,[s1,s2,s3]=pick([[34,62,96],[28,52,80],[40,66,92],[30,58,100]]),cs=shuffle(COLORS),col={[s1]:cs[0],[s2]:cs[1],[s3]:cs[2]},mk=o=>`<span class="stack">${o.map(x=>`<span class="bar" style="width:${x}%;background:${col[x]}"></span>`).join('')}</span>`;
+    const asc=mk([s1,s2,s3]),desc=mk([s3,s2,s1]),mix=mk(pick([[s2,s1,s3],[s1,s3,s2],[s3,s1,s2],[s2,s3,s1]])),w=up?'du plus court au plus long':'du plus long au plus court';
+    return {p:`Montre les traits rangés ${w}`,q:LISTEN,say:`Montre la case où les traits sont rangés ${w}, de haut en bas.`,type:'choice',cls:'groups',keep:true,choices:shuffle([asc,desc,mix]),answer:up?asc:desc,explain:up?'En haut le plus court, puis le moyen, puis le plus long.':'En haut le plus long, puis le moyen, puis le plus court.'};},
+  N33(){const back=Math.random()<.3,k=back?R(4,10):R(1,6),d=back?R(1,3):R(1,Math.min(4,10-k)),ans=back?k-d:k+d,steps=Array.from({length:d},(_,i)=>back?k-i-1:k+i+1).join(', ');
+    return {p:`La grenouille ${back?'recule':'avance'} de ${d} case${d>1?'s':''}`,q:`${piste(k)}<div class="dice">${die(d)}</div>`,say:`La grenouille est sur la case ${k}. Elle ${back?'recule':'avance'} de ${d} case${d>1?'s':''}. Sur quelle case arrive-t-elle ?`,type:'choice',cls:'nums',keep:true,choices:numCh(ans,1,10,4),answer:String(ans),explain:`On ${back?'recule':'avance'} d’une case à la fois : ${steps}. Elle arrive sur la case ${ans}.`};},
+  N34(){if(Math.random()<.5){const c=R(2,3),e=R(1,c===2?4:3),t=c*e;return {p:'Combien pour chaque enfant ?',q:`<div class="mid">${grp('🍬',t)}</div><div class="mid">${grp('🧒',c)}</div>`,say:`On partage ${t} bonbons entre ${c} enfants. Tout le monde en a pareil. Combien de bonbons pour chaque enfant ?`,type:'choice',cls:'nums',keep:true,choices:numCh(e,1,5,4),answer:String(e),explain:`On donne un bonbon à chacun, puis encore un… Chaque enfant a ${e} bonbon${e>1?'s':''}.`};}
+    const c=R(2,4),e=R(1,c===4?2:3),t=c*e;return {p:'Combien de gâteaux en tout ?',q:`<div class="plates">${Array(c).fill(`<span class="plate">${grp('🧁',e)}</span>`).join('')}</div>`,say:`Il y a ${c} assiettes. Dans chaque assiette, il y a ${e} gâteau${e>1?'x':''}. Combien de gâteaux en tout ?`,type:'choice',cls:'nums',keep:true,choices:numCh(t,1,10,4),answer:String(t),explain:`On compte tous les gâteaux : ${countTo(t)}.`};},
+  N35(){const k=R(0,2);
+    if(k===0){const o=pick(OBJ),n=R(21,30);return {p:`Combien de ${o[1]} ?`,q:grid(o[0],n),say:`Combien y a-t-il de ${o[1]} ? Compte bien, il y en a beaucoup.`,type:'choice',cls:'nums',keep:true,choices:numCh(n,20,30,4),answer:String(n),explain:`On compte en touchant chaque objet. Il y en a ${n}.`};}
+    if(k===1){const s=R(19,27),h=R(1,3),nums=[s,s+1,s+2,s+3];return {p:'Quel nombre manque ?',q:`<div class="big">${nums.map((x,i)=>i===h?SLOT:x).join(' ')}</div>`,say:`Quel nombre manque ? ${nums.map((x,i)=>i===h?'…':x).join(', ')}.`,type:'choice',cls:'nums',keep:true,choices:numCh(s+h,19,30,4),answer:String(s+h),explain:`On compte : ${nums.join(', ')}.`};}
+    const n=R(21,30);return {p:heard('Montre le nombre que tu entends',`Montre le nombre ${NB30[n]}`),q:LISTEN,say:`Montre le nombre ${n}.`,type:'choice',cls:'nums',keep:true,choices:numCh(n,20,30,4),answer:String(n),explain:`Le nombre ${n} s’écrit comme ça : ${n}.`};},
+  N36(){const [A,B,C]=shuffle(SUITE),full=[];for(let g=1;g<=5;g++){for(let i=0;i<g;i++)full.push(A);full.push(B);}const len=pick([8,9,12,13]),ans=full[len];
+    return {p:'La suite grandit. Qu’est-ce qui vient après ?',q:`<div class="seq sm">${full.slice(0,len).map(x=>`<span>${x}</span>`).join('')}${SLOT}</div>`,say:'Regarde bien : la suite grandit. Qu’est-ce qui vient après ?',type:'choice',cls:'pics',keep:true,choices:shuffle([A,B,C]),answer:ans,explain:`Il y a de plus en plus de ${A} : 1, puis 2, puis 3, puis 4. Entre les groupes, il y a ${B}.`};}
+});
+
+const SYL2=[['🎩','cha','peau','le chapeau'],['🐰','la','pin','le lapin'],['🎈','bal','lon','le ballon'],['🚲','vé','lo','le vélo'],['🎂','gâ','teau','le gâteau'],['🏍️','mo','to','la moto'],['🐭','sou','ris','la souris'],['⛵','ba','teau','le bateau'],['🐑','mou','ton','le mouton'],['🤖','ro','bot','le robot'],['🎄','sa','pin','le sapin'],['🏰','châ','teau','le château'],['🐷','co','chon','le cochon'],['🍋','ci','tron','le citron']];
+const PROCHE=[[['🍞','le pain'],['🛁','le bain'],['✋','la main']],[['🐱','le chat'],['🐀','le rat']],[['👄','la bouche'],['🚿','la douche']],[['🐄','la vache'],['🪓','la hache']],[['🎄','le sapin'],['🐰','le lapin']],[['⛵','le bateau'],['🎂','le gâteau'],['🏰','le château']],[['🛏️','le lit'],['🍚','le riz']],[['🐺','le loup'],['🥬','le chou']],[['🦷','la dent'],['🌬️','le vent']]];
+const PHR=['Papa dort.','Il pleut.','Je joue.','Maman lit.','Hailey saute.','Le chat dort.','Le lapin saute.','Le petit chat boit.','Papa lit un livre.','Hailey a un chat.','Le chien court vite.','Mamie fait un gâteau.','Maman mange une pomme.','Tu as un vélo rouge.','Willyam joue au ballon.','Je mange une grosse pomme.'];
+const CONTR=[['🔥','chaud','❄️','froid'],['😀','content','😢','triste'],['🐇','rapide','🐢','lent'],['🐘','lourd','🪶','léger'],['⬆️','en haut','⬇️','en bas'],['📖','ouvert','📕','fermé'],['🦒','grand','🐭','petit'],['😴','endormi','🤩','réveillé'],['🧼','propre','🐷','sale'],['🌧️','mouillé','🏜️','sec']];
+const ECRITS={recette:['📒','la recette'],lettre:['✉️','la lettre'],calendrier:['📅','le calendrier'],carte:['🗺️','le plan'],livre:['📕','le livre d’histoires'],liste:['📝','la liste de courses']};
+const ECR_Q=[['Maman veut faire un gâteau. Que regarde-t-elle pour savoir comment faire ?','recette'],['Papi habite loin. Hailey veut lui écrire. Qu’est-ce qu’elle lui envoie ?','lettre'],['Quel jour sommes-nous ? Où est-ce qu’on regarde ?','calendrier'],['Papa cherche son chemin. Que regarde-t-il ?','carte'],['C’est l’heure de l’histoire du soir. Que prend Maman ?','livre'],['On va au magasin. Où a-t-on écrit ce qu’il faut acheter ?','liste'],['Mamie veut savoir comment préparer des crêpes. Que lit-elle ?','recette'],['Hailey veut écrire au Père Noël. Qu’est-ce qu’elle prépare ?','lettre']];
+
+Object.assign(GF,{
+  L22(){const t=pick(SYL2),near=SYL2.filter(x=>x!==t&&(x[1]===t[1]||x[2]===t[2])),others=shuffle(SYL2.filter(x=>x!==t&&!near.includes(x))),wr=[...shuffle(near),...others].slice(0,2),c=picCh([t[0],t[3]],wr.map(x=>[x[0],x[3]]));
+    return {p:heard('Colle les deux morceaux : quel mot entends-tu ?',`${t[1]} + ${t[2]} = ?`),q:LISTEN,say:`Écoute bien les deux morceaux : ${t[1]}… ${t[2]}. Quel mot entends-tu ? ${cap(orList(c.names))} ?`,type:'choice',cls:'pics',keep:true,choices:c.choices,answer:c.answer,explain:`« ${t[1]} » et « ${t[2]} », ça fait « ${t[1]+t[2]} ».`,explainSay:`${t[1]}, ${t[2]} : ${t[3]}.`};},
+  L23(){const g=pick(PROCHE),t=pick(g),extra=g.length<3?[pick(pick(PROCHE.filter(x=>x!==g)))]:[],c=picCh(t,[...g.filter(x=>x!==t),...extra]);
+    return {p:heard('Montre le mot que tu entends',`Montre : ${t[1]}`),q:LISTEN,say:`Écoute bien. Montre : ${t[1]}.`,type:'choice',cls:'pics',keep:true,choices:c.choices,answer:c.answer,explain:`C’est ${t[1]}. Écoute bien le début du mot : les mots se ressemblent.`};},
+  L24(){const s=pick(PHR),ws=s.replace('.','').split(' '),n=ws.length;
+    return {p:'Combien de mots dans la phrase ?',q:`<div class="mid">${ws.map(w=>`<span class="wd">${w}</span>`).join(' ')}</div>`,say:`${s} Combien de mots y a-t-il dans cette phrase ?`,type:'choice',cls:'nums',keep:true,choices:['2','3','4','5'],answer:String(n),explain:`On compte les mots : ${ws.join(', ')}. Il y en a ${n}.`};},
+  L25(){const p=pick(CONTR),flip=Math.random()<.5,[e,w,e2,w2]=flip?[p[2],p[3],p[0],p[1]]:p,others=shuffle(CONTR.filter(x=>x!==p)).slice(0,2).map(x=>Math.random()<.5?[x[0],x[1]]:[x[2],x[3]]),c=picCh([e2,w2],others);
+    return {p:`Quel est le contraire de « ${w} » ?`,q:`<div class="pic">${e}</div>`,say:`Quel est le contraire de ${w} ? ${cap(orList(c.names))} ?`,type:'choice',cls:'pics',keep:true,choices:c.choices,answer:c.answer,explain:`Le contraire de « ${w} », c’est « ${w2} ».`};},
+  L26(){const [t,k]=pick(ECR_Q),c=picCh(ECRITS[k],shuffle(Object.keys(ECRITS).filter(x=>x!==k)).slice(0,2).map(x=>ECRITS[x]));
+    return {p:'De quel écrit a-t-on besoin ?',q:`<div class="story">${t}</div>`,say:`${t} ${cap(orList(c.names))} ?`,type:'choice',cls:'pics',keep:true,choices:c.choices,answer:c.answer,explain:`C’est ${ECRITS[k][1]}.`};}
+});
+
+/* ----- Le monde : le temps, les animaux ----- */
+const MOMENT={matin:['🌅','le matin'],midi:['🍽️','à midi'],soir:['🌙','le soir']};
+const MOM_Q=[['🥣','On se réveille et on prend le petit-déjeuner.','matin'],['🛌','On met son pyjama et on écoute une histoire.','soir'],['🍝','On mange à la cantine.','midi'],['🪥','On se brosse les dents, puis on va au lit.','soir'],['🐓','Le soleil se lève et le coq chante.','matin'],['🏫','On arrive à l’école et on dit bonjour.','matin'],['⭐','Il fait noir. On voit la lune et les étoiles.','soir'],['🥗','C’est le milieu de la journée : on déjeune.','midi']];
+const PETITS_A=[['le veau','la vache','🐄'],['le poussin','la poule','🐔'],['le chaton','le chat','🐈'],['le chiot','le chien','🐕'],['l’agneau','le mouton','🐑'],['le poulain','le cheval','🐎'],['le porcelet','le cochon','🐖'],['le caneton','le canard','🦆'],['le lionceau','le lion','🦁'],['l’ourson','l’ours','🐻'],['le lapereau','le lapin','🐇']];
+// [ce qu'il fait, image, nom, ce qu'il sait faire aussi] : un animal n'est jamais proposé comme mauvaise réponse s'il sait le faire.
+const BOUGE=[['vole','🐦','l’oiseau',''],['vole','🦋','le papillon',''],['nage','🐟','le poisson',''],['nage','🦈','le requin',''],['rampe','🐍','le serpent','nage'],['rampe','🐌','l’escargot',''],['saute','🦘','le kangourou',''],['saute','🐇','le lapin',''],['galope','🐎','le cheval','saute']];
+const ORDRE=[[['🥚','l’œuf'],['🐣','le poussin sort de l’œuf'],['🐥','le poussin']],[['🌱','la petite pousse'],['🌿','la plante grandit'],['🌻','la fleur']],[['🛏️','je me réveille'],['🥣','je prends le petit-déjeuner'],['🏫','j’arrive à l’école']],[['❄️','il neige'],['⛄','le bonhomme de neige'],['💧','le bonhomme fond']],[['🥚','l’œuf'],['🐛','la chenille'],['🦋','le papillon']],[['☀️','il fait jour'],['🌇','le soleil se couche'],['🌙','il fait nuit']],[['🧦','je mets mes chaussettes'],['👟','je mets mes chaussures'],['🚶','je sors']],[['🛁','je prends mon bain'],['🧸','je prends mon doudou'],['😴','je dors']],[['🥣','on mélange la pâte'],['🔥','le gâteau cuit'],['🎂','on mange le gâteau']]];
+const JOURS=['lundi','mardi','mercredi','jeudi','vendredi','samedi','dimanche'];
+const SAISON={hiver:['❄️','l’hiver'],printemps:['🌸','le printemps'],été:['☀️','l’été'],automne:['🍂','l’automne']};
+const SAI_Q=[['⛄','Il neige et on met un bonnet.','hiver'],['🍁','Les feuilles tombent des arbres.','automne'],['🏖️','On va à la plage et on mange des glaces.','été'],['🐣','Les fleurs poussent et les oiseaux font leur nid.','printemps'],['🎄','On fête Noël.','hiver'],['🌰','On ramasse des châtaignes et des champignons.','automne'],['🕶️','Il fait très chaud : ce sont les grandes vacances.','été'],['🌷','Les arbres ont de nouvelles petites feuilles vertes.','printemps']];
+const GW={
+  W1(){const [e,t,k]=pick(MOM_Q),ch=['matin','midi','soir'].map(x=>PE(...MOMENT[x]));
+    return {p:'C’est à quel moment de la journée ?',q:`<div class="pic">${e}</div><div class="story">${t}</div>`,say:`${t} C’est à quel moment de la journée ? Le matin, à midi ou le soir ?`,type:'choice',cls:'pics',keep:true,choices:ch,answer:PE(...MOMENT[k]),explain:`${t} C’est ${MOMENT[k][1]}.`};},
+  W2(){if(Math.random()<.55){const t=pick(PETITS_A),c=picCh([t[2],t[1]],shuffle(PETITS_A.filter(x=>x!==t)).slice(0,2).map(x=>[x[2],x[1]]));
+      return {p:heard('C’est le petit de qui ?',`${cap(t[0])} : c’est le petit de qui ?`),q:LISTEN,say:`${cap(t[0])}, c’est le petit de qui ? ${cap(orList(c.names))} ?`,type:'choice',cls:'pics',keep:true,choices:c.choices,answer:c.answer,explain:`${cap(t[0])} est le petit ${t[1].replace(/^le /,'du ').replace(/^la /,'de la ').replace(/^l’/,'de l’')}.`};}
+    const t=pick(BOUGE),c=picCh([t[1],t[2]],shuffle(BOUGE.filter(x=>x[0]!==t[0]&&!x[3].includes(t[0]))).filter((x,i,a)=>a.findIndex(y=>y[0]===x[0])===i).slice(0,2).map(x=>[x[1],x[2]]));
+    return {p:`Qui ${t[0]} ?`,q:'<div class="pic" aria-hidden="true">🤔</div>',say:`Quel animal ${t[0]} ? ${cap(orList(c.names))} ?`,type:'choice',cls:'pics',keep:true,choices:c.choices,answer:c.answer,explain:`${cap(t[2])} ${t[0]}.`};},
+  W3(){const s=pick(ORDRE),k=pick([0,0,2,2,1]),w=['en premier','au milieu','à la fin'][k],c=picCh(s[k],s.filter((_,i)=>i!==k));
+    return {p:`Qu’est-ce qui se passe ${w} ?`,q:'<div class="pic" aria-hidden="true">🎬</div><div class="tag">Remets l’histoire dans l’ordre</div>',say:`Remets l’histoire dans l’ordre. Qu’est-ce qui se passe ${w} ? ${cap(orList(c.names))} ?`,type:'choice',cls:'pics',keep:true,choices:c.choices,answer:c.answer,explain:`Dans l’ordre : ${s.map(x=>x[1]).join(', puis ')}.`};},
+  W4(){const k=R(0,3);
+    if(k===0)return {p:'Combien de jours dans une semaine ?',q:'<div class="pic" aria-hidden="true">🗓️</div>',say:'Combien de jours y a-t-il dans une semaine ?',type:'choice',cls:'nums',keep:true,choices:['5','6','7','8'],answer:'7',explain:`Il y a 7 jours : ${JOURS.join(', ')}.`};
+    if(k===1){const we=pick(['samedi','dimanche']),wr=shuffle(JOURS.slice(0,5)).filter(d=>d[0]!==we[0]).filter((d,i,a)=>a.findIndex(x=>x[0]===d[0])===i).slice(0,2),ch=shuffle([we,...wr]);
+      return {p:'Quel jour n’y a-t-il pas école ?',q:'<div class="pic" aria-hidden="true">🏡</div>',say:`C’est le week-end : il n’y a pas école. Quel jour est-ce ? ${cap(orList(ch))} ?`,type:'choice',cls:'words',keep:true,choices:ch.map(d=>d.toUpperCase()),answer:we.toUpperCase(),explain:'Le week-end, c’est le samedi et le dimanche : il n’y a pas école.'};}
+    const i=R(0,6),af=k===2,a=JOURS[(i+(af?1:6))%7],wr=shuffle(JOURS.filter(d=>d!==a&&d!==JOURS[i]&&d[0]!==a[0])).filter((d,j,arr)=>arr.findIndex(x=>x[0]===d[0])===j).slice(0,2),ch=shuffle([a,...wr]);
+    return {p:`Quel jour vient juste ${af?'après':'avant'} ${JOURS[i]} ?`,q:`<div class="mid">${JOURS[i].toUpperCase()}</div>`,say:`Quel jour vient juste ${af?'après':'avant'} ${JOURS[i]} ? ${cap(orList(ch))} ?`,type:'choice',cls:'words',keep:true,choices:ch.map(d=>d.toUpperCase()),answer:a.toUpperCase(),explain:`Les jours dans l’ordre : ${JOURS.join(', ')}.`};},
+  W5(){const [e,t,k]=pick(SAI_Q),c=picCh(SAISON[k],shuffle(Object.keys(SAISON).filter(x=>x!==k)).slice(0,2).map(x=>SAISON[x]));
+    return {p:'C’est quelle saison ?',q:`<div class="pic">${e}</div><div class="story">${t}</div>`,say:`${t} C’est quelle saison ? ${cap(orList(c.names))} ?`,type:'choice',cls:'pics',keep:true,choices:c.choices,answer:c.answer,explain:`${t} C’est ${SAISON[k][1]}.`};}
+};
+
 /* ---------- Niveaux ---------- */
 const STAGES=[{n:'Moyenne section',d:'Pour bien commencer'},{n:'Grande section',d:'On grandit'},{n:'Vers le CP',d:'Comme les grands'}];
 // [id, étape, titre, défi dessin, image de la case]
@@ -522,26 +643,34 @@ const LEVELS={
     ['N19',0,'Le même dessin','Dessine deux fleurs exactement pareilles.','🔍'],
     ['N4',0,'Les suites','Dessine une suite : rond, croix, rond, croix…','🔁'],
     ['N20',0,'Long ou court','Trace un trait long et un trait court.','📏'],
+    ['N31',0,'Lourd ou léger','Prends un objet dans chaque main. Lequel est le plus lourd ? Dessine-le.','🏋️'],
     ['N5',0,'Les chiffres de 1 à 5','Écris le chiffre 3, avec l’aide d’un adulte.','🔢'],
     ['N6',1,'Compter jusqu’à 10','Dessine 7 points, puis compte-les avec ton doigt.','🔟'],
     ['N7',1,'Le dé','Dessine un dé qui montre 5 points.','🎲'],
     ['N21',1,'Les formes autour de nous','Trouve dans la maison un objet rond et un objet rectangle, puis dessine-les.','🍕'],
+    ['N29',1,'Les solides','Trouve dans la maison un objet qui roule et un objet qui ne roule pas. Dessine-les.','🧊'],
+    ['N32',1,'Du plus court au plus long','Dessine 3 traits : un petit, un moyen et un grand.','📏'],
     ['N8',1,'Les chiffres de 0 à 9','Écris les chiffres 1, 2, 3, 4 et 5.','✏️'],
     ['N22',1,'Juste avant, juste après','Écris le nombre qui vient juste après 4, avec l’aide d’un adulte.','↔️'],
     ['N9',1,'Un de plus, un de moins','Dessine 4 ballons, puis ajoute-en 1. Combien maintenant ?','➕'],
     ['N10',1,'Combien il manque ?','Dessine une boîte de 5 œufs avec 3 œufs dedans.','🥚'],
+    ['N30',1,'Les nombres en deux morceaux','Dessine 5 ronds. Colorie-en 2 en rouge et 3 en bleu.','✋'],
     ['N23',1,'Premier, dernier','Dessine trois animaux qui font la course. Entoure le premier.','🏁'],
+    ['N33',1,'La piste de la grenouille','Dessine une piste de 10 cases et écris les nombres de 1 à 10.','🐸'],
     ['N11',1,'Sur, sous, à côté','Dessine un chat sur une table.','📦'],
     ['N12',2,'Les nombres jusqu’à 20','Écris les nombres de 1 à 10.','💯'],
     ['N24',2,'Compter jusqu’à 20','Dessine 12 petits ronds, puis compte-les.','🧮'],
+    ['N35',2,'Compter jusqu’à 30','Compte jusqu’à 30 avec un adulte, puis écris 21, 22 et 23.','🧮'],
     ['N25',2,'Les nombres de 10 à 20','Écris les nombres 10, 11 et 12.','🎯'],
     ['N13',2,'Petites additions','Dessine 2 pommes et 3 pommes. Combien en tout ?','🍎'],
     ['N26',2,'Les doubles','Dessine deux dés qui montrent le même nombre.','✌️'],
     ['N27',2,'Petites soustractions','Dessine 5 ballons, puis barre-en 2. Combien en reste-t-il ?','➖'],
+    ['N34',2,'Partager','Dessine 6 bonbons et partage-les entre 2 enfants.','🍰'],
     ['N14',2,'Le plus grand nombre','Écris un grand nombre et un petit nombre.','🦒'],
     ['N28',2,'Dix et encore','Dessine une boîte de 10 œufs et 2 œufs à côté. Combien en tout ?','🧺'],
     ['N15',2,'Petits problèmes','Invente une petite histoire avec des bonbons et raconte-la à un adulte.','🍬'],
-    ['N16',2,'Les suites difficiles','Dessine une suite : rond, rond, carré, rond, rond, carré…','🧩']
+    ['N16',2,'Les suites difficiles','Dessine une suite : rond, rond, carré, rond, rond, carré…','🧩'],
+    ['N36',2,'Les suites qui grandissent','Dessine une suite qui grandit : 1 rond, 1 croix, 2 ronds, 1 croix, 3 ronds…','📈']
   ],
   fr:[
     ['L1',0,'La même lettre','Écris la lettre O, puis la lettre E.','🔤'],
@@ -553,7 +682,10 @@ const LEVELS={
     ['L4',0,'Écoute l’histoire','Dessine ce que tu as préféré dans l’histoire.','📖'],
     ['L5',1,'Les rimes','Trouve un mot qui rime avec « chat » et dis-le à un adulte.','🎵'],
     ['L6',1,'Les syllabes','Tape dans tes mains pour ton prénom : Hai-ley. Combien de syllabes ?','👏'],
+    ['L22',1,'Coller les syllabes','Tape dans tes mains les syllabes de « chapeau », puis dessine un chapeau.','🎩'],
     ['L16',1,'Le même mot','Recopie le mot PAPA, lettre après lettre.','🔎'],
+    ['L23',1,'Les mots qui se ressemblent','Dessine un sapin et un lapin. Dis les deux mots bien fort.','🔍'],
+    ['L25',1,'Les contraires','Dessine quelque chose de chaud et quelque chose de froid.','🔄'],
     ['L7',1,'Les lettres capitales','Écris les lettres A, B et C.','🅰️'],
     ['L17',1,'J’entends le son…','Dessine quelque chose où on entend « a », comme dans « chat ».','🎧'],
     ['L8',1,'Le son du début','Dessine 2 choses qui commencent comme « maman ».','👂'],
@@ -563,11 +695,20 @@ const LEVELS={
     ['L11',2,'Lire des syllabes','Écris les syllabes ma, mi, mo.','📚'],
     ['L19',2,'La première syllabe','Tape dans tes mains les syllabes de « banane », puis écris « ba ».','🗣️'],
     ['L20',2,'Les petits mots','Recopie les mots : le, la, un.','📝'],
+    ['L24',2,'Compter les mots','Dis une phrase à un adulte et trace un trait pour chaque mot.','💬'],
     ['L21',2,'Je lis un mot','Recopie le mot « moto », puis dessine-le.','🤓'],
+    ['L26',2,'À quoi sert cet écrit ?','Dicte une petite lettre à un adulte pour quelqu’un que tu aimes.','✉️'],
     ['L12',2,'Écoute et réfléchis','Raconte l’histoire à un adulte avec tes mots.','💭']
+  ],
+  monde:[
+    ['W1',0,'Le matin, à midi, le soir','Dessine ce que tu fais le matin et ce que tu fais le soir.','🌅'],
+    ['W2',0,'Les animaux','Dessine une maman animal et son petit.','🐣'],
+    ['W3',1,'L’histoire dans l’ordre','Dessine 3 images pour raconter ton matin, dans l’ordre.','🎬'],
+    ['W4',1,'Les jours de la semaine','Dis les 7 jours de la semaine avec un adulte, puis dessine ton jour préféré.','📅'],
+    ['W5',2,'Les saisons','Dessine un arbre en hiver et un arbre en été.','🍂']
   ]
 };
-const GEN=Object.assign({},GM,GF);
+const GEN=Object.assign({},GM,GF,GW);
 const MOVES=['Saute comme une grenouille, 5 fois.','Marche comme un gros éléphant.','Vole comme un oiseau : bats des ailes !','Fais la statue : ne bouge plus du tout !','Marche sur la pointe des pieds, comme une petite souris.','Étire-toi comme un chat, tout en haut.','Tape 5 fois dans tes mains.','Tourne doucement sur toi-même, une fois.','Saute sur place comme un kangourou.','Touche ta tête, tes épaules, tes genoux et tes pieds.','Rampe comme un serpent sur le tapis.','Fais le flamant rose : tiens sur une jambe.','Galope comme un petit cheval.','Fais-toi toute petite comme une graine, puis grandis comme une fleur.'];
 const PRAISE=['Bravo !','Super !','Génial !','Oui, c’est ça !','Trop forte !','Bien joué !','Youpi !'];
 
@@ -581,6 +722,7 @@ if(typeof S.wallet!=='number')S.wallet=Object.values(S.stars).reduce((a,b)=>a+b,
 if(!Array.isArray(S.rewards))S.rewards=DEFAULT_REWARDS();
 if(!Array.isArray(S.claimed))S.claimed=[];
 // Nouveaux champs : initialisés ici pour ne pas casser une sauvegarde existante (rappelé après un import).
+const OLD_ORDER=['N1 N17 N2 N18 N3 N19 N4 N20 N5 N6 N7 N21 N8 N22 N9 N10 N23 N11 N12 N24 N25 N13 N26 N27 N14 N28 N15 N16'.split(' '),'L1 L2 L13 L3 L14 L15 L4 L5 L6 L16 L7 L17 L8 L9 L10 L18 L11 L19 L20 L21 L12'.split(' ')];   // ordre des missions avant l'ajout du programme de maternelle
 function ensureFields(){
   if(typeof S.pin!=='string')S.pin='';
   if(typeof S.lastExport!=='string')S.lastExport='';
@@ -590,7 +732,10 @@ function ensureFields(){
   if(!Array.isArray(S.moveBag))S.moveBag=[];                              // mouvements pas encore tirés
   if(typeof S.lastMove!=='number')S.lastMove=-1;
   if(![5,8,10].includes(S.qCount))S.qCount=5;                              // questions par mission
-  if(typeof S.autoRead!=='boolean')S.autoRead=true;                        // lire les questions toute seule
+  if(typeof S.autoRead!=='boolean')S.autoRead=true;
+  // Carte agrandie : la mission qui était « à faire » avant l'ajout de nouvelles missions reste ouverte.
+  if(!S.open||typeof S.open!=='object')S.open={};
+  if(S.mapV!==2){for(const o of OLD_ORDER){let last=-1;o.forEach((id,i)=>{if((S.stars[id]||0)>=1)last=i;});if(o[last+1])S.open[o[last+1]]=true;}S.mapV=2;}                        // lire les questions toute seule
 }
 ensureFields();
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -615,7 +760,7 @@ function parseBackup(text){
 function cleanState(d){
   const int=(v,a,b,def)=>Number.isFinite(+v)&&v!==null&&v!==''?clamp(Math.round(+v),a,b):def;
   const str=(v,n,def)=>typeof v==='string'&&v.trim()?v.trim().slice(0,n):def;
-  const ids=new Set([...LEVELS.maths,...LEVELS.fr].map(l=>l[0]));
+  const ids=new Set(Object.values(LEVELS).flat().map(l=>l[0]));
   const o={stars:{},crayon:{},crayonN:0,missions:int(d.missions,0,1e6,0),unlockAll:d.unlockAll===true,wallet:int(d.wallet,0,99999,0),rewards:[],claimed:[],pin:''};
   for(const k of Object.keys(d.stars))if(ids.has(k)){const s=int(d.stars[k],0,3,0);if(s)o.stars[k]=s;}
   if(d.crayon&&typeof d.crayon==='object')for(const k of Object.keys(d.crayon))if(ids.has(k)&&d.crayon[k]===true)o.crayon[k]=true;
@@ -626,6 +771,8 @@ function cleanState(d){
   o.pin=typeof d.pin==='string'&&/^\d{4}$/.test(d.pin)?d.pin:S.pin;
   o.limitMin=int(d.limitMin,0,240,S.limitMin);
   o.qCount=[5,8,10].includes(+d.qCount)?+d.qCount:S.qCount;
+  o.open={};if(d.open&&typeof d.open==='object')for(const k of Object.keys(d.open))if(ids.has(k)&&d.open[k]===true)o.open[k]=true;
+  if(d.mapV===2)o.mapV=2;
   o.autoRead=d.autoRead!==false;
   return o;
 }
@@ -658,11 +805,11 @@ const pencilSvg='<svg viewBox="0 0 24 24" width="28" height="28" aria-hidden="tr
 const $=s=>document.querySelector(s);
 const view=()=>document.getElementById('view');
 const lvls=t=>LEVELS[t].map(([id,stage,title,crayon,emo],i)=>({id,stage,title,crayon,emo,i,track:t}));
-const findLvl=id=>[...lvls('maths'),...lvls('fr')].find(l=>l.id===id);
+const findLvl=id=>Object.keys(LEVELS).flatMap(lvls).find(l=>l.id===id);
 // Une mission s'ouvre quand la précédente a au moins 1 étoile. Tout ce qui se trouve avant la mission réussie
 // la plus avancée reste ouvert : ajouter de nouvelles missions au milieu ne reverrouille donc rien.
 const lastDone=t=>{let m=-1;lvls(t).forEach(l=>{if((S.stars[l.id]||0)>=1)m=l.i;});return m;};
-const unlocked=l=>S.unlockAll||l.i===0||l.i<=lastDone(l.track)||(S.stars[lvls(l.track)[l.i-1].id]||0)>=1;
+const unlocked=l=>S.unlockAll||l.i===0||!!S.open[l.id]||l.i<=lastDone(l.track)||(S.stars[lvls(l.track)[l.i-1].id]||0)>=1;
 const QN=()=>S.qCount||5;
 // Mission surprise : un mélange de questions tirées des missions déjà réussies de la matière.
 const MIX_MIN=3;
@@ -678,6 +825,7 @@ function renderHome(){
   <div class="tabs" role="tablist">
     <button class="tab sticker maths" role="tab" aria-selected="${track==='maths'}" data-track="maths"><span class="ic">123</span>Nombres</button>
     <button class="tab sticker fr" role="tab" aria-selected="${track==='fr'}" data-track="fr"><span class="ic">Aa</span>Lettres</button>
+    <button class="tab sticker monde" role="tab" aria-selected="${track==='monde'}" data-track="monde"><span class="ic">🌍</span>Le monde</button>
   </div>
   <p class="intro">Choisis une mission : ${QN()} questions écoutées, puis un défi dessin. Gagne au moins 1 étoile pour ouvrir la suivante.</p>`;
   if(mixPool(track).length>=MIX_MIN)html+=`<button class="mix sticker" id="mixBtn"><span class="mixic" aria-hidden="true">🎲</span><span><b>Mission surprise</b><small>Un mélange de ce que tu sais déjà faire</small></span></button>`;
@@ -893,7 +1041,7 @@ function renderParent(){
   const crayons=S.crayonN||Object.values(S.crayon).filter(Boolean).length;
   const opts=sel=>ICONS.map(i=>`<option ${i===sel?'selected':''}>${i}</option>`).join('');
   view().innerHTML=`<div class="parent sticker"><h2>Espace parent</h2>
-    <div class="stats"><div class="stat"><b>${S.missions}</b>missions jouées</div><div class="stat"><b>${count('maths')}/${max('maths')}</b>étoiles en nombres</div><div class="stat"><b>${count('fr')}/${max('fr')}</b>étoiles en lettres</div><div class="stat"><b>${crayons}</b>défis dessin validés</div></div>
+    <div class="stats"><div class="stat"><b>${S.missions}</b>missions jouées</div><div class="stat"><b>${count('maths')}/${max('maths')}</b>étoiles en nombres</div><div class="stat"><b>${count('fr')}/${max('fr')}</b>étoiles en lettres</div><div class="stat"><b>${count('monde')}/${max('monde')}</b>étoiles dans Le monde</div><div class="stat"><b>${crayons}</b>défis dessin validés</div></div>
     <h3>Récompenses</h3>
     <p class="hint2">Choisis ce qu’elle peut gagner et combien d’étoiles ça coûte. Une mission rapporte 0 à 3 étoiles, un défi dessin 1 étoile. Les changements sont enregistrés tout de suite.</p>
     ${S.rewards.length?`<div class="rhead"><span>Image</span><span>Récompense</span><span>Étoiles</span><span></span></div>`:''}
@@ -958,7 +1106,7 @@ function renderParent(){
   $('#limSel').onchange=e=>{S.limitMin=parseInt(e.target.value,10)||0;save();renderParent();};
   if(S.limitMin){$('#addT').onclick=()=>{usage().bonus+=10;save();renderParent();};$('#rstT').onclick=()=>{const u=usage();u.sec=0;u.bonus=0;save();renderParent();};}
   $('#unl').onclick=()=>{S.unlockAll=!S.unlockAll;save();renderParent();};
-  $('#rst').onclick=e=>{if(!resetArmed){resetArmed=true;e.target.textContent='Sûr ? Touche encore pour tout effacer';e.target.style.background='var(--bad-soft)';return;}S={stars:{},crayon:{},crayonN:0,missions:0,unlockAll:false,wallet:0,rewards:S.rewards,claimed:[],pin:S.pin,lastExport:S.lastExport,limitMin:S.limitMin,qCount:S.qCount,autoRead:S.autoRead,usage:S.usage,moveBag:S.moveBag,lastMove:S.lastMove};save();renderParent();};
+  $('#rst').onclick=e=>{if(!resetArmed){resetArmed=true;e.target.textContent='Sûr ? Touche encore pour tout effacer';e.target.style.background='var(--bad-soft)';return;}S={stars:{},crayon:{},crayonN:0,open:{},mapV:2,missions:0,unlockAll:false,wallet:0,rewards:S.rewards,claimed:[],pin:S.pin,lastExport:S.lastExport,limitMin:S.limitMin,qCount:S.qCount,autoRead:S.autoRead,usage:S.usage,moveBag:S.moveBag,lastMove:S.lastMove};save();renderParent();};
   $('#back').onclick=renderHome;
   bindBackup();
 }
