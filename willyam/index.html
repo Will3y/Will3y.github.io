@@ -318,8 +318,9 @@ mark{background:var(--accent-soft);color:inherit;border-bottom:4px solid var(--a
 .bwhy{display:flex;flex-wrap:wrap;gap:8px}
 .bwhy .btn[aria-pressed="true"]{background:var(--star)}
 .bamt .btn{min-width:66px;background:var(--star-soft)}
+.bamt.minus .btn{background:var(--bad-soft)}
 .hist .bn{font-family:var(--display);font-weight:700;white-space:nowrap}
-#bOther{font:inherit;font-size:18px;border:3px solid var(--ink);border-radius:12px;padding:8px 10px;width:100%;background:var(--paper);color:var(--ink)}
+#bOther,#mOther{font:inherit;font-size:18px;border:3px solid var(--ink);border-radius:12px;padding:8px 10px;width:100%;background:var(--paper);color:var(--ink)}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
@@ -1525,7 +1526,7 @@ function cleanState(d){
   o.qCount=[5,8,10].includes(+d.qCount)?+d.qCount:S.qCount;
   o.open={};if(d.open&&typeof d.open==='object')for(const k of Object.keys(d.open))if(ids.has(k)&&d.open[k]===true)o.open[k]=true;
   if(d.mapV===2)o.mapV=2;
-  o.bonus=Array.isArray(d.bonus)?d.bonus.filter(b=>b&&typeof b==='object').slice(0,100).map(b=>({n:int(b.n,1,99,1),why:str(b.why,40,'Bonus'),date:isNaN(Date.parse(b.date))?new Date().toISOString():b.date})):[];
+  o.bonus=Array.isArray(d.bonus)?d.bonus.filter(b=>b&&typeof b==='object').slice(0,100).map(b=>({n:int(b.n,-99,99,1),why:str(b.why,40,'Bonus'),date:isNaN(Date.parse(b.date))?new Date().toISOString():b.date})).filter(b=>b.n!==0):[];
   return o;
 }
 let track='maths',M=null,sessionCount=0,lastPause=0,resetArmed=false,curView='home';
@@ -1744,29 +1745,38 @@ function renderTimeUp(){
   showBonus();
 }
 
-/* ---------- Étoiles bonus (données par un adulte) ---------- */
-// Pour récompenser ce qui se passe hors du jeu : un bon comportement, un coup de main, un effort.
-const BONUS_WHY=['Bon comportement','A aidé à la maison','Devoirs faits','Gentil avec sa sœur','Bel effort','Autre…'];
-function giveBonus(n,why){S.wallet+=n;S.bonus.unshift({n,why,date:new Date().toISOString()});S.bonus=S.bonus.slice(0,100);S.bonusNew.push({n,why});save();}
+/* ---------- Étoiles bonus et retraits (par un adulte) ---------- */
+// Pour récompenser ce qui se passe hors du jeu (bon comportement, coup de main, effort), ou retirer des étoiles si besoin.
+// Un retrait est un bonus négatif : même historique, même « Annuler ». La tirelire ne descend jamais sous zéro.
+const BONUS_WHY=['Bon comportement','A aidé à la maison','Devoirs faits','Gentil avec sa sœur','Bel effort','Autre…'],MALUS_WHY=['Règle non respectée','N’a pas écouté','Dispute avec sa sœur','Autre…'];
+const bonusTot=()=>S.bonus.reduce((a,b)=>a+Math.max(0,b.n),0);
+const sgn=n=>(n>0?'+':'−')+Math.abs(n);
+// Renvoie le nombre d'étoiles vraiment ajoutées ou retirées (0 si la tirelire est déjà vide).
+function giveBonus(n,why){if(n<0)n=-Math.min(-n,S.wallet);if(!n)return 0;S.wallet+=n;S.bonus.unshift({n,why,date:new Date().toISOString()});S.bonus=S.bonus.slice(0,100);S.bonusNew.push({n,why});save();return n;}
 function undoBonus(){const b=S.bonus.shift();if(!b)return;S.wallet=Math.max(0,S.wallet-b.n);const i=S.bonusNew.map(x=>x.n+'|'+x.why).lastIndexOf(b.n+'|'+b.why);if(i>=0)S.bonusNew.splice(i,1);save();}
-function bonusList(n){return `<ul class="hist">${S.bonus.slice(0,n).map(b=>`<li><span class="bn">+${b.n} ★</span>${esc(b.why)}<time>${new Date(b.date).toLocaleDateString('fr-FR',{day:'numeric',month:'short'})}</time></li>`).join('')}</ul>`;}
-// Message « Bravo ! » montré à l'enfant quand il revient sur la carte. Il reste affiché tant qu'il n'a pas été vu.
+function bonusList(n){return `<ul class="hist">${S.bonus.slice(0,n).map(b=>`<li><span class="bn">${sgn(b.n)} ★</span>${esc(b.why)}<time>${new Date(b.date).toLocaleDateString('fr-FR',{day:'numeric',month:'short'})}</time></li>`).join('')}</ul>`;}
+// Message montré à l'enfant quand il revient sur la carte : d'abord les « Bravo ! », puis les retraits, sur un ton calme.
+// Il reste affiché tant qu'il n'a pas été vu.
 function showBonus(){
   if(!S.bonusNew.length||document.querySelector('#layer .overlay'))return;
-  const list=S.bonusNew.slice(-4),tot=S.bonusNew.reduce((a,b)=>a+b.n,0),layer=document.getElementById('layer');
-  layer.innerHTML=`<div class="overlay" role="dialog" aria-modal="true" aria-labelledby="bt"><div class="pause sticker"><div class="wallet" aria-label="${tot} étoiles bonus">${starSvg(true)}+${tot}</div><h2 id="bt">Bravo, Willyam !</h2>${list.map(b=>`<p class="mv">+${b.n} ★ : ${esc(b.why)}</p>`).join('')}<p class="hint2">Tu as ${S.wallet} ★ dans ta tirelire.</p><button class="btn go" id="bok">Super !</button></div></div>`;
-  confetti();
-  const b=document.getElementById('bok');b.focus();b.onclick=()=>{S.bonusNew=[];save();layer.innerHTML='';};
+  const pos=S.bonusNew.filter(b=>b.n>0),neg=S.bonusNew.filter(b=>b.n<0),good=pos.length>0,all=good?pos:neg,list=all.slice(-4),tot=all.reduce((a,b)=>a+b.n,0),layer=document.getElementById('layer');
+  layer.innerHTML=`<div class="overlay" role="dialog" aria-modal="true" aria-labelledby="bt"><div class="pause sticker"><div class="wallet" aria-label="${Math.abs(tot)} étoiles ${good?'bonus':'en moins'}">${starSvg(good)}${sgn(tot)}</div><h2 id="bt">${good?'Bravo, Willyam !':'Des étoiles en moins'}</h2>${list.map(b=>`<p class="mv">${sgn(b.n)} ★ : ${esc(b.why)}</p>`).join('')}<p class="hint2">Tu as ${S.wallet} ★ dans ta tirelire.${good?'':' Tu peux en regagner avec tes missions.'}</p><button class="btn go" id="bok">${good?'Super !':'D’accord'}</button></div></div>`;
+  if(good)confetti();
+  const b=document.getElementById('bok');b.focus();b.onclick=()=>{S.bonusNew=good?neg:[];save();layer.innerHTML='';showBonus();};
 }
 function bindBonus(){
-  let why=BONUS_WHY[0];const chips=view().querySelectorAll('#bWhy button'),other=$('#bOther'),msg=$('#bMsg');
-  const redraw=()=>{$('#wVal').textContent=S.wallet;$('#bTot').textContent=S.bonus.reduce((a,b)=>a+b.n,0);$('#bLog').innerHTML=S.bonus.length?`<h3>Étoiles bonus données</h3>${bonusList(8)}`:'';};
-  chips.forEach(ch=>ch.onclick=()=>{why=ch.dataset.w;chips.forEach(x=>x.setAttribute('aria-pressed',x===ch));other.hidden=why!=='Autre…';if(!other.hidden)other.focus();});
-  view().querySelectorAll('#bAmt button').forEach(bt=>bt.onclick=()=>{
-    const n=+bt.dataset.n,w=why==='Autre…'?(other.value.trim().slice(0,40)||'Bonus'):why;giveBonus(n,w);redraw();
-    msg.innerHTML=`<b>+${n} ★</b> pour : ${esc(w)}. Tirelire : ${S.wallet} ★. <button class="linkbtn" id="bUndo">Annuler</button>`;
-    $('#bUndo').onclick=()=>{undoBonus();redraw();msg.textContent='Bonus annulé.';};
-  });
+  let lastMsg=null;
+  const redraw=()=>{$('#wVal').textContent=S.wallet;$('#bTot').textContent=bonusTot();$('#bLog').innerHTML=S.bonus.length?`<h3>Étoiles ajoutées ou retirées</h3>${bonusList(8)}`:'';};
+  const group=(pre,list,sign)=>{let why=list[0];const chips=view().querySelectorAll(`#${pre}Why button`),other=$(`#${pre}Other`),msg=$(`#${pre}Msg`);
+    chips.forEach(ch=>ch.onclick=()=>{why=ch.dataset.w;chips.forEach(x=>x.setAttribute('aria-pressed',x===ch));other.hidden=why!=='Autre…';if(!other.hidden)other.focus();});
+    view().querySelectorAll(`#${pre}Amt button`).forEach(bt=>bt.onclick=()=>{
+      const w=why==='Autre…'?(other.value.trim().slice(0,40)||(sign>0?'Bonus':'Retrait')):why,n=giveBonus(sign*+bt.dataset.n,w);redraw();
+      if(lastMsg&&lastMsg!==msg)lastMsg.textContent='';lastMsg=msg;       // un seul « Annuler » à la fois : celui du dernier geste
+      if(!n){msg.textContent='La tirelire est vide : il n’y a rien à retirer.';return;}
+      msg.innerHTML=`<b>${sgn(n)} ★</b> pour : ${esc(w)}. Tirelire : ${S.wallet} ★. <button class="linkbtn">Annuler</button>`;
+      msg.querySelector('button').onclick=()=>{undoBonus();redraw();msg.textContent=sign>0?'Bonus annulé.':'Retrait annulé.';};
+    });};
+  group('b',BONUS_WHY,1);group('m',MALUS_WHY,-1);
 }
 
 /* ---------- Récompenses ---------- */
@@ -1824,7 +1834,7 @@ function renderParent(){
   const crayons=S.crayonN||Object.values(S.crayon).filter(Boolean).length;
   const opts=sel=>ICONS.map(i=>`<option ${i===sel?'selected':''}>${i}</option>`).join('');
   view().innerHTML=`<div class="parent sticker"><h2>Espace parent</h2>
-    <div class="stats"><div class="stat"><b>${S.missions}</b>missions jouées</div><div class="stat"><b>${count('maths')}/${max('maths')}</b>étoiles en maths</div><div class="stat"><b>${count('fr')}/${max('fr')}</b>étoiles en français</div><div class="stat"><b>${count('en')}/${max('en')}</b>étoiles en anglais</div><div class="stat"><b>${count('logique')}/${max('logique')}</b>étoiles en logique</div><div class="stat"><b>${crayons}</b>défis crayon validés</div><div class="stat"><b id="bTot">${S.bonus.reduce((a,b)=>a+b.n,0)}</b>étoiles bonus données</div></div>
+    <div class="stats"><div class="stat"><b>${S.missions}</b>missions jouées</div><div class="stat"><b>${count('maths')}/${max('maths')}</b>étoiles en maths</div><div class="stat"><b>${count('fr')}/${max('fr')}</b>étoiles en français</div><div class="stat"><b>${count('en')}/${max('en')}</b>étoiles en anglais</div><div class="stat"><b>${count('logique')}/${max('logique')}</b>étoiles en logique</div><div class="stat"><b>${crayons}</b>défis crayon validés</div><div class="stat"><b id="bTot">${bonusTot()}</b>étoiles bonus données</div></div>
     <h3>Récompenses</h3>
     <p class="hint2">Choisis ce qu’il peut gagner et combien d’étoiles ça coûte. Une mission rapporte 0 à 3 étoiles, un défi crayon 1 étoile. Les changements sont enregistrés tout de suite.</p>
     ${S.rewards.length?`<div class="rhead"><span>Image</span><span>Récompense</span><span>Étoiles</span><span></span></div>`:''}
@@ -1836,9 +1846,15 @@ function renderParent(){
     <input id="bOther" maxlength="40" placeholder="Écris le motif" aria-label="Autre motif" hidden>
     <div class="row bamt" id="bAmt">${[1,2,3,5].map(n=>`<button class="btn small" data-n="${n}" aria-label="Donner ${n} étoile${n>1?'s':''} bonus">+${n} ★</button>`).join('')}</div>
     <p class="hint2" id="bMsg" aria-live="polite"></p>
+    <h3>Retirer des étoiles</h3>
+    <p class="hint2">Si besoin, après un moment difficile. Choisis le motif, puis touche le nombre d’étoiles. Il verra un message calme, sans reproche, avec le motif. La tirelire ne descend jamais sous zéro.</p>
+    <div class="bwhy" id="mWhy">${MALUS_WHY.map((w,k)=>`<button class="btn small" data-w="${esc(w)}" aria-pressed="${k===0}">${esc(w)}</button>`).join('')}</div>
+    <input id="mOther" maxlength="40" placeholder="Écris le motif" aria-label="Autre motif" hidden>
+    <div class="row bamt minus" id="mAmt">${[1,2,3,5].map(n=>`<button class="btn small" data-n="${n}" aria-label="Retirer ${n} étoile${n>1?'s':''}">−${n} ★</button>`).join('')}</div>
+    <p class="hint2" id="mMsg" aria-live="polite"></p>
     <h3>Tirelire</h3>
     <div class="walletrow"><button class="btn small" id="wMinus" aria-label="Retirer une étoile">−1</button><b id="wVal">${S.wallet}</b><button class="btn small" id="wPlus" aria-label="Ajouter une étoile">+1</button><span class="hint2">étoiles à dépenser. Ces deux boutons servent seulement à corriger une erreur.</span></div>
-    <div id="bLog" style="display:grid;gap:8px">${S.bonus.length?`<h3>Étoiles bonus données</h3>${bonusList(8)}`:''}</div>
+    <div id="bLog" style="display:grid;gap:8px">${S.bonus.length?`<h3>Étoiles ajoutées ou retirées</h3>${bonusList(8)}`:''}</div>
     ${S.claimed.length?`<h3>Récompenses obtenues</h3>${histList(10)}`:''}
     <h3>Temps de jeu</h3>
     <p class="hint2">Limite par jour. Quand le temps est fini, il termine sa mission en cours, puis le jeu s’arrête jusqu’au lendemain. Seul le temps passé dans les exercices compte : la carte, les récompenses, la pause bouge et l’espace parent ne comptent pas.</p>
@@ -1871,7 +1887,7 @@ function renderParent(){
     <li>La mission surprise 🎲 apparaît dès que 3 missions sont réussies dans une matière. Elle mélange des questions déjà vues : c’est la révision.</li>
     <li>Chaque partie remplit la tirelire, même quand il rejoue une mission. S’il gagne trop vite, augmente simplement le prix des récompenses.</li>
     <li>Le parcours Logique ne suit pas les classes : Apprenti, Détective, Génie. Il monte bien plus haut que le CE2. Tout y est dessiné et la question reste à l’écran : il peut prendre son temps. Après une erreur, un petit coup de pouce lui dit où regarder.</li>
-    <li>Les étoiles bonus récompensent ce qui se passe hors du jeu : un bon comportement, un coup de main, un effort. Elles vont dans la même tirelire que les étoiles des missions.</li>
+    <li>Les étoiles bonus récompensent ce qui se passe hors du jeu : un bon comportement, un coup de main, un effort. Elles vont dans la même tirelire que les étoiles des missions. On peut aussi en retirer, juste en dessous, avec un motif.</li>
     <li>Sur iPhone : ouvre la page dans Safari, touche Partager, puis « Sur l’écran d’accueil ». L’icône marche ensuite sans Internet. Attention : elle a sa propre mémoire, séparée de Safari. Si des étoiles ont déjà été gagnées dans Safari, exporte-les puis importe-les dans l’icône.</li></ul>
     <p class="score">La progression est gardée sur cet appareil, dans ce navigateur. « Remettre à zéro » efface les étoiles et la tirelire, mais garde tes récompenses et ton code.</p>
     <div class="row"><button class="btn small" id="unl">${S.unlockAll?'Reverrouiller la progression':'Débloquer toutes les missions'}</button><button class="btn small" id="rst">Remettre à zéro</button></div>
