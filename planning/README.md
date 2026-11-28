@@ -10,6 +10,7 @@ En un seul fichier : `index.html`.
 - Une tâche peut revenir un jour sur deux, pour les tours de rôle (un jour Willyam met la table et Hailey débarrasse, le lendemain l'inverse).
 - Une tâche peut être verrouillée (cadenas) : elle ne se coche pas tant que les tâches placées avant elle ne sont pas faites. Par défaut, l'histoire du soir.
 - Des alertes à heure fixe (départ à l'école à 8 h 20, avec un rappel 5 minutes avant) : grand message, sonnerie et lecture à voix haute. Elles ne sonnent que si le planning est affiché, écran allumé.
+- Mode nuit (avec « Écran toujours allumé ») : de 21 h à 6 h 30 par défaut, le planning devient tout noir et revient tout seul le matin ; toucher l'écran l'affiche 3 minutes. Autre choix : laisser la tablette se mettre en veille la nuit (à rallumer à la main le matin).
 - Tout repart de zéro chaque jour. L'historique des 7 derniers jours est dans l'espace parent.
 - Sur la tablette : Chrome → ⋮ → « Ajouter à l'écran d'accueil ». L'icône marche ensuite sans Internet (grâce à `sw.js`).
 

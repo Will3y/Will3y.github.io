@@ -142,7 +142,11 @@ input,select,textarea{font:inherit;font-size:18px;border:3px solid var(--ink);bo
 .aedit .adel{width:42px;height:42px;padding:0}
 .aedit .atry{white-space:nowrap}
 .pinrow input{width:120px;letter-spacing:.3em}
-.pinrow select{width:auto}
+.pinrow select{width:auto;max-width:100%}
+/* Mode nuit : tout l'écran en noir, avec l'heure en très sombre. Passe sous les alertes, qui restent visibles. */
+.night{position:fixed;inset:0;z-index:35;width:100%;border:0;padding:0;background:#000;display:grid;place-items:center}
+.night span{display:block;text-align:center;font-family:var(--display);font-weight:700;font-size:clamp(44px,12vw,96px);line-height:1.1;color:#333;font-variant-numeric:tabular-nums}
+.night small{display:block;font-family:var(--body);font-weight:400;font-size:16px;color:#2b2b2b;margin-top:10px}
 table{border-collapse:collapse;width:100%;font-size:16px}
 th,td{padding:6px 8px;text-align:center;border-bottom:2px solid #d8dee6;font-variant-numeric:tabular-nums}
 th:first-child,td:first-child{text-align:left}
@@ -187,6 +191,7 @@ td.fullc{color:var(--ok);font-weight:700}
 <main class="wrap" id="view"></main>
 <div id="layer"></div>
 <div id="alarm"></div>
+<div id="night"></div>
 <script>
 /* ---------- Outils ---------- */
 const $=s=>document.querySelector(s);
@@ -218,7 +223,7 @@ const E=(icon,name)=>Object.assign(T(icon,name),{school:true});
 const ALL=[true,true,true,true,true,true,true],SCHOOL=[true,true,false,true,true,false,false];
 // Alertes : une heure (en minutes depuis minuit), des jours, et un rappel facultatif quelques minutes avant. Communes aux deux enfants.
 const LEADS=[0,5,10,15];
-function defaults(){return {v:1,cut:[720,1110],pin:'',awake:false,lastExport:'',log:{},school:SCHOOL.slice(),holiday:false,alerts:[{id:uid(),t:500,icon:'🚌',name:'Départ à l’école',lead:5,days:SCHOOL.slice(),school:true}],kids:{
+function defaults(){return {v:1,cut:[720,1110],pin:'',awake:false,night:{mode:'black',from:1260,to:390},lastExport:'',log:{},school:SCHOOL.slice(),holiday:false,alerts:[{id:uid(),t:500,icon:'🚌',name:'Départ à l’école',lead:5,days:SCHOOL.slice(),school:true}],kids:{
   w:{name:'Willyam',avatar:'🧒',routines:{
     matin:{days:ALL.slice(),tasks:[E('🛏️','Je fais mon lit'),T('🥣','Je prends mon petit-déjeuner'),E('👕','Je m’habille'),T('🪥','Je me brosse les dents'),E('🎒','Je prépare mon cartable'),E('👟','Je mets mes chaussures')]},
     ecole:{days:SCHOOL.slice(),tasks:[T('🧼','Je me lave les mains'),T('🍎','Je prends mon goûter'),T('🎒','Je vide mon cartable'),T('📚','Je fais mes devoirs'),T('🧸','Je range mes affaires')]},
@@ -230,8 +235,10 @@ function defaults(){return {v:1,cut:[720,1110],pin:'',awake:false,lastExport:'',
 
 const STORE='planning-famille-v1';
 // Remet un état lu (mémoire de l'appareil ou sauvegarde importée) dans une forme sûre : tout ce qui manque reprend la valeur par défaut.
+// La nuit, avec « Écran toujours allumé » : écran noir (black), veille normale de la tablette (off), ou rien de spécial (none).
+const NIGHT_MODES=['black','off','none'];
 function clean(d){
-  const def=defaults(),o={v:1,cut:def.cut.slice(),pin:'',awake:false,lastExport:'',log:{},school:def.school,holiday:false,alerts:def.alerts,kids:{}};
+  const def=defaults(),o={v:1,cut:def.cut.slice(),pin:'',awake:false,night:def.night,lastExport:'',log:{},school:def.school,holiday:false,alerts:def.alerts,kids:{}};
   if(!d||typeof d!=='object')return def;
   // Planning enregistré avant l'arrivée des « jours d'école » : les jours d'école sont ceux où la routine d'après l'école
   // s'affichait, et on marque une fois pour toutes le départ à l'école et, le matin, les tâches de départ qui servent à partir.
@@ -244,6 +251,7 @@ function clean(d){
   if(Array.isArray(d.cut)){o.cut[0]=int(d.cut[0],600,960,720);o.cut[1]=int(d.cut[1],o.cut[0]+60,1320,Math.max(1110,o.cut[0]+60));}
   o.pin=typeof d.pin==='string'&&/^\d{4}$/.test(d.pin)?d.pin:'';
   o.awake=d.awake===true;o.lastExport=typeof d.lastExport==='string'?d.lastExport:'';
+  if(d.night&&typeof d.night==='object')o.night={mode:NIGHT_MODES.includes(d.night.mode)?d.night.mode:'black',from:int(d.night.from,1080,1410,1260),to:int(d.night.to,240,600,390)};
   // Pas de liste d'alertes (planning enregistré avant leur arrivée) : on garde celle de départ. Une liste vide reste vide.
   if(Array.isArray(d.alerts)){const seen=new Set();o.alerts=d.alerts.filter(a=>a&&typeof a==='object').slice(0,10).map(a=>{let id=str(a.id,24,uid());if(seen.has(id))id=uid();seen.add(id);
     return {id,t:int(a.t,0,1439,480),icon:str(a.icon,8,'⏰'),name:str(a.name,40,'Alerte'),lead:LEADS.includes(a.lead)?a.lead:0,days:Array.from({length:7},(_,i)=>Array.isArray(a.days)?a.days[i]===true:true),school:a.school===true||(old&&a.name==='Départ à l’école')};});}
@@ -344,6 +352,7 @@ function renderHome(){
   <div id="next">${nextHtml()}</div>
   <div class="switch">${KIDS.map(k=>`<button class="btn" data-kid="${k}" data-show="${k}" aria-pressed="${document.body.dataset.show===k}">${esc(S.kids[k].avatar)} ${esc(S.kids[k].name)}</button>`).join('')}</div>
   <div class="kids">${KIDS.map(kidHtml).join('')}</div>`;
+  nightCheck();
   $('#gear').onclick=()=>askPin(renderParent);
   $('#dayType').onclick=()=>askPin(dayDialog,'Code parent');
   document.querySelectorAll('.switch .btn').forEach(b=>b.onclick=()=>{document.body.dataset.show=b.dataset.show;renderHome();});
@@ -374,7 +383,7 @@ function confetti(box){
 }
 // Heure affichée, changement de routine et passage à minuit : vérifiés toutes les 20 secondes et au retour sur la page.
 function tick(){
-  checkAlerts();
+  checkAlerts();wake();nightCheck();
   if(view!=='home'||document.querySelector('#layer .overlay'))return;
   if(stamp()!==lastStamp){renderHome();return;}
   const c=$('#clock');if(c)c.textContent=hhmm(nowMin());
@@ -448,7 +457,7 @@ function askPin(fn,title){
 /* ---------- Espace parent ---------- */
 let resetArmed='';
 function renderParent(){
-  view='parent';resetArmed='';const kid=parentKid,K=S.kids[kid];
+  view='parent';resetArmed='';nightCheck();const kid=parentKid,K=S.kids[kid];
   const opts=sel=>[...new Set([sel,...ICONS])].map(i=>`<option ${i===sel?'selected':''}>${esc(i)}</option>`).join('');
   const tA=dayAlt(),tB=tA==='a'?'b':'a';   // « aujourd'hui » et « demain », traduits en jours a / b
   const freq=alt=>`<option value="" ${!alt?'selected':''}>Tous les jours</option><option value="${tA}" ${alt===tA?'selected':''}>1 jour sur 2 : aujourd’hui</option><option value="${tB}" ${alt===tB?'selected':''}>1 jour sur 2 : demain</option>`;
@@ -487,6 +496,10 @@ function renderParent(){
     <h3>Écran</h3>
     <p class="hint">Pour laisser la tablette posée comme un tableau : l’écran reste allumé tant que le planning est affiché. Ne marche pas sur tous les appareils, et consomme de la batterie.</p>
     <div class="row"><button class="btn small" id="awake">${S.awake?'Écran toujours allumé : activé ✓':'Écran toujours allumé : désactivé'}</button></div>
+    ${S.awake?`<div class="row pinrow"><span>La nuit, de</span><select id="nFrom" aria-label="Début de la nuit">${times(1080,1410,S.night.from)}</select><span>à</span><select id="nTo" aria-label="Fin de la nuit">${times(240,600,S.night.to)}</select></div>
+    <div class="row"><select id="nMode" aria-label="Écran pendant la nuit">${[['black','Écran noir, qui revient tout seul le matin'],['off','Écran éteint par la tablette, à rallumer à la main le matin'],['none','Rien : allumé jour et nuit']].map(([v,t])=>`<option value="${v}" ${S.night.mode===v?'selected':''}>${t}</option>`).join('')}</select></div>
+    <p class="hint"><b>Écran noir</b> : la nuit, le planning devient tout noir, avec l’heure en très sombre, et il revient tout seul le matin. Toucher l’écran l’affiche pendant 3 minutes. L’écran n’est pas vraiment éteint (une page web ne peut ni éteindre ni rallumer une tablette) : pour qu’il éclaire le moins possible, active la luminosité automatique dans les réglages de la tablette.</p>
+    <p class="hint"><b>Écran éteint par la tablette</b> : la nuit, le planning laisse la tablette se mettre en veille comme d’habitude. C’est vraiment éteint, mais il faut appuyer sur le bouton de la tablette le matin, et les alertes ne sonnent pas tant que l’écran est éteint.</p>`:''}
     <h3>Code parent</h3>
     <p class="hint">${S.pin?'Le code protège cet espace.':'Optionnel : avec un code à 4 chiffres, les enfants ne peuvent plus ouvrir cet espace.'}</p>
     <div class="row pinrow"><input id="pinIn" type="password" inputmode="numeric" maxlength="4" placeholder="••••" aria-label="Nouveau code à 4 chiffres"><button class="btn small" id="pinSave">${S.pin?'Changer le code':'Enregistrer le code'}</button>${S.pin?'<button class="btn small" id="pinDel">Supprimer le code</button>':''}</div>
@@ -546,6 +559,11 @@ function renderParent(){
   // Une nouvelle alerte est posée à la prochaine heure pleine, pour ne pas sonner tout de suite.
   $('#aadd').onclick=()=>{if(S.alerts.length>=10)return;S.alerts.push({id:uid(),t:Math.min(1439,(Math.floor(nowMin()/60)+1)*60),icon:'⏰',name:'Alerte',lead:0,days:ALL.slice()});save();again(true);const ins=document.querySelectorAll('.abox .an'),last=ins[ins.length-1];if(last){last.focus();last.select();}};
   $('#awake').onclick=()=>{S.awake=!S.awake;save();wake();again(true);};
+  if(S.awake){
+    $('#nFrom').onchange=e=>{S.night.from=+e.target.value;save();wake();};
+    $('#nTo').onchange=e=>{S.night.to=+e.target.value;save();wake();};
+    $('#nMode').onchange=e=>{S.night.mode=e.target.value;save();wake();};
+  }
   $('#pinSave').onclick=()=>{const v=$('#pinIn').value.trim();if(!/^\d{4}$/.test(v)){$('#pinMsg').textContent='Le code doit faire exactement 4 chiffres.';return;}S.pin=v;save();again(true);$('#pinMsg').textContent='Code enregistré. Retiens-le bien.';};
   if(S.pin)$('#pinDel').onclick=()=>{S.pin='';save();again(true);$('#pinMsg').textContent='Code supprimé.';};
   $('#expCopy').onclick=async()=>{
@@ -572,11 +590,30 @@ function parseBackup(text){
   return clean(obj.data);
 }
 
+/* ---------- Mode nuit ---------- */
+// Une page web ne peut ni éteindre ni rallumer l'écran. Avec « Écran toujours allumé », elle peut en revanche :
+// - soit afficher du noir la nuit et revenir au planning le matin (l'écran reste allumé, mais n'éclaire presque plus) ;
+// - soit ne plus retenir l'écran la nuit, pour que la tablette se mette en veille toute seule.
+const isNight=()=>{const m=nowMin(),{from,to}=S.night;return from>to?(m>=from||m<to):(m>=from&&m<to);};
+const PEEK=3*60000;        // après un toucher, le planning reste visible 3 minutes
+let lastTouch=0;
+document.addEventListener('pointerdown',()=>{lastTouch=Date.now();},{passive:true});
+function nightCheck(){
+  const box=$('#night'),on=S.awake&&S.night.mode==='black'&&isNight()&&view==='home'&&Date.now()-lastTouch>=PEEK;
+  if(!on){if(box.firstChild)box.innerHTML='';return;}
+  if(!box.firstChild){
+    box.innerHTML='<button class="night" aria-label="Mode nuit. Toucher pour afficher le planning."><span><b id="nclock"></b><small>Touche l’écran pour voir le planning</small></span></button>';
+    box.firstChild.onclick=()=>{lastTouch=Date.now();nightCheck();};
+  }
+  // L'heure change un peu de place à chaque minute, pour ne pas marquer l'écran.
+  const c=$('#nclock'),m=nowMin();c.textContent=hhmm(m);c.parentNode.style.transform=`translate(${(m*37)%61-30}px,${(m*53)%81-40}px)`;
+}
+
 /* ---------- Écran toujours allumé ---------- */
 let lock=null;
 async function wake(){
   try{
-    if(S.awake&&document.visibilityState==='visible'&&'wakeLock' in navigator){if(!lock){lock=await navigator.wakeLock.request('screen');lock.addEventListener('release',()=>{lock=null;});}}
+    if(S.awake&&!(S.night.mode==='off'&&isNight())&&document.visibilityState==='visible'&&'wakeLock' in navigator){if(!lock){lock=await navigator.wakeLock.request('screen');lock.addEventListener('release',()=>{lock=null;});}}
     else if(lock){await lock.release();lock=null;}
   }catch(e){lock=null;}
 }
